@@ -15,10 +15,10 @@ struct ContentView: View {
 
   var body: some View {
       TabView {
-          Tab("Orders", systemImage: "calendar") {
+          Tab("Orders", systemImage: "tray.full") {
               AllOrdersView()
           }
-          Tab("Active", systemImage: "tray.full"){
+          Tab("Active", systemImage: "calendar"){
               ActiveOrdersView()
           }
           Tab("Analytics", systemImage: "chart.bar"){
