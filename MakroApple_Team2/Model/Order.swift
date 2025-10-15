@@ -3,14 +3,21 @@
 //  MakroApple_Team2
 //
 //  Created by Alfred Hans Witono on 13/10/25.
-//
+
 
 import SwiftUI
 
 struct Order: Identifiable {
-    let id = UUID()
-    let customerName: String
-    let date: Date
-    let items: [String]
-    let total: Double
+    var id: Int
+    var customer_order_name: String
+    var customer_order_phone: Int
+    var productName: String
+    var orderDate: Date
+    var orderStatus: String
+    
+    var formattedDate: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "dd MMM yyyy, HH:mm"
+        return formatter.string(from: orderDate)
+    }
 }
