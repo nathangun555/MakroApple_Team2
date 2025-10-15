@@ -14,7 +14,7 @@ struct Order: Identifiable {
     var productName: [String]
     var orderDate: Date
     var orderStatus: String
-    var total: Int
+    var total: Double
     
     var formattedDate: String {
         let formatter = DateFormatter()
