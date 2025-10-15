@@ -14,7 +14,7 @@ struct OrderDetailView: View {
         let df = DateFormatter()
         df.dateStyle = .medium
         df.timeStyle = .none
-        return df.string(from: order.date)
+        return df.string(from: order.orderDate)
     }
 
     private func currency(_ value: Double) -> String {
@@ -28,7 +28,7 @@ struct OrderDetailView: View {
     var body: some View {
         List {
             Section(header: Text("Customer")) {
-                Text(order.customerName)
+                Text(order.customer_order_name)
             }
 
             Section(header: Text("Date")) {
@@ -36,7 +36,7 @@ struct OrderDetailView: View {
             }
 
             Section(header: Text("Items")) {
-                ForEach(order.items, id: \.self) { item in
+                ForEach(order.productName, id: \.self) { item in
                     Text(item)
                 }
             }
@@ -53,9 +53,11 @@ struct OrderDetailView: View {
 #Preview {
     NavigationStack {
         OrderDetailView(order: Order(
-            customerName: "Jane Stacey",
-            date: Date(),
-            items: ["Strawberry Cheesecake XL"],
+            customer_order_name: "Jane Stacey",
+            customer_order_phone: "08123456789",
+            productName: ["Strawberry Cheesecake XL"],
+            orderDate: Date(),
+            orderStatus: "Active",
             total: 125000
         ))
     }

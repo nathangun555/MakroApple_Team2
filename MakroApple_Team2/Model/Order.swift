@@ -8,12 +8,13 @@
 import SwiftUI
 
 struct Order: Identifiable {
-    var id: Int
+    var id = UUID()
     var customer_order_name: String
-    var customer_order_phone: Int
-    var productName: String
+    var customer_order_phone: String
+    var productName: [String]
     var orderDate: Date
     var orderStatus: String
+    var total: Int
     
     var formattedDate: String {
         let formatter = DateFormatter()

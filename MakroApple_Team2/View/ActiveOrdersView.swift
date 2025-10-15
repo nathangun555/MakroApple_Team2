@@ -17,15 +17,19 @@ struct ActiveOrdersView: View {
     // Dummy order data
     private let sampleOrders: [Order] = [
         Order(
-            customerName: "Jane Stacey",
-            date: Date(),
-            items: ["Strawberry Cheesecake XL"],
+            customer_order_name: "Jane Stacey",
+            customer_order_phone: "08123456789",
+            productName: ["Strawberry Cheesecake XL"],
+            orderDate: Date(),
+            orderStatus: "Active",
             total: 125000
         ),
         Order(
-            customerName: "John Gunawan",
-            date: Calendar.current.date(byAdding: .day, value: 0, to: Date())!,
-            items: ["Burnt Cheesecake S"],
+            customer_order_name: "John Gunawan",
+            customer_order_phone: "08987654321",
+            productName: ["Burnt Cheesecake S"],
+            orderDate: Date(),
+            orderStatus: "Active",
             total: 75000
         )
     ]
@@ -97,7 +101,7 @@ struct ActiveOrdersView: View {
                     .padding(.bottom, 16)
                 
                 ScrollView {
-                    let ordersForSelectedDate = sampleOrders.filter { calendar.isDate($0.date, inSameDayAs: selectedDate) }
+                    let ordersForSelectedDate = sampleOrders.filter { calendar.isDate($0.orderDate, inSameDayAs: selectedDate) }
 
                     if ordersForSelectedDate.isEmpty {
                         Text("Nothing on your agenda")
@@ -111,9 +115,9 @@ struct ActiveOrdersView: View {
                                     OrderDetailView(order: order)
                                 } label: {
                                     VStack(alignment: .leading, spacing: 4) {
-                                        Text(order.customerName)
+                                        Text(order.customer_order_name)
                                             .fontWeight(.semibold)
-                                        Text("Pesanan: \(order.items.joined(separator: ", "))")
+                                        Text("Pesanan: \(order.productName.joined(separator: ", "))")
                                             .font(.subheadline)
                                             .foregroundColor(.secondary)
                                         Text("Total: Rp \(String(order.total))")
