@@ -10,7 +10,6 @@ import SwiftUI
 struct ActiveOrdersView: View {
     @State private var selectedDate: Date = Date()
     @State private var currentMonth: Date = Date()
-    
     private let calendar = Calendar.current
     private let daysOfWeek = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"]
     
