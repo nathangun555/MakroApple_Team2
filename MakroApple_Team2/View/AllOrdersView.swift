@@ -21,9 +21,13 @@ struct AllOrdersView: View {
             
             VStack{
                 
+                Text("Hi, Petito Recipe !")
+                    .font(Font.largeTitle)
+                    .fontWeight(.bold)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding()
+                
                 HStack{
-                    
-                    Spacer()
                     
                     // Card Left
                     VStack(alignment: .leading){
@@ -35,25 +39,10 @@ struct AllOrdersView: View {
                         Spacer()
                     }
                     .padding()
-                    .frame(maxWidth: .infinity, maxHeight: 120)
-                    .background(Color.green.opacity(0.8))
+                    .frame(maxWidth: .infinity, maxHeight: 120, alignment: .leading)
+                    .background(Color.gray.opacity(0.8))
                     .cornerRadius(20)
                     
-                    Spacer()
-                    
-                    // Info Card Right
-                    VStack(alignment: .leading){
-                        Text("Unpaid Orders")
-                        Spacer()
-                        Text("12")
-                            .font(.largeTitle)
-                            .fontWeight(.bold)
-                        Spacer()
-                    }
-                    .padding()
-                    .frame(maxWidth: .infinity, maxHeight: 120)
-                    .background(Color.red.opacity(0.8))
-                    .cornerRadius(20)
                     
                     Spacer()
                 }
@@ -82,7 +71,7 @@ struct AllOrdersView: View {
             // Use line 84 to remove the search bar under navigation title
             //            .searchable(text: $searchText)
             .isSearchable(selectedTab: selectedTab, filter: $searchText)
-            .navigationTitle("Hi, Petito Recipe !")
+//            .navigationTitle("Hi, Petito Recipe !")
             
         }
     }
@@ -102,7 +91,7 @@ struct IsSearchableModifier: ViewModifier {
     func body(content: Content) -> some View {
         if selectedTab == 4 {
             content
-                .searchable(text: $filter)
+                .searchable(text: $filter, prompt: "Cari Nama atau Pesanan")
         }
         else {
             content

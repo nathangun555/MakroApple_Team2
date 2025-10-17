@@ -14,6 +14,8 @@ struct ContentView: View {
     @State private var showNewOrder = false
     @Environment(\.colorScheme) private var scheme
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    
+    @State private var searchText: String = ""
 
     var body: some View {
         
@@ -21,25 +23,27 @@ struct ContentView: View {
             
             NavigationStack {
                 TabView(selection: $selectedTab) {
-                    Tab("Orders", systemImage: "calendar", value: 0) {
+                    Tab("Pesanan", systemImage: "basket.fill", value: 0) {
                         AllOrdersView()
                     }
-                    Tab("Active", systemImage: "tray.full", value: 1) {
+                    Tab("Jadwal", systemImage: "tray.full", value: 1) {
                         ActiveOrdersView()
                     }
-                    Tab("Analytics", systemImage: "chart.bar", value: 2) {
+                    Tab("Analitik", systemImage: "chart.bar", value: 2) {
                         AnalyticsView()
                     }
-                    Tab("Settings", systemImage: "gearshape", value: 3) {
+                    Tab("Pengaturan", systemImage: "gearshape", value: 3) {
                         SettingsView()
                     }
                     if selectedTab == 0 || selectedTab == 4 {
-                        Tab("Search", systemImage: "magnifyingglass", value: 4, role: .search) {
+                        Tab("Cari Nama atau Pesanan", systemImage: "magnifyingglass", value: 4, role: .search) {
                             AllOrdersView()
                         }
                     }
                 }
-                //            .tabBarMinimizeBehavior(.onScrollDown)
+
+                
+//                            .tabBarMinimizeBehavior(.onScrollDown)
                 .tabViewBottomAccessory {
                     if selectedTab == 0 {
                         Button(action: {
@@ -47,9 +51,11 @@ struct ContentView: View {
                         }) {
                             HStack {
                                 Image(systemName: "plus")
-                                Text("Add New Order")
+                                Text("Tambah Pesanan")
                             }
-                            .frame(width: geometry.size.width)
+                            .frame(width: geometry.size.width, height: geometry.size.height)
+                            .background(Color.blue)
+                            .foregroundStyle(Color.white)
                         }
                     }
                 }
