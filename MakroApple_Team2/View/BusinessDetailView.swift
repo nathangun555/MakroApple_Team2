@@ -1,18 +1,18 @@
 //
-//  SettingsView.swift
+//  BusinessDetailView.swift
 //  MakroApple_Team2
 //
-//  Created by Alfred Hans Witono on 10/10/25.
+//  Created by Edward Suwandi on 15/10/25.
 //
 
 import SwiftUI
 
-struct SettingsView: View {
+struct BusinessDetailView: View {
     var body: some View {
         Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
     }
 }
 
 #Preview {
-    SettingsView()
+    BusinessDetailView()
 }
