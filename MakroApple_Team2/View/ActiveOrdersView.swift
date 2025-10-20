@@ -159,6 +159,4 @@ struct ActiveOrdersView: View {
     }
 }
 
-#Preview {
-    ActiveOrdersView()
-}
+
