@@ -1,5 +1,6 @@
 # Xcode user data
 xcuserdata/
+xcshareddata/
 *.xcuserstate
 
 # Build products
