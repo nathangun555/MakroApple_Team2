@@ -23,6 +23,12 @@ struct UserRecord: Codable, Identifiable {
     let createdAt: String?
     let updatedAt: String?
 
+    // NEW
+    let businessEmail: String?
+    let bankAccountNumber: String?
+    let bankAccountName: String?
+    let bankName: String?
+
     enum CodingKeys: String, CodingKey {
         case id, email
         case businessName = "business_name"
@@ -36,9 +42,14 @@ struct UserRecord: Codable, Identifiable {
         case isActive = "is_active"
         case createdAt = "created_at"
         case updatedAt = "updated_at"
+        
+        // NEW
+        case businessEmail = "business_email"
+        case bankAccountNumber = "bank_account_number"
+        case bankAccountName = "bank_account_name"
+        case bankName = "bank_name"
     }
 }
-
 // MARK: - Products
 struct ProductRecord: Codable, Identifiable {
     let id: UUID

@@ -369,6 +369,4 @@ struct ScrollOffsetPreferenceKey: PreferenceKey {
     }
 }
 
-#Preview {
-    ActiveOrdersView()
-}
+
