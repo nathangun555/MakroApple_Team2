@@ -6,6 +6,15 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		351655F92EA62B3E004AD28D /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 351655F82EA62B3E004AD28D /* Supabase */; };
+		35AD8ADF2EA626A9007F83D5 /* Auth in Frameworks */ = {isa = PBXBuildFile; productRef = 35AD8ADE2EA626A9007F83D5 /* Auth */; };
+		35AD8AE12EA626A9007F83D5 /* Functions in Frameworks */ = {isa = PBXBuildFile; productRef = 35AD8AE02EA626A9007F83D5 /* Functions */; };
+		35AD8AE32EA626A9007F83D5 /* PostgREST in Frameworks */ = {isa = PBXBuildFile; productRef = 35AD8AE22EA626A9007F83D5 /* PostgREST */; };
+		35AD8AE52EA626A9007F83D5 /* Realtime in Frameworks */ = {isa = PBXBuildFile; productRef = 35AD8AE42EA626A9007F83D5 /* Realtime */; };
+		35AD8AE72EA626A9007F83D5 /* Storage in Frameworks */ = {isa = PBXBuildFile; productRef = 35AD8AE62EA626A9007F83D5 /* Storage */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		7C98DB532E93CAD400F06C20 /* MakroApple_Team2.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MakroApple_Team2.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -23,16 +32,30 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				35AD8AE32EA626A9007F83D5 /* PostgREST in Frameworks */,
+				35AD8AE12EA626A9007F83D5 /* Functions in Frameworks */,
+				351655F92EA62B3E004AD28D /* Supabase in Frameworks */,
+				35AD8ADF2EA626A9007F83D5 /* Auth in Frameworks */,
+				35AD8AE72EA626A9007F83D5 /* Storage in Frameworks */,
+				35AD8AE52EA626A9007F83D5 /* Realtime in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		351655F72EA62B3E004AD28D /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		7C98DB4A2E93CAD400F06C20 = {
 			isa = PBXGroup;
 			children = (
 				7C98DB552E93CAD400F06C20 /* MakroApple_Team2 */,
+				351655F72EA62B3E004AD28D /* Frameworks */,
 				7C98DB542E93CAD400F06C20 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -65,6 +88,12 @@
 			);
 			name = MakroApple_Team2;
 			packageProductDependencies = (
+				35AD8ADE2EA626A9007F83D5 /* Auth */,
+				35AD8AE02EA626A9007F83D5 /* Functions */,
+				35AD8AE22EA626A9007F83D5 /* PostgREST */,
+				35AD8AE42EA626A9007F83D5 /* Realtime */,
+				35AD8AE62EA626A9007F83D5 /* Storage */,
+				351655F82EA62B3E004AD28D /* Supabase */,
 			);
 			productName = MakroApple_Team2;
 			productReference = 7C98DB532E93CAD400F06C20 /* MakroApple_Team2.app */;
@@ -94,6 +123,9 @@
 			);
 			mainGroup = 7C98DB4A2E93CAD400F06C20;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				35AD8ADD2EA626A9007F83D5 /* XCRemoteSwiftPackageReference "supabase-swift" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 7C98DB542E93CAD400F06C20 /* Products */;
 			projectDirPath = "";
@@ -244,6 +276,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = MakroApple_Team2/MakroApple_Team2.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 382P7XX6KL;
@@ -288,6 +321,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = MakroApple_Team2/MakroApple_Team2.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 382P7XX6KL;
@@ -349,6 +383,50 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		35AD8ADD2EA626A9007F83D5 /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/supabase/supabase-swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.5.1;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		351655F82EA62B3E004AD28D /* Supabase */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 35AD8ADD2EA626A9007F83D5 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Supabase;
+		};
+		35AD8ADE2EA626A9007F83D5 /* Auth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 35AD8ADD2EA626A9007F83D5 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Auth;
+		};
+		35AD8AE02EA626A9007F83D5 /* Functions */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 35AD8ADD2EA626A9007F83D5 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Functions;
+		};
+		35AD8AE22EA626A9007F83D5 /* PostgREST */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 35AD8ADD2EA626A9007F83D5 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = PostgREST;
+		};
+		35AD8AE42EA626A9007F83D5 /* Realtime */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 35AD8ADD2EA626A9007F83D5 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Realtime;
+		};
+		35AD8AE62EA626A9007F83D5 /* Storage */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 35AD8ADD2EA626A9007F83D5 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Storage;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 7C98DB4B2E93CAD400F06C20 /* Project object */;
 }
