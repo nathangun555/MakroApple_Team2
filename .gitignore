@@ -1,4 +1,20 @@
+# Xcode user data
+xcuserdata/
+xcshareddata/
+*.xcuserstate
+
+# Build products
+build/
+DerivedData/
 
 # Swift Package Manager
-Package.resolved
+Packages/
+.swiftpm/
+
+# CocoaPods
+Pods/
+Podfile.lock
+
+# Others
 .DS_Store
+*.xcuserdatad
