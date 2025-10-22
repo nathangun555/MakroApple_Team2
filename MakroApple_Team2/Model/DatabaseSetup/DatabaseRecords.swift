@@ -60,6 +60,9 @@ struct ProductRecord: Codable, Identifiable {
     let isActive: Bool
     let createdAt: String?
     let updatedAt: String?
+    
+    // NEW
+    let productType: String?   // maps to product_type
 
     enum CodingKeys: String, CodingKey {
         case id
@@ -68,6 +71,7 @@ struct ProductRecord: Codable, Identifiable {
         case isActive = "is_active"
         case createdAt = "created_at"
         case updatedAt = "updated_at"
+        case productType = "product_type" // NEW
     }
 }
 
@@ -114,7 +118,10 @@ struct OrderRecord: Codable, Identifiable {
         case notes
         case opsiPengiriman = "opsi_pengiriman"
         case shippingAddress = "shipping_address"
-        case subtotal, shippingCost, discountAmount, totalAmount
+        case subtotal
+        case shippingCost = "shipping_cost"
+        case discountAmount = "discount_amount"
+        case totalAmount = "total_amount"
         case invoiceUrl = "invoice_url"
         case photoUrl1 = "photo_url_1"
         case photoUrl2 = "photo_url_2"
