@@ -9,6 +9,12 @@ import Foundation
 import Supabase
 
 extension SupabaseManager {
+    
+    func deleteUserCompletely() async throws {
+       _ = try await client
+            .rpc("app_delete_user_fully", params: [String: String]())
+            .execute()
+     }
   func fetchUser(by id: UUID) async throws -> UserRecord? {
     let response = try await client
       .from("users")
@@ -87,3 +93,5 @@ extension SupabaseManager {
     }
   }
 }
+
+private struct EncodableVoid: Encodable {}

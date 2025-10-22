@@ -1,101 +1,71 @@
-//
-//  SettingsView.swift
-//  MakroApple_Team2
-//
-//  Created by Alfred Hans Witono on 10/10/25.
-//
-
 import SwiftUI
 
 struct SettingsView: View {
-  @State private var showDeleteDialog = false
+  @EnvironmentObject var session: SessionManager
+
   @State private var showLogoutDialog = false
+  @State private var isLoggingOut = false
 
   var body: some View {
     NavigationStack {
       List {
-        // Profil Saya (baru)
-        NavigationLink {
-          Set_ProfileView()
-        } label: {
+        NavigationLink { Set_ProfileView() } label: {
           Label("Profil Saya", systemImage: "person.crop.circle")
         }
-
-        // 1) Ubah Rincian Bisnis
-        NavigationLink {
-          Set_BusinessDetailsView()
-        } label: {
+        NavigationLink { Set_BusinessDetailsView() } label: {
           Label("Ubah Rincian Bisnis", systemImage: "building.2")
         }
-
-        // 2) Ubah Template Form
-        NavigationLink {
-          Set_TemplateFormView()
-        } label: {
+        NavigationLink { Set_TemplateFormView() } label: {
           Label("Ubah Template Form", systemImage: "square.and.pencil")
         }
-
-        // 3) Ubah Visibilitas Rincian Invoice
-        NavigationLink {
-          Set_InvoiceVisibilityView()
-        } label: {
+        NavigationLink { Set_InvoiceVisibilityView() } label: {
           Label("Ubah Visibilitas Rincian Invoice", systemImage: "doc.text.magnifyingglass")
         }
-
-        // 4) Ubah Rincian Menu
-        NavigationLink {
-          Set_MenuDetailsView()
-        } label: {
+        NavigationLink { Set_MenuDetailsView() } label: {
           Label("Ubah Rincian Menu", systemImage: "list.bullet.rectangle.portrait")
         }
-
-        // 5) Language
-        NavigationLink {
-          Set_LanguageSettingsView()
-        } label: {
+        NavigationLink { Set_LanguageSettingsView() } label: {
           Label("Language", systemImage: "globe")
         }
 
-        // 6) Delete My Account (confirmation)
-        Button(role: .destructive) {
-          showDeleteDialog = true
+        // Delete account full-screen flow
+        NavigationLink {
+          Set_DeleteAccountView()
         } label: {
           Label("Delete My Account", systemImage: "trash")
             .foregroundStyle(.red)
         }
 
-        // 7) Logout (confirmation)
+        // Logout
         Button {
           showLogoutDialog = true
         } label: {
-          Label("Logout", systemImage: "rectangle.portrait.and.arrow.right")
-            .foregroundStyle(.blue)
+          if isLoggingOut {
+            HStack { ProgressView(); Text("Logging out…") }
+          } else {
+            Label("Logout", systemImage: "rectangle.portrait.and.arrow.right")
+              .foregroundStyle(.blue)
+          }
         }
+        .disabled(isLoggingOut || showLogoutDialog)
       }
       .navigationTitle("Settings")
+      //.toolbarTitleDisplayMode(.large) // optional styling
 
-      .confirmationDialog(
-        "Yakin hapus akun?",
-        isPresented: $showDeleteDialog,
-        titleVisibility: .visible
-      ) {
-        Button("Delete My Account", role: .destructive) {
-          Task { await SettingsActions.deleteAccount() }
-        }
-        Button("Cancel", role: .cancel) { }
-      } message: {
-        Text("Tindakan ini permanen.")
-      }
-
-      .confirmationDialog(
-        "Keluar dari akun?",
-        isPresented: $showLogoutDialog,
-        titleVisibility: .visible
-      ) {
+      .alert("Keluar dari akun?", isPresented: $showLogoutDialog) {
         Button("Logout", role: .destructive) {
-          Task { await SettingsActions.logout() }
+          isLoggingOut = true
+          Task {
+            defer {
+              isLoggingOut = false
+              showLogoutDialog = false
+            }
+            await session.signOut()
+          }
         }
-        Button("Cancel", role: .cancel) { }
+        Button("Cancel", role: .cancel) {
+          showLogoutDialog = false
+        }
       } message: {
         Text("Anda bisa masuk kembali kapan saja.")
       }
@@ -103,11 +73,10 @@ struct SettingsView: View {
   }
 }
 
-
-
-enum SettingsActions {
-  static func deleteAccount() async { /* implement */ }
-  static func logout() async { /* implement */ }
+#Preview {
+  let session = SessionManager()
+  session.isSignedIn = true
+  session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
+  return NavigationStack { SettingsView() }
+    .environmentObject(session)
 }
-
-#Preview { SettingsView() }
