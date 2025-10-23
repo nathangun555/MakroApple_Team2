@@ -5,44 +5,16 @@
 //  Created by Nathan Gunawan on 17/10/25.
 //
 
-
-//import Foundation
-//import Supabase
-//
-//extension SupabaseManager {
-//    func fetchUser(by userId: UUID) async throws -> UserRecord? {
-//        let response = try await client
-//            .from("users")
-//            .select("*")
-//            .eq("id", value: userId)
-//            .limit(1)
-//            .execute()
-//
-//        print("✅ Raw Supabase data:", String(data: response.data, encoding: .utf8) ?? "nil")
-//
-//        let decoded = try JSONDecoder().decode([UserRecord].self, from: response.data)
-//        return decoded.first
-//    }
-//}
-
-//
-//  SupabaseManager+Users.swift
-//  MakroApple_Team2
-//
-//  Created by Nathan Gunawan on 17/10/25.
-//
-
 import Foundation
 import Supabase
 
 extension SupabaseManager {
     
     func deleteUserCompletely() async throws {
-           _ = try await client
-                .rpc("app_delete_user_fully", params: [String: String]())
-                .execute()
-         }
-    
+       _ = try await client
+            .rpc("app_delete_user_fully", params: [String: String]())
+            .execute()
+     }
   func fetchUser(by id: UUID) async throws -> UserRecord? {
     let response = try await client
       .from("users")
@@ -122,3 +94,4 @@ extension SupabaseManager {
   }
 }
 
+private struct EncodableVoid: Encodable {}
