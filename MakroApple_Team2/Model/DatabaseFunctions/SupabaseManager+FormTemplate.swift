@@ -24,18 +24,27 @@ extension SupabaseManager {
   @discardableResult
   func upsertFormTemplate(id: UUID, formTemplate: String?) async throws -> UserRecord {
 
-      let payload: [String: AnyCodable?] = [
-          "id": AnyCodable(id),
-          "templateFormat": formTemplate.map(AnyCodable.init)
-        ]
+      var templateDict: [String: Any]?
+      if let formTemplate = formTemplate,
+         let data = formTemplate.data(using: .utf8),
+         let dict = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
+          templateDict = dict
+      }
+      
+      let payload: [String: AnyCodable] = [
+          "id": AnyCodable(id.uuidString),
+          "template_format": AnyCodable(templateDict ?? [:])
+      ]
       
       let response = try await client
-      .from("users")
-      .upsert(payload, onConflict: "id")
-      .select()
-      .single()
-      .execute()
+          .from("users")
+          .upsert(payload, onConflict: "id")
+          .select()
+          .single()
+          .execute()
 
-    return try JSONDecoder().decode(UserRecord.self, from: response.data)
+      print("Raw response data:", String(data: response.data, encoding: .utf8) ?? "Unable to decode")
+      
+      return try JSONDecoder().decode(UserRecord.self, from: response.data)
   }
 }
