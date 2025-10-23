@@ -309,6 +309,7 @@ struct OrderListView: View {
     let calendar = Calendar.current
     var viewModel = ActiveOrdersViewModel()
     
+    
     var body: some View {
         let ordersForSelectedDate = viewModel.ordersForDate(for: selectedDate)
         
@@ -320,45 +321,47 @@ struct OrderListView: View {
             LazyVStack(spacing: 8) {
                 ForEach(ordersForSelectedDate) { order in
                     NavigationLink {
-                        OrderDetailView(order: order)
+//                        OrderDetailView(order: order)
                     } label: {
-                        OrderrCardView(order: order)
+//                        OrderCard(order: order)
                     }
                     .buttonStyle(.plain)
                 }
             }
-            .padding(.horizontal)
             .padding(.top, 16)
         }
     }
 }
 
 // MARK: - Order Card View
-struct OrderrCardView: View {
-    let order: Order
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack {
-                Text("Nama Pemesan")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                Spacer()
-                Text("Jam")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-            
-            Text(order.customer_order_name)
-                .fontWeight(.semibold)
-                .foregroundStyle(.primary)
-        }
-        .padding()
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(.secondary.opacity(0.07))
-        .cornerRadius(10)
-    }
-}
+//struct OrderrCardView: View {
+//    let order: Order
+//    
+//    var body: some View {
+//        OrderCard()
+////        VStack(alignment: .leading, spacing: 4) {
+////            
+////            HStack {
+////                
+////                Text("Nama Pemesan")
+////                    .font(.caption)
+////                    .foregroundStyle(.secondary)
+////                Spacer()
+////                Text("Jam")
+////                    .font(.caption)
+////                    .foregroundStyle(.secondary)
+////            }
+////            
+//            Text(order.customer_order_name)
+////                .fontWeight(.semibold)
+////                .foregroundStyle(.primary)
+////        }
+////        .padding()
+////        .frame(maxWidth: .infinity, alignment: .leading)
+////        .background(.secondary.opacity(0.07))
+////        .cornerRadius(10)
+//    }
+//}
 
 // MARK: - Scroll Offset Preference Key
 struct ScrollOffsetPreferenceKey: PreferenceKey {
@@ -370,3 +373,6 @@ struct ScrollOffsetPreferenceKey: PreferenceKey {
 }
 
 
+#Preview {
+    ActiveOrdersView()
+}

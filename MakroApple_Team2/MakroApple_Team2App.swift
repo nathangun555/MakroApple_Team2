@@ -5,20 +5,45 @@
 //  Created by Nathan Gunawan on 06/10/25.
 //
 
+//import SwiftUI
+//
+//@main
+//struct MakroApple_Team2App: App {
+//    @StateObject private var session = SessionManager()
+//
+//    var body: some Scene {
+//        WindowGroup {
+//            AllOrdersView()
+//                .environmentObject(session)   // ✅ Inject globally
+//        }
+//    }
+//}
+
 import SwiftUI
 
 @main
 struct MakroApple_Team2App: App {
-    @StateObject private var session = SessionManager()
+  @StateObject private var session = SessionManager()
 
-    var body: some Scene {
-        WindowGroup {
-            ContentView()
-                .environmentObject(session)   // ✅ Inject globally
-        }
+  var body: some Scene {
+    WindowGroup {
+      NavigationStack {
+        AllOrdersView()
+          .environmentObject(session)   // Inject globally
+      }
+      .task {
+        #if DEV_STUB_SESSION
+        // Dev stub session: skip real auth and force a specific user
+        session.isSignedIn = true
+        session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
+        #else
+        // In non-dev builds, keep your normal flow (e.g., ContentView auto-checks session)
+        // If using ContentView in production, switch root to ContentView() here.
+        #endif
+      }
     }
+  }
 }
-
 
 //@main
 //struct MakroApple_Team2App: App {

@@ -11,16 +11,17 @@ import Supabase
 struct ContentView: View {
     @EnvironmentObject var session: SessionManager   // ✅ Global session
     @SceneStorage("selectedTab") var selectedTab = 0
-    @State private var showNewOrder = false
+//    @State private var showNewOrder = false
 
     var body: some View {
         Group {
             if session.isSignedIn {
                 // ✅ Main app after login
-                MainTabView(selectedTab: $selectedTab, showNewOrder: $showNewOrder)
+                MainTabView(selectedTab: $selectedTab)
             } else {
                 // 👇 Sign-in screen
-                SignInWithAppleView()
+//                SignInWithAppleView()
+                MainTabView(selectedTab: $selectedTab)
             }
         }
         .task {
@@ -50,7 +51,7 @@ struct ContentView: View {
 
 struct MainTabView: View {
     @Binding var selectedTab: Int
-    @Binding var showNewOrder: Bool
+//    @Binding var showNewOrder: Bool
 
     var body: some View {
         NavigationStack {
@@ -73,27 +74,27 @@ struct MainTabView: View {
                         .tag(3)
                 }
 
-                if selectedTab == 0 {
-                    Button(action: { showNewOrder = true }) {
-                        HStack {
-                            Image(systemName: "plus")
-                            Text("Tambah Pesanan")
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.blue)
-                        .foregroundColor(.white)
-                        .cornerRadius(12)
-                        .shadow(radius: 4)
-                    }
-                    .padding(.horizontal)
-                    .padding(.bottom, 8)
-                }
+//                if selectedTab == 0 {
+//                    Button(action: { showNewOrder = true }) {
+//                        HStack {
+//                            Image(systemName: "plus")
+//                            Text("Tambah Pesanan")
+//                        }
+//                        .frame(maxWidth: .infinity)
+//                        .padding()
+//                        .background(Color.blue)
+//                        .foregroundColor(.white)
+//                        .cornerRadius(12)
+//                        .shadow(radius: 4)
+//                    }
+//                    .padding(.horizontal)
+//                    .padding(.bottom, 8)
+//                }
             }
-            .navigationDestination(isPresented: $showNewOrder) {
-                NewOrderView()
-                    .navigationBarBackButtonHidden(false)
-            }
+//            .navigationDestination(isPresented: $showNewOrder) {
+//                NewOrderView()
+//                    .navigationBarBackButtonHidden(false)
+//            }
         }
     }
 }
@@ -179,6 +180,6 @@ struct MainTabView: View {
 //    }
 //}
 //
-//#Preview {
-//    ContentView()
-//}
+#Preview {
+    ContentView()
+}

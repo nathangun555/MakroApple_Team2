@@ -7,12 +7,14 @@
 
 import SwiftUI
 
-struct OrderCardView: View {
+struct OrderCard: View {
+    
+    let order: OrderRecord
+    @State private var viewModel = AllOrdersViewModel()
+    let orderItem: OrderItemRecord
     
 //    let order : Order
     var body: some View {
-        
-        
         HStack{
 
             // Indikator
@@ -28,12 +30,12 @@ struct OrderCardView: View {
                 HStack{
                     
                     // Nama Customer
-                    Text("Nathan Gunawan")
+                    Text(order.customerOrderName ?? "Unknown Customer")
                     
                     Spacer()
                     
                     // Tanggal Pesan
-                    Text("20 Sept 2025 18.00")
+                    Text(DateFormatterHelper.formattedDate(order.orderDdayDate!, showTime: true))
                     
                     
                     Image(systemName: "chevron.right")
@@ -43,7 +45,7 @@ struct OrderCardView: View {
                 .foregroundColor(.secondary)
                 
                 // Pesanan
-                Text("3 Kue Tart")
+                Text(orderItem.productName)
                     .font(Font.body.bold())
                 
                 // Tambahan
@@ -57,7 +59,7 @@ struct OrderCardView: View {
         
         .background(
             LinearGradient(
-                gradient: Gradient(colors: [Color.white.opacity(0.15), Color.yellow.opacity(0.5)]),
+                gradient: Gradient(colors: [Color.white.opacity(0.15), Color.orange.opacity(0.15)]),
                 startPoint: .leading,
                 endPoint: .trailing
             )
@@ -72,8 +74,8 @@ struct OrderCardView: View {
     }
 }
 
-#Preview {
-    ContentView()
-}
+//#Preview {
+//    mainta()
+//}
 
 

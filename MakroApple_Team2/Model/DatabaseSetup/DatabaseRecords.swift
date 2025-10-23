@@ -23,6 +23,12 @@ struct UserRecord: Codable, Identifiable {
     let createdAt: String?
     let updatedAt: String?
 
+    // NEW
+    let businessEmail: String?
+    let bankAccountNumber: String?
+    let bankAccountName: String?
+    let bankName: String?
+
     enum CodingKeys: String, CodingKey {
         case id, email
         case businessName = "business_name"
@@ -36,9 +42,14 @@ struct UserRecord: Codable, Identifiable {
         case isActive = "is_active"
         case createdAt = "created_at"
         case updatedAt = "updated_at"
+        
+        // NEW
+        case businessEmail = "business_email"
+        case bankAccountNumber = "bank_account_number"
+        case bankAccountName = "bank_account_name"
+        case bankName = "bank_name"
     }
 }
-
 // MARK: - Products
 struct ProductRecord: Codable, Identifiable {
     let id: UUID
@@ -49,6 +60,9 @@ struct ProductRecord: Codable, Identifiable {
     let isActive: Bool
     let createdAt: String?
     let updatedAt: String?
+    
+    // NEW
+    let productType: String?   // maps to product_type
 
     enum CodingKeys: String, CodingKey {
         case id
@@ -57,6 +71,7 @@ struct ProductRecord: Codable, Identifiable {
         case isActive = "is_active"
         case createdAt = "created_at"
         case updatedAt = "updated_at"
+        case productType = "product_type" // NEW
     }
 }
 
@@ -103,7 +118,10 @@ struct OrderRecord: Codable, Identifiable {
         case notes
         case opsiPengiriman = "opsi_pengiriman"
         case shippingAddress = "shipping_address"
-        case subtotal, shippingCost, discountAmount, totalAmount
+        case subtotal
+        case shippingCost = "shipping_cost"
+        case discountAmount = "discount_amount"
+        case totalAmount = "total_amount"
         case invoiceUrl = "invoice_url"
         case photoUrl1 = "photo_url_1"
         case photoUrl2 = "photo_url_2"
@@ -121,6 +139,7 @@ struct OrderItemRecord: Codable, Identifiable {
     let productId: UUID?
     let productName: String
     let productPrice: Decimal
+    let productType: String
     let quantity: Int
     let subtotal: Decimal
     let createdAt: String?
@@ -132,6 +151,7 @@ struct OrderItemRecord: Codable, Identifiable {
         case productId = "product_id"
         case productName = "product_name"
         case productPrice = "product_price"
+        case productType = "product_type"
         case quantity, subtotal
         case createdAt = "created_at"
         case updatedAt = "updated_at"
