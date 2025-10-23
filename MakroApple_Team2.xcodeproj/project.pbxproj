@@ -68,13 +68,6 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		7CD92F6B2EA76988002B7607 /* Frameworks */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			name = Frameworks;
-			sourceTree = "<group>";
-		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -286,7 +279,7 @@
 				CODE_SIGN_ENTITLEMENTS = MakroApple_Team2/MakroApple_Team2.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = SJRQY5X68S;
+				DEVELOPMENT_TEAM = 382P7XX6KL;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
@@ -332,7 +325,7 @@
 				CODE_SIGN_ENTITLEMENTS = MakroApple_Team2/MakroApple_Team2.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = SJRQY5X68S;
+				DEVELOPMENT_TEAM = 382P7XX6KL;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
