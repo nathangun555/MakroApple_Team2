@@ -139,6 +139,7 @@ struct OrderItemRecord: Codable, Identifiable {
     let productId: UUID?
     let productName: String
     let productPrice: Decimal
+    let productType: String
     let quantity: Int
     let subtotal: Decimal
     let createdAt: String?
@@ -150,6 +151,7 @@ struct OrderItemRecord: Codable, Identifiable {
         case productId = "product_id"
         case productName = "product_name"
         case productPrice = "product_price"
+        case productType = "product_type"
         case quantity, subtotal
         case createdAt = "created_at"
         case updatedAt = "updated_at"

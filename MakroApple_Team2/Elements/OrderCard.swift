@@ -7,102 +7,75 @@
 
 import SwiftUI
 
-struct OrderCardView: View {
+struct OrderCard: View {
+    
+    let order: OrderRecord
+    @State private var viewModel = AllOrdersViewModel()
+    let orderItem: OrderItemRecord
+    
 //    let order : Order
     var body: some View {
-        
-        VStack(alignment: .leading){
-            HStack{
-                Text("Nathan Gunawan")
+        HStack{
+
+            // Indikator
+            RoundedRectangle(cornerRadius: 10)
+                .frame(width: 6)
+                .foregroundColor(.yellow)
+                .padding(.vertical, 3)
+            
+            // Card
+            VStack(alignment: .leading){
                 
-                Spacer()
-                
-                VStack{
-                    Text("20 Sept 2025 18.00")
+                // Row 1
+                HStack{
+                    
+                    // Nama Customer
+                    Text(order.customerOrderName ?? "Unknown Customer")
+                    
+                    Spacer()
+                    
+                    // Tanggal Pesan
+                    Text(DateFormatterHelper.formattedDate(order.orderDdayDate!, showTime: true))
+                    
+                    
+                    Image(systemName: "chevron.right")
+                    
                 }
-            }
-            .foregroundColor(.secondary)
-            
-            Text("3 Kue Tart")
-                .font(Font.title.bold())
-            
-            HStack{
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+                
+                // Pesanan
+                Text(orderItem.productName)
+                    .font(Font.body.bold())
+                
+                // Tambahan
                 Text("+ 3 more")
                     .font(Font.subheadline)
-                
-                
-                Spacer()
-                Button(action: {
-                    
-                }) {
-                    
-                }
+                    .foregroundColor(.secondary)
                 
             }
-            .foregroundColor(.secondary)
+            .padding()
         }
         
-                    .frame(height: 100)
-                    .padding(.horizontal)
-                    .background(.secondary.opacity(0.10))
-                    .cornerRadius(10)
-                    .padding(.horizontal)
-                    .padding(.top, 5)
+        .background(
+            LinearGradient(
+                gradient: Gradient(colors: [Color.white.opacity(0.15), Color.orange.opacity(0.15)]),
+                startPoint: .leading,
+                endPoint: .trailing
+            )
+        )
+        .cornerRadius(10)
+        .frame(height: 100)
+        .padding(.horizontal, 20)
         
-//            HStack{
-//
-//                VStack(alignment: .leading){
-//                    HStack{
-//                        Text("Nathan Gunawan")
-//                            
-//                        Spacer()
-//                        
-//                        VStack{
-//                            Text("20 September 2025")
-//                        }
-//                        
-//                    }
-//                    .foregroundColor(.secondary)
-//                    Spacer()
-//                    
-//                    VStack(alignment: .leading){
-//                        Text("3 Kue Tart")
-//                            .font(Font.title.bold())
-//                        
-//                        HStack{
-//                            Text("+ 3 more")
-//                                .font(Font.subheadline)
-//                                
-//                            
-//                            Spacer()
-//                            Text("18.00")
-//
-//                        }
-//                        .foregroundColor(.secondary)
-//                       
-//                    }
-//                    
-//                    
-//                }
-//                .frame(maxHeight: 70)
-//                
-//                
-//                Spacer()
-//                
-//                
-//            }
-//            .frame(height: 100)
-//            .padding(.horizontal)
-//            .background(.secondary.opacity(0.10))
-//            .cornerRadius(10)
-//            .padding(.horizontal)
-//            .padding(.top, 5)
+        
+       
         
     }
 }
 
-#Preview {
-    OrderCardView()
-}
+//#Preview {
+//    mainta()
+//}
 
 
