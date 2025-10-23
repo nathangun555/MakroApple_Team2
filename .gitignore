@@ -18,7 +18,3 @@ Podfile.lock
 # Others
 .DS_Store
 *.xcuserdatad
-
-# Swift Package Manager
-Package.resolved
-.DS_Store
