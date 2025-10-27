@@ -8,7 +8,7 @@
 import SwiftUI
 import Foundation
 
-struct NewTemplateFormView: View{
+struct NewTemplateFormView: View {
     
     @State private var formPesanan = ""
     @State private var isLoading = false
@@ -25,8 +25,6 @@ struct NewTemplateFormView: View{
                 ZStack(alignment: .bottom){
                     ScrollView{
                         VStack(alignment: .leading){
-                            
-                            
                             HStack{
                                 Text("Masukan/Buat Formulir Pesanan")
                                     .font(.title3)
@@ -48,7 +46,6 @@ struct NewTemplateFormView: View{
                                 }
                             }
                         
-                            
                             TextEditor(text: $formPesanan)
                                 .padding(3)
                                 .frame(height: geometry.size.height / 3)
@@ -99,7 +96,7 @@ struct NewTemplateFormView: View{
                                 }
                             }
                             
-                            if let error = errorMessage {
+                            if let error = errorMessage ?? viewModel.errorMessage {
                                 Text("❌ Error: \(error)")
                                     .foregroundColor(.red)
                                     .padding(.top)
@@ -107,12 +104,13 @@ struct NewTemplateFormView: View{
                         }
                         .padding()
                     }
+                    
                     Button(action: {
                         Task {
                             await sendToEdgeFunction()
                         }
                     }) {
-                        if isLoading {
+                        if isLoading || viewModel.isLoading {
                             ProgressView()
                                 .tint(.white)
                                 .frame(maxWidth: .infinity)
@@ -121,7 +119,7 @@ struct NewTemplateFormView: View{
                                 .cornerRadius(30)
                                 .padding(.horizontal)
                         } else {
-                            Text("Tinjau Pesanan")
+                            Text("Tinjau Formulir Pesanan")
                                 .fontWeight(.semibold)
                                 .frame(maxWidth: .infinity)
                                 .padding()
@@ -132,15 +130,18 @@ struct NewTemplateFormView: View{
                                 .shadow(radius: 5)
                         }
                     }
-                    .disabled(formPesanan.isEmpty || isLoading)
+                    .disabled(formPesanan.isEmpty || isLoading || viewModel.isLoading)
                 }
                 .navigationDestination(isPresented: $viewModel.didSave) {
                     EditTemplateFormView()
                 }
             }
         }
-        
+        .task {
+            viewModel.configure(userId: session.userId)
+        }
     }
+    
     // MARK: - Send Function
     func sendToEdgeFunction() async {
         guard !formPesanan.isEmpty else { return }
@@ -170,15 +171,13 @@ struct NewTemplateFormView: View{
                 if let jsonData = try? JSONSerialization.data(withJSONObject: outputObject, options: []),
                    let jsonString = String(data: jsonData, encoding: .utf8) {
                     resultJSON = jsonString
-                    print(jsonString)
                 }
             } else {
                 resultJSON = String(data: data, encoding: .utf8)
             }
 
-            if let userIdString = session.userId, let uuid = UUID(uuidString: userIdString) {
-                await viewModel.saveTemplate(userId: uuid, templateString: resultJSON ?? "")
-            }
+            await viewModel.saveTemplate(templateString: resultJSON ?? "")
+            
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -188,14 +187,11 @@ struct NewTemplateFormView: View{
 }
 
 #Preview {
-    // Create a session
     let session = SessionManager()
     session.isSignedIn = true
     session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
     
-    // Create the view
     let view = NewTemplateFormView()
     
-    // Inject the environment object
     return view.environmentObject(session)
 }
