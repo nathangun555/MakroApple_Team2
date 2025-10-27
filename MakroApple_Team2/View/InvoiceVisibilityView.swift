@@ -1,14 +1,14 @@
 //
-//  EditTemplateFormView.swift
+//  InvoiceVisibilityView.swift
 //  MakroApple_Team2
 //
-//  Created by Alfred Hans Witono on 22/10/25.
+//  Created by Alfred Hans Witono on 24/10/25.
 //
 
 import SwiftUI
 import Foundation
 
-struct EditTemplateFormView: View {
+struct InvoiceVisibilityView: View {
     @State private var viewModel = EditTemplateViewModel()
     @EnvironmentObject var session: SessionManager
     @Environment(\.dismiss) var dismiss
@@ -31,21 +31,21 @@ struct EditTemplateFormView: View {
                     ScrollView {
                         VStack(spacing: 24) {
                             // Rincian Pelanggan Section
-                            FormSection(
+                            FormSectionInvoice(
                                 title: "Rincian Pelanggan",
                                 fields: $viewModel.customerFields,
                                 onAddColumn: { viewModel.addCustomerField() }
                             )
                             
                             // Jadwal Pesanan Section
-                            FormSection(
+                            FormSectionInvoice(
                                 title: "Jadwal Pesanan",
                                 fields: $viewModel.scheduleFields,
                                 onAddColumn: { viewModel.addScheduleField() }
                             )
                             
                             // Rincian Pesanan Section
-                            FormSection(
+                            FormSectionInvoice(
                                 title: "Rincian Pesanan",
                                 fields: $viewModel.orderFields,
                                 onAddColumn: { viewModel.addOrderField() },
@@ -54,7 +54,7 @@ struct EditTemplateFormView: View {
                             )
                             
                             // Lain-Lain Section
-                            FormSection(
+                            FormSectionInvoice(
                                 title: "Lain - Lain",
                                 fields: $viewModel.otherFields,
                                 onAddColumn: { viewModel.addOtherField() },
@@ -69,7 +69,6 @@ struct EditTemplateFormView: View {
                                     .fontWeight(.bold)
                                 
                                 Button(action: {
-                                    // Handle photo upload
                                 }) {
                                     ZStack {
                                         RoundedRectangle(cornerRadius: 12)
@@ -95,7 +94,7 @@ struct EditTemplateFormView: View {
                     }
                 }
             }
-            .navigationTitle("Formulir Pesanan")
+            .navigationTitle("Rincian Invoice")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItemGroup(placement: .topBarTrailing) {
@@ -119,7 +118,7 @@ struct EditTemplateFormView: View {
                 }
             }
             .navigationDestination(isPresented: $viewModel.didSave) {
-                InvoicePreviewView()
+                Set_InvoiceVisibilityView()
             }
         }
         .task {
@@ -129,12 +128,57 @@ struct EditTemplateFormView: View {
     }
 }
 
+// MARK: - Form Section Component
+struct FormSectionInvoice: View {
+    let title: String
+    @Binding var fields: [FormFieldItem]
+    let onAddColumn: () -> Void
+    var showDelete: Bool = false
+    var onDelete: ((Int) -> Void)? = nil
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Text(title)
+                    .font(.title3)
+                    .fontWeight(.bold)
+                
+                Spacer()
+            }
+            .padding(.horizontal)
+            
+            ForEach(Array(fields.enumerated()), id: \.offset) { index, field in
+                if field.label != "Foto Referensi (optional)" {
+                    HStack(spacing: 12) {
+                        Text("\(field.label) :")
+                            .frame(width: 140, alignment: .trailing)
+                            .font(.body)
+                        
+                        Text("")
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 8)
+                            .background(Color(.systemGray6))
+                            .cornerRadius(8)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(Color(.systemGray4), lineWidth: 1)
+                            )
+                            .foregroundColor(.secondary)
+                    }
+                    .padding(.horizontal)
+                }
+            }
+        }
+    }
+}
+
 #Preview {
     let session = SessionManager()
     session.isSignedIn = true
     session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
     
-    let view = EditTemplateFormView()
+    let view = InvoiceVisibilityView()
     
     return view.environmentObject(session)
 }

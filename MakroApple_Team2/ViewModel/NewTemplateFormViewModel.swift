@@ -7,7 +7,6 @@
 
 import SwiftUI
 import Foundation
-import Combine
 import Observation
 
 @Observable
@@ -17,16 +16,31 @@ class NewTemplateViewModel {
     var isLoading: Bool = false
     var didSave: Bool = false
     
-    func saveTemplate(userId: UUID, templateString: String) async {
+    private(set) var userId: String?
+    
+    func configure(userId: String?) {
+        self.userId = userId
+    }
+    
+    func saveTemplate(templateString: String) async {
+        guard let userId, let uuid = UUID(uuidString: userId) else {
+            errorMessage = "User belum login atau UID tidak valid."
+            return
+        }
+        
         isLoading = true
+        errorMessage = nil
+        didSave = false
         defer { isLoading = false }
+        
         do {
-            let updatedRecord = try await SupabaseManager.shared.upsertFormTemplate(id: userId, formTemplate: templateString)
-            DispatchQueue.main.async {
-                self.userRecord = updatedRecord
-                self.errorMessage = nil
-                self.didSave = true
-            }
+            let updatedRecord = try await SupabaseManager.shared.upsertFormTemplate(
+                id: uuid,
+                formTemplate: templateString
+            )
+            self.userRecord = updatedRecord
+            self.errorMessage = nil
+            self.didSave = true
         } catch {
             self.errorMessage = error.localizedDescription
         }
