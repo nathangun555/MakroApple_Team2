@@ -23,15 +23,17 @@ struct AllOrdersView: View {
     
     @State var activeTab: TabModel = .belumBayar
     
+    private var filteredOrders: [OrderRecord] {
+        viewModel.orders.filter { order in
+            order.status.localizedCaseInsensitiveCompare(activeTab.dbValue)  == .orderedSame
+        }
+    }
+    
     @State private var distance = 0
     var body: some View {
         GeometryReader{ geo in
             NavigationView{
                 VStack{
-                    
-                    //                Text("\(viewModel.businessName.count)")
-                    
-                    
                     HStack{
                         // Business Name
                         Text(viewModel.businessName.isEmpty ? "Loading..." : viewModel.businessName)
@@ -67,7 +69,7 @@ struct AllOrdersView: View {
                     // Orders List
                     ScrollView {
                         LazyVStack(spacing: 12) {
-                            ForEach(viewModel.orders) { order in
+                            ForEach(filteredOrders) { order in
                                 if let firstItem = viewModel.orderItems.first(where: { $0.orderId == order.id }) {
                                     NavigationLink(
                                                         destination: OrderDetailView(order: order, orderItem: [firstItem])

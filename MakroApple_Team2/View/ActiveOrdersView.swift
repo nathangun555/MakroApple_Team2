@@ -8,7 +8,8 @@
 import SwiftUI
 
 struct ActiveOrdersView: View {
-    @State private var viewModel = ActiveOrdersViewModel()
+    @EnvironmentObject var session: SessionManager
+    @State private var viewModel = AllOrdersViewModel()
     @State private var selectedDate: Date = Date()
     @State private var currentMonth: Date = Date()
     @State private var isCollapsed: Bool = false
@@ -18,6 +19,9 @@ struct ActiveOrdersView: View {
     private let expandThreshold: CGFloat = 12
     private let expandNearTop: CGFloat = 16
     private let minDeltaToConsider: CGFloat = 0.5
+    
+    @State private var sortOption: String = "Waktu"
+    @State private var showSortPopover = false
 
     var body: some View {
         NavigationStack {
@@ -30,12 +34,45 @@ struct ActiveOrdersView: View {
             )
 
             Divider()
+              
+              HStack{
+                  
+                  Text("Urutkan Berdasarkan")
+                  Spacer()
+                  Menu {
+                      Section("Sort By") {
+                          Button {
+                              sortOption = "Waktu"
+                          } label: {
+                              Label("Waktu", systemImage: sortOption == "Waktu" ? "checkmark" : "")
+                          }
 
+                          Button {
+                              sortOption = "Nama"
+                          } label: {
+                              Label("Nama", systemImage: sortOption == "Nama" ? "checkmark" : "")
+                          }
+                      }
+                  } label: {
+                      Image(systemName: "arrow.up.arrow.down.square.fill")
+                  }
+
+                  
+              }
+              .font(.title2)
+              .fontWeight(.bold)
+              .padding(.horizontal)
+              .padding(.top)
+
+
+
+              
             ScrollView {
               LazyVStack(spacing: 0) {
                 OrderListView(
-                  selectedDate: selectedDate,
-                  viewModel: viewModel
+                    selectedDate: selectedDate,
+                    viewModel: viewModel,
+                    sortOption: sortOption
                 )
                 .background(
                   GeometryReader { geo in
@@ -68,6 +105,17 @@ struct ActiveOrdersView: View {
             }
             .coordinateSpace(name: "ordersSpace")
           }
+          .task {
+              // Pastikan user sudah login
+              if let userIdString = session.userId,
+                 let userId = UUID(uuidString: userIdString) {
+                  await viewModel.fetchBusinessName(for: userId)
+                  await viewModel.fetchOrders(for: userId)
+                  await viewModel.fetchOrderItems(for: userId)
+              } else {
+                  print("❌ User ID invalid or nil")
+              }
+          }
           .navigationBarTitleDisplayMode(.inline)
         }
     }
@@ -80,7 +128,7 @@ struct MonthNavigationView: View {
     let isCollapsed: Bool
     let calendar = Calendar.current
     var onMonthChanged: (() -> Void)? = nil
-    var viewModel = ActiveOrdersViewModel()
+    var viewModel = AllOrdersViewModel()
     
     var body: some View {
         HStack {
@@ -124,7 +172,7 @@ struct CalendarHeaderView: View {
   @Binding var selectedDate: Date
   @Binding var currentMonth: Date
   @Binding var isCollapsed: Bool
-  var viewModel = ActiveOrdersViewModel()
+  var viewModel = AllOrdersViewModel()
   private let daysOfWeek = ["MIN","SEN","SEL","RAB","KAM","JUM","SAB"]
     private let weekHeight: CGFloat = 72
     private let monthHeight: CGFloat = 312
@@ -182,7 +230,7 @@ struct CombinedCalendarView: View {
     @Binding var selectedDate: Date
     @Binding var currentMonth: Date
     @Binding var isCollapsed: Bool
-    var viewModel: ActiveOrdersViewModel
+    var viewModel: AllOrdersViewModel
 
     private let calendar = Calendar.current
 
@@ -212,7 +260,7 @@ struct CombinedCalendarView: View {
     private struct MonthGrid: View {
     @Binding var selectedDate: Date
     let currentMonth: Date
-    var viewModel: ActiveOrdersViewModel
+    var viewModel: AllOrdersViewModel
     private let calendar = Calendar.current
 
     var body: some View {
@@ -235,7 +283,7 @@ struct CombinedCalendarView: View {
     // MARK: Week strip
     private struct WeekStrip: View {
     @Binding var selectedDate: Date
-    var viewModel: ActiveOrdersViewModel
+    var viewModel: AllOrdersViewModel
     private let calendar = Calendar.current
 
     var body: some View {
@@ -307,8 +355,8 @@ struct CombinedCalendarView: View {
 struct OrderListView: View {
     let selectedDate: Date
     let calendar = Calendar.current
-    var viewModel = ActiveOrdersViewModel()
-    
+    var viewModel = AllOrdersViewModel()
+    let sortOption: String
     
     var body: some View {
         let ordersForSelectedDate = viewModel.ordersForDate(for: selectedDate)
@@ -316,52 +364,75 @@ struct OrderListView: View {
         if ordersForSelectedDate.isEmpty {
             Text("Tidak ada pesanan")
                 .foregroundStyle(.secondary)
-                .frame(maxWidth: .infinity, minHeight: 500)  // Give enough height to scroll
+                .frame(maxWidth: .infinity, minHeight: 500)
         } else {
-            LazyVStack(spacing: 8) {
-                ForEach(ordersForSelectedDate) { order in
-                    NavigationLink {
-//                        OrderDetailView(order: order)
-                    } label: {
-//                        OrderCard(order: order)
+            ScrollView {
+                LazyVStack(spacing: 16) {
+                    if sortOption == "Waktu" {
+                        // --- SORT BY TIME ---
+                        let sortedOrders = ordersForSelectedDate.sorted { a, b in
+                            let dateA = DateFormatterHelper.toDate(a.orderDdayDate ?? "") ?? .distantPast
+                            let dateB = DateFormatterHelper.toDate(b.orderDdayDate ?? "") ?? .distantPast
+                            return dateA < dateB
+                        }
+                        
+                        ForEach(sortedOrders) { order in
+                            if let firstItem = viewModel.orderItems.first(where: { $0.orderId == order.id }) {
+                                NavigationLink(destination: OrderDetailView(order: order, orderItem: [firstItem])) {
+                                    OrderCard(order: order, orderItem: firstItem)
+                                }
+                                .buttonStyle(PlainButtonStyle())
+                            }
+                        }
+                        
+                    } else {
+                        // --- SORT BY NAME (GROUPED BY PRODUCT TYPE) ---
+                        
+                        // Ambil semua item order yang relevan dengan tanggal itu
+                        let itemsForDate = viewModel.orderItems.filter { item in
+                            ordersForSelectedDate.contains { $0.id == item.orderId }
+                        }
+                        
+                        // Kelompokkan berdasarkan productType
+                        let groupedItems = Dictionary(grouping: itemsForDate) { $0.productType }
+                        
+                        // Urutkan productType secara alfabet
+                        let sortedTypes = groupedItems.keys.sorted()
+                        
+                        ForEach(sortedTypes, id: \.self) { type in
+                            if let items = groupedItems[type] {
+                                VStack(alignment: .leading, spacing: 8) {
+                                    Text(type.uppercased())
+                                        .font(.title3.bold())
+                                        .padding(.horizontal)
+                                    
+                                    // Urutkan nama produk di dalam group
+                                    let sortedItems = items.sorted {
+                                        $0.productName.localizedCaseInsensitiveCompare($1.productName) == .orderedAscending
+                                    }
+                                    
+                                    ForEach(sortedItems) { item in
+                                        if let order = ordersForSelectedDate.first(where: { $0.id == item.orderId }) {
+                                            NavigationLink(destination: OrderDetailView(order: order, orderItem: [item])) {
+                                                OrderCard(order: order, orderItem: item)
+                                            }
+                                            .buttonStyle(PlainButtonStyle())
+                                        }
+                                    }
+                                }
+                                .padding(.bottom, 12)
+                            }
+                        }
                     }
-                    .buttonStyle(.plain)
                 }
+                .padding(.top, 16)
             }
-            .padding(.top, 16)
         }
     }
 }
 
-// MARK: - Order Card View
-//struct OrderrCardView: View {
-//    let order: Order
-//    
-//    var body: some View {
-//        OrderCard()
-////        VStack(alignment: .leading, spacing: 4) {
-////            
-////            HStack {
-////                
-////                Text("Nama Pemesan")
-////                    .font(.caption)
-////                    .foregroundStyle(.secondary)
-////                Spacer()
-////                Text("Jam")
-////                    .font(.caption)
-////                    .foregroundStyle(.secondary)
-////            }
-////            
-//            Text(order.customer_order_name)
-////                .fontWeight(.semibold)
-////                .foregroundStyle(.primary)
-////        }
-////        .padding()
-////        .frame(maxWidth: .infinity, alignment: .leading)
-////        .background(.secondary.opacity(0.07))
-////        .cornerRadius(10)
-//    }
-//}
+
+
 
 // MARK: - Scroll Offset Preference Key
 struct ScrollOffsetPreferenceKey: PreferenceKey {
@@ -374,5 +445,14 @@ struct ScrollOffsetPreferenceKey: PreferenceKey {
 
 
 #Preview {
-    ActiveOrdersView()
+    // Create a stub session
+    let session = SessionManager()
+    session.isSignedIn = true
+    session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
+    
+    // Create the view
+    let view = ActiveOrdersView()
+    
+    // Inject the environment object
+    return view.environmentObject(session)
 }
