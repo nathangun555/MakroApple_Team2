@@ -8,9 +8,14 @@
 import SwiftUI
 
 struct OrderDetailView: View {
-//    let order: Order
+    
+    @EnvironmentObject var session: SessionManager
     let order: OrderRecord
     let orderItem: [OrderItemRecord]
+    @State private var viewModel = AllOrdersViewModel()
+    @State private var statusUpdatedMessage: String? = nil
+
+
     
     private func currency(_ value: Double) -> String {
         let formatter = NumberFormatter()
@@ -19,6 +24,20 @@ struct OrderDetailView: View {
         formatter.maximumFractionDigits = 0
         return formatter.string(from: NSNumber(value: value)) ?? "Rp \(value)"
     }
+    
+    private func buttonText(for status: String) -> String? {
+        switch status {
+        case "Belum Terbayar":
+            return "Pembayaran Selesai"
+        case "Diproses":
+            return "Lanjut ke Pengiriman"
+        case "Terkirim":
+            return "Pesanan Diterima Pemesan"
+        default:
+            return nil // hide button for "Selesai" or "Dibatalkan"
+        }
+    }
+    
 
     var body: some View {
         
@@ -29,12 +48,20 @@ struct OrderDetailView: View {
                 VStack{
                     
                     // Status
-                    Text("Belum Bayar")
-                        .padding(.vertical, 5)
+                    Text(order.status)
+                        .padding(.vertical, 6)
+                        .padding(.horizontal, 20)
                         .frame(maxWidth: .infinity)
-                        .background(Color.orange)
-                        .cornerRadius(30)
+                        .background(
+                            RoundedRectangle(cornerRadius: 30)
+                                .fill(Color.white)
+                                .overlay( // add colored stroke
+                                    RoundedRectangle(cornerRadius: 30)
+                                        .stroke(order.statusColor, lineWidth: 2)
+                                )
+                        )
                         .padding(.horizontal)
+                        .padding(.bottom)
                     
                     
                     
@@ -63,7 +90,7 @@ struct OrderDetailView: View {
                                     .background(
                                         RoundedRectangle(cornerRadius: 10)
                                             .stroke(Color.gray, lineWidth: 0.5) // stroke
-                                            .background(RoundedRectangle(cornerRadius: 30).fill(Color.white)) // fill
+                                            .background(RoundedRectangle(cornerRadius: 30).fill(.secondary.opacity(0.1))) // fill
                                     )
                                 
                                 
@@ -74,7 +101,7 @@ struct OrderDetailView: View {
                                     .background(
                                         RoundedRectangle(cornerRadius: 10)
                                             .stroke(Color.gray, lineWidth: 0.5) // stroke
-                                            .background(RoundedRectangle(cornerRadius: 30).fill(Color.white)) // fill
+                                            .background(RoundedRectangle(cornerRadius: 30).fill(.secondary.opacity(0.1))) // fill
                                     )
                                 
                                 Text("Nama Penerima :")
@@ -84,7 +111,7 @@ struct OrderDetailView: View {
                                     .background(
                                         RoundedRectangle(cornerRadius: 10)
                                             .stroke(Color.gray, lineWidth: 0.5) // stroke
-                                            .background(RoundedRectangle(cornerRadius: 30).fill(Color.white)) // fill
+                                            .background(RoundedRectangle(cornerRadius: 30).fill(.secondary.opacity(0.1))) // fill
                                     )
                                 
                                 Text("No. Telp Penerima :")
@@ -94,7 +121,7 @@ struct OrderDetailView: View {
                                     .background(
                                         RoundedRectangle(cornerRadius: 10)
                                             .stroke(Color.gray, lineWidth: 0.5) // stroke
-                                            .background(RoundedRectangle(cornerRadius: 30).fill(Color.white)) // fill
+                                            .background(RoundedRectangle(cornerRadius: 30).fill(.secondary.opacity(0.1))) // fill
                                     )
                                 
                                 
@@ -118,7 +145,7 @@ struct OrderDetailView: View {
                                     .background(
                                         RoundedRectangle(cornerRadius: 10)
                                             .stroke(Color.gray, lineWidth: 0.5) // stroke
-                                            .background(RoundedRectangle(cornerRadius: 30).fill(Color.white)) // fill
+                                            .background(RoundedRectangle(cornerRadius: 30).fill(.secondary.opacity(0.1))) // fill
                                     )
                                 
                                 Text("Jam Kirim :")
@@ -128,7 +155,7 @@ struct OrderDetailView: View {
                                     .background(
                                         RoundedRectangle(cornerRadius: 10)
                                             .stroke(Color.gray, lineWidth: 0.5) // stroke
-                                            .background(RoundedRectangle(cornerRadius: 30).fill(Color.white)) // fill
+                                            .background(RoundedRectangle(cornerRadius: 30).fill(.secondary.opacity(0.1))) // fill
                                     )
                                 
                                 
@@ -141,79 +168,91 @@ struct OrderDetailView: View {
                             .padding(.top)
                             .font(.title3)
                         
-                        ForEach(orderItem) { item in
+                        
+                        VStack{
                             
-                            // CHANGE THIS LATER WITH PRODUCT CATEGORY
-                            Text(item.productType)
+                            ForEach(orderItem) { item in
+                                
+                                // CHANGE THIS LATER WITH PRODUCT CATEGORY
+                                Text(item.productType)
+                                    .bold()
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .font(.headline)
+                                
+                                LazyVGrid(columns: columns, spacing: 10) {
+                                    Group {
+                                        
+                                        Text("Nama Produk :")
+                                        Text(item.productName)
+                                            .frame(maxWidth: .infinity, alignment: .center)
+                                            .padding(4)
+                                            .lineLimit(3)
+                                            .background(
+                                                RoundedRectangle(cornerRadius: 10)
+                                                    .stroke(Color.gray, lineWidth: 0.5) // stroke
+                                                    .background(RoundedRectangle(cornerRadius: 30).fill(.secondary.opacity(0.1)))
+                                            )
+                                        
+                                        Text("Jumlah Produk :")
+                                        Text(String(item.quantity))
+                                            .padding(.vertical, 3)
+                                            .frame(maxWidth: .infinity)
+                                            .background(
+                                                RoundedRectangle(cornerRadius: 10)
+                                                    .stroke(Color.gray, lineWidth: 0.5) // stroke
+                                                    .background(RoundedRectangle(cornerRadius: 30).fill(.secondary.opacity(0.1))) // fill
+                                            )
+                                        
+                                    }
+                                }
+                            }
+                        }
+                        .padding()
+                        .background(.secondary.opacity(0.1))
+                        .cornerRadius(10)
+                        
+                        
+                        VStack {
+                            Text("Add On")
                                 .bold()
                                 .frame(maxWidth: .infinity, alignment: .leading)
-                                .padding(.top)
                                 .font(.headline)
                             
                             LazyVGrid(columns: columns, spacing: 10) {
                                 Group {
                                     
                                     Text("Nama Produk :")
-                                    Text(item.productName)
+                                    Text(order.addOn!)
                                         .frame(maxWidth: .infinity, alignment: .center)
                                         .padding(4)
-                                        .lineLimit(3)
+                                        .lineLimit(10)
                                         .background(
                                             RoundedRectangle(cornerRadius: 10)
                                                 .stroke(Color.gray, lineWidth: 0.5) // stroke
-                                                .background(RoundedRectangle(cornerRadius: 30).fill(Color.white)) // fill
+                                                .background(RoundedRectangle(cornerRadius: 30).fill(.secondary.opacity(0.1))) // fill
                                         )
                                     
                                     Text("Jumlah Produk :")
-                                    Text(String(item.quantity))
+                                    
+                                    // CHANGE THIS WITH ADD ON AMOUNT
+                                    Text("3")
                                         .padding(.vertical, 3)
                                         .frame(maxWidth: .infinity)
                                         .background(
                                             RoundedRectangle(cornerRadius: 10)
                                                 .stroke(Color.gray, lineWidth: 0.5) // stroke
-                                                .background(RoundedRectangle(cornerRadius: 30).fill(Color.white)) // fill
+                                                .background(RoundedRectangle(cornerRadius: 30).fill(.secondary.opacity(0.1))) // fill
                                         )
                                     
                                 }
                             }
                         }
+                        .padding()
+                        .background(.secondary.opacity(0.1))
+                        .cornerRadius(10)
                         
                         
-                        Text("Add On")
-                            .bold()
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(.top)
-                            .font(.title3)
                         
-                        
-                        LazyVGrid(columns: columns, spacing: 10) {
-                            Group {
-                                
-                                Text("Nama Produk :")
-                                Text(order.addOn!)
-                                    .frame(maxWidth: .infinity, alignment: .center)
-                                    .padding(4)
-                                    .lineLimit(10)
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 10)
-                                            .stroke(Color.gray, lineWidth: 0.5) // stroke
-                                            .background(RoundedRectangle(cornerRadius: 30).fill(Color.white)) // fill
-                                    )
-                                
-                                Text("Jumlah Produk :")
-                                
-                                // CHANGE THIS WITH ADD ON AMOUNT
-                                Text("3")
-                                    .padding(.vertical, 3)
-                                    .frame(maxWidth: .infinity)
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 10)
-                                            .stroke(Color.gray, lineWidth: 0.5) // stroke
-                                            .background(RoundedRectangle(cornerRadius: 30).fill(Color.white)) // fill
-                                    )
-                                
-                            }
-                        }
                         
                         
                         
@@ -272,8 +311,8 @@ struct OrderDetailView: View {
                                 .frame(maxWidth: .infinity)
                                 .background(
                                     RoundedRectangle(cornerRadius: 10)
-                                        .stroke(Color.gray, lineWidth: 0.5) // stroke
-                                        .background(RoundedRectangle(cornerRadius: 30).fill(Color.white)) // fill
+                                        .stroke(Color.gray, lineWidth: 0.5)
+                                        .background(RoundedRectangle(cornerRadius: 30).fill(.secondary.opacity(0.1)))
                                 )
                             
                             Text("Notes :")
@@ -285,8 +324,8 @@ struct OrderDetailView: View {
                                 .frame(maxWidth: .infinity)
                                 .background(
                                     RoundedRectangle(cornerRadius: 10)
-                                        .stroke(Color.gray, lineWidth: 0.5) // stroke
-                                        .background(RoundedRectangle(cornerRadius: 30).fill(Color.white)) // fill
+                                        .stroke(Color.gray, lineWidth: 0.5)
+                                        .background(RoundedRectangle(cornerRadius: 10).fill(.secondary.opacity(0.1)))
                                 )
                         }
                         
@@ -310,19 +349,18 @@ struct OrderDetailView: View {
                                 Spacer()
                                 
                                 
-                                Text("Bagikan Invoice")
+                                Label("Bagikan Invoice", systemImage: "square.and.arrow.up")
                                     .padding()
                                     .frame(maxWidth: .infinity)
-                                    .glassEffect(.regular)
+                                    .background(Color.blue)
+                                    .foregroundColor(Color.white)
+                                    .cornerRadius(30)
                                     .padding(.horizontal)
                                 
                                 Spacer()
                                 
                             }
                             .frame(maxWidth: .infinity)
-                            
-                            
-                            
                         }
                         
                         
@@ -340,17 +378,33 @@ struct OrderDetailView: View {
                 
                 
             }
-            Button(action : {
-                print("tapped")
-            }) {
-                Text("Lanjut")
-                    .padding()
-                    .frame(maxWidth: .infinity)
-                    .foregroundColor(.white)
-                    .glassEffect(.clear.tint(.blue))
-                    .padding(.horizontal)
-            }
-        }
+            
+            if let buttonTitle = buttonText(for: order.status) {
+                Button {
+                    Task {
+                        if let userIdString = session.userId,
+                             let userId = UUID(uuidString: userIdString) {
+                              
+                              print("➡️ Updating order status for order id: \(order.id)")
+                              
+                              await viewModel.updateOrderStatus(for: order)
+                              await viewModel.fetchOrders(for: userId)
+                              
+                              print("✅ Order status updated for order id: \(order.id)")
+                              
+                              // Optional: show confirmation in UI
+                              statusUpdatedMessage = "Status updated successfully!"
+                        }
+                            }
+                } label: {
+                    Text(buttonTitle)
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                        .foregroundColor(.white)
+                        .glassEffect(.clear.tint(.blue))
+                        .padding(.horizontal)
+                }
+            }        }
 //            .background(Color.white.ignoresSafeArea())
 //            .padding(.bottom, 70)
             
@@ -360,6 +414,19 @@ struct OrderDetailView: View {
             
         
         .navigationTitle("Rincian Pesanan")
+        .toolbar {
+            if order.status == "Belum Terbayar" || order.status == "Diproses" {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button {
+                            print("Delete tapped")
+                            // Add your delete logic or confirmation alert here
+                        } label: {
+                            Image(systemName: "trash")
+//                                .foregroundColor(.red)
+                        }
+                    }
+                }
+        }
     }
 }
 

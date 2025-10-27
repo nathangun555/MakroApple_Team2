@@ -14,6 +14,16 @@ enum TabModel: String, CaseIterable {
     case selesai = "Selesai"
     case dibatalkan = "Dibatalkan"
     
+    var dbValue: String {
+        switch self {
+        case .belumBayar: return "Belum Terbayar"
+        case .diproses: return "Diproses"
+        case .terkirim: return "Terkirim"
+        case .selesai: return "Selesai"
+        case .dibatalkan: return "Dibatalkan"
+        }
+    }
+    
     var icon: String {
         switch self {
         case .belumBayar:
@@ -32,23 +42,22 @@ enum TabModel: String, CaseIterable {
             "xmark.bin.fill"
         }
     }
-    
     var color: Color {
         switch self {
         case .belumBayar:
-                .black
+            return .orange
             
         case .diproses:
-                .blue
+            return .blue
             
         case .terkirim:
-                .yellow
+            return .purple
             
         case .selesai:
-                .green
+            return .green
             
         case .dibatalkan:
-                .red
+            return .red
         }
     }
 }
