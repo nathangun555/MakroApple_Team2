@@ -54,6 +54,7 @@ final class Set_BusinessDetailsViewModel: ObservableObject {
         bankAccountName     = u.bankAccountName ?? ""
         bankName            = u.bankName ?? ""
       }
+      print("#load: ", uuid)
     } catch {
       errorMessage = "Gagal memuat data: \(error.localizedDescription)"
     }
@@ -99,6 +100,7 @@ final class Set_BusinessDetailsViewModel: ObservableObject {
         bankAccountName: bankAccountName,
         bankName: bankName
       )
+       
       saveSuccess = true
       // Optionally reload after save to reflect server changes
       // await load()
