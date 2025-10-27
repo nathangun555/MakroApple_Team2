@@ -7,68 +7,174 @@
 
 import SwiftUI
 
+private struct RowDivider: View {
+  var body: some View { Rectangle().fill(Color(.separator)).frame(height: 0.5) }
+}
+
+private struct PillTextField: View {
+  let placeholder: String
+  @Binding var text: String
+  var keyboard: UIKeyboardType = .default
+  var contentType: UITextContentType? = nil
+  var autocap: TextInputAutocapitalization? = .sentences
+  var autocorrect: Bool = true
+
+  var body: some View {
+    TextField(placeholder, text: $text)
+      .textInputAutocapitalization(autocap)
+      .autocorrectionDisabled(!autocorrect)
+      .keyboardType(keyboard)
+      .textContentType(contentType)
+      .padding(.horizontal, 12)
+      .frame(height: 36)
+      .background(
+        RoundedRectangle(cornerRadius: 12, style: .continuous)
+          .fill(Color(.secondarySystemBackground))
+      )
+      .overlay(
+        RoundedRectangle(cornerRadius: 12, style: .continuous)
+          .stroke(Color(.separator), lineWidth: 0.8)
+      )
+  }
+}
+
+private struct LabeledRow<Content: View>: View {
+  let label: String
+  let labelWidth: CGFloat
+  @ViewBuilder var field: () -> Content
+
+  var body: some View {
+    HStack(alignment: .center, spacing: 12) {
+      Text(label)
+        .font(.body)
+        .frame(width: labelWidth, alignment: .leading)
+      field()
+    }
+    .padding(.vertical, 6)
+  }
+}
+
 struct Set_BusinessDetailsView: View {
   @EnvironmentObject var session: SessionManager
   @StateObject private var vm = Set_BusinessDetailsViewModel()
   @FocusState private var focusedField: Field?
 
   enum Field: Hashable {
-    case businessName, businessPhone, businessAddress, businessLogoUrl, businessEmail, bankAccountNumber, bankAccountName, bankName
+    case businessName, businessPhone, businessAddress, businessLogoUrl, businessEmail
+    case bankAccountNumber, bankAccountName, bankName
   }
 
+  private let pagePadding: CGFloat = 16
+  private let labelWidth: CGFloat = 120
+
   var body: some View {
-    Form {
-      Section(header: Text("Profil Bisnis")) {
-        TextField("Nama Bisnis", text: $vm.businessName)
-          .focused($focusedField, equals: .businessName)
-          .textContentType(.organizationName)
+    ScrollView {
+      VStack(alignment: .leading, spacing: 2) {
 
-        TextField("Nomor Telepon Bisnis", text: $vm.businessPhone)
-          .keyboardType(.phonePad)
-          .focused($focusedField, equals: .businessPhone)
-          .textContentType(.telephoneNumber)
+        Text("Rincian Bisnis")
+          .font(.largeTitle.bold())
+          .frame(maxWidth: .infinity, alignment: .center)
 
-        TextField("Alamat Bisnis", text: $vm.businessAddress, axis: .vertical)
-          .lineLimit(3...6)
-          .focused($focusedField, equals: .businessAddress)
+        // Informasi Bisnis
+        Text("Informasi Bisnis")
+          .font(.title3).bold()
+          .padding(.top, 30)
+          .padding(.bottom, 5)
 
-        TextField("Logo URL (opsional)", text: $vm.businessLogoUrl)
-          .keyboardType(.URL)
-          .textInputAutocapitalization(.never)
-          .autocorrectionDisabled()
-          .focused($focusedField, equals: .businessLogoUrl)
+        LabeledRow(label: "Nama Bisnis :", labelWidth: labelWidth) {
+          PillTextField(placeholder: "Silakan isi nama bisnis anda",
+                        text: $vm.businessName,
+                        contentType: .organizationName)
+            .focused($focusedField, equals: .businessName)
+        }
+        RowDivider()
 
-        TextField("Email Bisnis (opsional)", text: $vm.businessEmail)
-          .keyboardType(.emailAddress)
-          .textInputAutocapitalization(.never)
-          .autocorrectionDisabled()
-          .focused($focusedField, equals: .businessEmail)
+        LabeledRow(label: "Alamat Bisnis :", labelWidth: labelWidth) {
+          PillTextField(placeholder: "Silakan isi alamat bisnis anda",
+                        text: $vm.businessAddress)
+            .focused($focusedField, equals: .businessAddress)
+        }
+        RowDivider()
+
+        LabeledRow(label: "No Telp Bisnis :", labelWidth: labelWidth) {
+          PillTextField(placeholder: "Silakan isi no telp bisnis anda",
+                        text: $vm.businessPhone,
+                        keyboard: .phonePad,
+                        contentType: .telephoneNumber)
+            .focused($focusedField, equals: .businessPhone)
+        }
+        RowDivider()
+
+        LabeledRow(label: "Email Bisnis :", labelWidth: labelWidth) {
+          PillTextField(placeholder: "Silakan isi alamat email bisnis anda",
+                        text: $vm.businessEmail,
+                        keyboard: .emailAddress,
+                        contentType: .emailAddress,
+                        autocap: .never,
+                        autocorrect: false)
+            .focused($focusedField, equals: .businessEmail)
+        }
+        RowDivider()
+
+        LabeledRow(label: "Logo Bisnis :", labelWidth: labelWidth) {
+          HStack(spacing: 8) {
+            ZStack {
+              RoundedRectangle(cornerRadius: 10)
+                .stroke(style: StrokeStyle(lineWidth: 1, dash: [4]))
+                .foregroundStyle(Color(.tertiaryLabel))
+                .frame(width: 112, height: 112)
+              Image(systemName: "photo.on.rectangle.angled")
+                .font(.system(size: 24))
+                .foregroundStyle(Color(.secondaryLabel))
+            }
+            Spacer(minLength: 0)
+          }
+        }
+
+        // Informasi Pembayaran
+        Text("Informasi Pembayaran")
+          .font(.title3).bold()
+          .padding(.top, 8)
+          .padding(.bottom, 3)
+
+        LabeledRow(label: "Nama Akun :", labelWidth: labelWidth) {
+          PillTextField(placeholder: "Silakan isi nama akun anda",
+                        text: $vm.bankAccountName)
+            .focused($focusedField, equals: .bankAccountName)
+        }
+        RowDivider()
+
+        LabeledRow(label: "Nomor Rekening :", labelWidth: labelWidth) {
+          PillTextField(placeholder: "Silakan isi no rekening anda",
+                        text: $vm.bankAccountNumber,
+                        keyboard: .numbersAndPunctuation)
+            .focused($focusedField, equals: .bankAccountNumber)
+        }
+        RowDivider()
+
+        LabeledRow(label: "Nama Bank :", labelWidth: labelWidth) {
+          PillTextField(placeholder: "Silakan isi nama bank anda",
+                        text: $vm.bankName)
+            .focused($focusedField, equals: .bankName)
+        }
+
+        if let error = vm.errorMessage, !error.isEmpty {
+          Text(error).foregroundStyle(.red).padding(.top, 8)
+        }
+        if vm.saveSuccess {
+          Text("Perubahan berhasil disimpan.").foregroundStyle(.green).padding(.top, 2)
+        }
+
+        Spacer(minLength: 16)
       }
-
-      Section(header: Text("Rekening Bank")) {
-        TextField("Nomor Rekening", text: $vm.bankAccountNumber)
-          .keyboardType(.numbersAndPunctuation)
-          .focused($focusedField, equals: .bankAccountNumber)
-
-        TextField("Nama Pemilik Rekening", text: $vm.bankAccountName)
-          .focused($focusedField, equals: .bankAccountName)
-
-        TextField("Nama Bank", text: $vm.bankName)
-          .focused($focusedField, equals: .bankName)
-      }
-
-      if let error = vm.errorMessage, !error.isEmpty {
-        Section { Text(error).foregroundStyle(.red) }
-      }
-
-      if vm.saveSuccess {
-        Section { Text("Perubahan berhasil disimpan.").foregroundStyle(.green) }
-      }
+      .padding(.horizontal, pagePadding)
+      .padding(.vertical, 12)
     }
-    .navigationTitle("Rincian Bisnis")
+    .navigationTitle("")
     .toolbar {
       ToolbarItem(placement: .topBarTrailing) {
         Button {
+          // PERILAKU LAMA: tanpa guard userId di sini
           Task { await vm.save() }
         } label: {
           if vm.isSaving { ProgressView() } else { Text("Save") }
@@ -77,10 +183,14 @@ struct Set_BusinessDetailsView: View {
       }
     }
     .task {
+      // Pastikan VM menerima userId dan hanya load jika valid (seperti versi stabil kamu)
       vm.configure(userId: session.userId)
-      await vm.load()
-      focusedField = .businessName
+      if let id = session.userId, UUID(uuidString: id) != nil {
+        await vm.load()
+        focusedField = .businessName
+      }
     }
+    // reset success on edit
     .onChange(of: vm.businessName) { _ in vm.saveSuccess = false }
     .onChange(of: vm.businessPhone) { _ in vm.saveSuccess = false }
     .onChange(of: vm.businessAddress) { _ in vm.saveSuccess = false }

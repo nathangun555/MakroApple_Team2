@@ -47,7 +47,7 @@ extension SupabaseManager {
 
     // Build body and drop nils
     let raw: [String: AnyCodable?] = [
-      "id": AnyCodable(id),
+        "id": AnyCodable(id.uuidString),
       "business_name": nz(businessName).map(AnyCodable.init),
       "business_phone": nz(businessPhone).map(AnyCodable.init),
       "business_address": nz(businessAddress).map(AnyCodable.init),
