@@ -4,11 +4,15 @@ import Foundation
 @Observable
 class AllOrdersViewModel {
     
+    
+    private let calendar = Calendar.current
     var businessName: String = ""
     var isLoading = false
     var errorMessage: String?
     var orders: [OrderRecord] = []
     var orderItems: [OrderItemRecord] = []
+    
+    
 
     // MARK: - Fetch Business Name
     func fetchBusinessName(for userId: UUID?) async {
@@ -70,4 +74,71 @@ class AllOrdersViewModel {
             print("❌ Gagal ambil order items:", error.localizedDescription)
         }
     }
+    
+
+//    func hasOrders(for date: Date) -> Bool {
+//        return viewModel.orders.contains { calendar.isDate($0.orderDdayDate, inSameDayAs: date) }
+//    }
+    
+    func hasOrders(for date: Date) -> Bool {
+       
+        return orders.contains { order in
+            guard let orderDate = DateFormatterHelper.toDate(order.orderDdayDate ?? "") else {
+                return false
+            }
+            let isValidStatus = order.status != "Belum Terbayar" && order.status != "Dibatalkan"
+            return isValidStatus && Calendar.current.isDate(orderDate, inSameDayAs: date)
+        }
+    }
+    
+    func ordersForDate(for date: Date) -> [OrderRecord] {
+        return orders.filter { order in
+            guard let orderDate = DateFormatterHelper.toDate(order.orderDdayDate ?? "") else {
+                return false
+            }
+            let isValidStatus = order.status != "Belum Terbayar" && order.status != "Dibatalkan"
+            return isValidStatus && Calendar.current.isDate(orderDate, inSameDayAs: date)
+        }
+    }
+
+
+    func formattedMonthYear(for date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMMM yyyy"
+        return formatter.string(from: date).uppercased()
+    }
+
+    func generateDays(for month: Date) -> [Date] {
+        guard let monthInterval = calendar.dateInterval(of: .month, for: month),
+              let firstWeek = calendar.dateInterval(of: .weekOfMonth, for: monthInterval.start)
+        else { return [] }
+        
+        var days: [Date] = []
+        (0..<42).forEach { i in
+            if let day = calendar.date(byAdding: .day, value: i, to: firstWeek.start) {
+                days.append(day)
+            }
+        }
+        return days
+    }
+    struct ScrollOffsetPreferenceKey: PreferenceKey {
+        static var defaultValue: CGFloat = 0
+        
+        static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+            value = nextValue()
+        }
+    }
+    
+    func updateOrderStatus(for order: OrderRecord) async {
+        var nextStatus: String
+        
+        switch order.status {
+        case "belum terbayar": nextStatus = "diproses"
+        case "diproses": nextStatus = "dikirim"
+        case "dikirim": nextStatus = "selesai"
+        default: return
+        }
+        
+    }
+
 }

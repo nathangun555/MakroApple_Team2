@@ -7,6 +7,22 @@
 
 import SwiftUI
 
+// MARK: - Order Status Color Extension
+import SwiftUI
+
+extension OrderRecord {
+    var statusColor: Color {
+        switch status {
+        case "Belum Terbayar": return .orange
+        case "Diproses": return .blue
+        case "Terkirim": return .purple
+        case "Selesai": return .green
+        case "Dibatalkan": return .red
+        default: return .gray
+        }
+    }
+}
+
 struct OrderCard: View {
     
     let order: OrderRecord
@@ -20,7 +36,7 @@ struct OrderCard: View {
             // Indikator
             RoundedRectangle(cornerRadius: 10)
                 .frame(width: 6)
-                .foregroundColor(.yellow)
+                .foregroundColor(order.statusColor)
                 .padding(.vertical, 3)
             
             // Card
@@ -59,7 +75,7 @@ struct OrderCard: View {
         
         .background(
             LinearGradient(
-                gradient: Gradient(colors: [Color.white.opacity(0.15), Color.orange.opacity(0.15)]),
+                gradient: Gradient(colors: [Color.white.opacity(0.15), order.statusColor.opacity(0.15)]),
                 startPoint: .leading,
                 endPoint: .trailing
             )
@@ -74,8 +90,17 @@ struct OrderCard: View {
     }
 }
 
-//#Preview {
-//    mainta()
-//}
+#Preview {
+    // Create a stub session
+    let session = SessionManager()
+    session.isSignedIn = true
+    session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
+    
+    // Create the view
+    let view = AllOrdersView()
+    
+    // Inject the environment object
+    return view.environmentObject(session)
+}
 
 

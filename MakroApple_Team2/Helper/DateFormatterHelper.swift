@@ -45,5 +45,12 @@ struct DateFormatterHelper {
         
         return timeFormatter.string(from: date)
     }
+    
+    static func toDate(_ dateString: String) -> Date? {
+        let isoFormatter = ISO8601DateFormatter()
+        isoFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return isoFormatter.date(from: dateString)
+    }
+    
 }
 
