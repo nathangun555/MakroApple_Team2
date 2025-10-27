@@ -34,9 +34,14 @@ struct FormSection: View {
             ForEach(Array(fields.enumerated()), id: \.offset) { index, field in
                 if field.label != "Foto Referensi (optional)" {
                     HStack(spacing: 12) {
-                        Text("\(field.label) :")
+                        TextField("Label", text: Binding(
+                                get: { field.label },
+                                set: { fields[index].label = $0 }
+                            ))
                             .frame(width: 140, alignment: .trailing)
                             .font(.body)
+                            .multilineTextAlignment(.trailing)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
                         
                         Text("")
                             .frame(maxWidth: .infinity, alignment: .leading)
