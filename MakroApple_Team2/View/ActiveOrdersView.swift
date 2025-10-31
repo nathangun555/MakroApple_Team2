@@ -64,9 +64,6 @@ struct ActiveOrdersView: View {
               .padding(.horizontal)
               .padding(.top)
 
-
-
-              
             ScrollView {
               LazyVStack(spacing: 0) {
                 OrderListView(

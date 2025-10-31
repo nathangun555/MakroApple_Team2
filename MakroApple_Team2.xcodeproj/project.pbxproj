@@ -66,6 +66,9 @@
 		};
 		7C98DB552E93CAD400F06C20 /* MakroApple_Team2 */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				7C87A9E32EB4A41900DE50F3 /* Exceptions for "MakroApple_Team2" folder in "MakroApple_Team2" target */,
+			);
 			path = MakroApple_Team2;
 			sourceTree = "<group>";
 		};
@@ -445,7 +448,7 @@
 				CODE_SIGN_ENTITLEMENTS = MakroApple_Team2/MakroApple_Team2.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = R6CU6N8W65;
+				DEVELOPMENT_TEAM = SJRQY5X68S;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
@@ -467,6 +470,7 @@
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				MARKETING_VERSION = 1.0;
+				NEW_SETTING = "";
 				OTHER_SWIFT_FLAGS = "-DDEV_STUB_SESSION";
 				PRODUCT_BUNDLE_IDENTIFIER = "MakroApple-Team2.MakroApple-Team2";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -493,7 +497,7 @@
 				CODE_SIGN_ENTITLEMENTS = MakroApple_Team2/MakroApple_Team2.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = R6CU6N8W65;
+				DEVELOPMENT_TEAM = SJRQY5X68S;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
@@ -515,6 +519,7 @@
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				MARKETING_VERSION = 1.0;
+				NEW_SETTING = "";
 				PRODUCT_BUNDLE_IDENTIFIER = "MakroApple-Team2.MakroApple-Team2";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
