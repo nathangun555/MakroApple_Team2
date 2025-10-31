@@ -11,8 +11,8 @@ struct FormSection: View {
     let title: String
     @Binding var fields: [FormFieldItem]
     let onAddColumn: () -> Void
-    var showDelete: Bool = false
-    var onDelete: ((Int) -> Void)? = nil
+//    var showDelete: Bool = false
+//    var onDelete: ((Int) -> Void)? = nil
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -34,7 +34,7 @@ struct FormSection: View {
             ForEach(Array(fields.enumerated()), id: \.offset) { index, field in
                 if field.label != "Foto Referensi (optional)" {
                     HStack(spacing: 12) {
-                        TextField("Label", text: Binding(
+                        TextField("", text: Binding(
                                 get: { field.label },
                                 set: { fields[index].label = $0 }
                             ))
@@ -55,12 +55,12 @@ struct FormSection: View {
                             )
                             .foregroundColor(.secondary)
                         
-                        if showDelete, let onDelete = onDelete {
-                            Button(action: { onDelete(index) }) {
-                                Image(systemName: "trash")
-                                    .foregroundColor(.red)
-                            }
-                        }
+//                        if showDelete, let onDelete = onDelete {
+//                            Button(action: { onDelete(index) }) {
+//                                Image(systemName: "trash")
+//                                    .foregroundColor(.red)
+//                            }
+//                        }
                     }
                     .padding(.horizontal)
                 }

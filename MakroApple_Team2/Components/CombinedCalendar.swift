@@ -90,7 +90,7 @@ struct CombinedCalendarView: View {
     }
     }
 
-    // MARK: Date cell (shared)
+    // MARK: Date cell
     private struct DateCell: View {
     let date: Date
     let selectedDate: Date

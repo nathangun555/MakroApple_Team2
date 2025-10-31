@@ -10,43 +10,80 @@ import SwiftUI
 struct AllOrdersView: View {
     
     @EnvironmentObject var session: SessionManager
+
     @State private var viewModel = AllOrdersViewModel()
+    
     
     
     @SceneStorage("selectedTab") var selectedTab = 0
     @State private var searchText = ""
     
     
-    @State private var scrollOffset: CGFloat = 0
-    @State private var topInset: CGFloat = 0
-    @State private var startTopInset: CGFloat = 0
-    
     @State var activeTab: TabModel = .belumBayar
     
-    private var filteredOrders: [OrderRecord] {
-        viewModel.orders.filter { order in
-            order.status.localizedCaseInsensitiveCompare(activeTab.dbValue)  == .orderedSame
-        }
-    }
+//    private var filteredOrders: [OrderRecord] {
+//        viewModel.orders.filter { order in
+//            order.status.localizedCaseInsensitiveCompare(activeTab.dbValue)  == .orderedSame
+//        }
+//        
+//        .sorted { a, b in
+//            guard let dateA = a.orderDdayDate, let dateB = b.orderDdayDate else {
+//                return false
+//            }
+//            return dateA < dateB
+//        }
+//    }
     
-    @State private var distance = 0
+    private var filteredOrders: [OrderRecord] {
+        viewModel.orders
+            .filter { order in
+                // Match the selected tab first
+                order.status.localizedCaseInsensitiveCompare(activeTab.dbValue) == .orderedSame
+            }
+            .filter { order in
+                // If search text is empty, include all
+                if searchText.isEmpty { return true }
+                
+                // Convert both sides to lowercase for case-insensitive matching
+                let lowerSearch = searchText.lowercased()
+                
+                // Match by name or phone number (adjust property names if needed)
+                return order.customerOrderName.lowercased().contains(lowerSearch) == true ||
+                order.customerOrderPhone?.lowercased().contains(lowerSearch) == true
+            }
+            .sorted { a, b in
+                guard let dateA = a.orderDdayDate, let dateB = b.orderDdayDate else {
+                    return false
+                }
+                return dateA < dateB
+            }
+    }
+
+    
     var body: some View {
         GeometryReader{ geo in
             NavigationView{
                 VStack{
                     HStack{
+                        let sharedDefaults = UserDefaults(suiteName: "group.com.macroa2.identifier")
+                        if let sharedText = sharedDefaults?.string(forKey: "sharedText") {
+                            
+                            Text(sharedText)
+                        }
+                        
                         // Business Name
-                        Text(viewModel.businessName.isEmpty ? "Loading..." : viewModel.businessName)
+//                        Text(viewModel.businessName.isEmpty ? "Loading..." : viewModel.businessName)
                         
+                        Text("Pesanan")
+                            .font(.largeTitle)
                             .fontWeight(.bold)
-                        
                         
                         Spacer()
                         
                         NavigationLink(destination: NewOrderView()) {
                             Image(systemName: "plus.circle.fill")
-                                .font(.system(size: 30))
-                                .foregroundColor(.blue)
+                                .font(.system(size: 44))
+                                .foregroundColor(.primaryButton)
                         }
                         
                     }
@@ -57,13 +94,13 @@ struct AllOrdersView: View {
                     
                     
                     // Deadline Card
-                    DeadlineCard()
+                    DeadlineCard(orders: viewModel.orders)
                     
                     
                     
                     // Custom Tab Bar
                     CustomTabBar(activeTab: $activeTab)
-                        .frame(maxWidth: .infinity)
+//                        .frame(maxWidth: .infinity)
                         .padding(.vertical)
                     
                     // Orders List
@@ -72,7 +109,13 @@ struct AllOrdersView: View {
                             ForEach(filteredOrders) { order in
                                 if let firstItem = viewModel.orderItems.first(where: { $0.orderId == order.id }) {
                                     NavigationLink(
-                                                        destination: OrderDetailView(order: order, orderItem: [firstItem])
+                                        destination:
+                                            OrderDetailView(
+                                                order: order,
+                                                orderItem: [firstItem],
+                                                source: .allOrders,
+                                                activeTab: $activeTab
+                                            ).environmentObject(session)
                                                     ) {
                                                         OrderCard(order: order, orderItem: firstItem)
                                                     }
@@ -88,15 +131,11 @@ struct AllOrdersView: View {
                     
                 }
                 .task {
-                    // Pastikan user sudah login
-                    if let userIdString = session.userId,
-                       let userId = UUID(uuidString: userIdString) {
-                        await viewModel.fetchBusinessName(for: userId)
-                        await viewModel.fetchOrders(for: userId)
-                        await viewModel.fetchOrderItems(for: userId)
-                    } else {
-                        print("❌ User ID invalid or nil")
-                    }
+                    guard let userIdString = session.userId, let userId = UUID(uuidString: userIdString) else { return }
+                    print("🪪 Fetching data for user:", userId)
+                    await viewModel.fetchBusinessName(for: userId)
+                    await viewModel.fetchOrders(for: userId)
+                    await viewModel.fetchOrderItems(for: userId)
                 }
             }
             .isSearchable(selectedTab: selectedTab, filter: $searchText)
