@@ -10,6 +10,9 @@ import Foundation
 
 // MARK: - Order List View
 struct OrderListView: View {
+    
+    @EnvironmentObject var session: SessionManager
+    
     let selectedDate: Date
     let calendar = Calendar.current
     var viewModel = AllOrdersViewModel()
@@ -35,14 +38,23 @@ struct OrderListView: View {
                         
                         ForEach(sortedOrders) { order in
                             if let firstItem = viewModel.orderItems.first(where: { $0.orderId == order.id }) {
-                                NavigationLink(destination: OrderDetailView(order: order, orderItem: [firstItem])) {
-                                    OrderCard(order: order, orderItem: firstItem)
-                                }
-                                .buttonStyle(PlainButtonStyle())
+                                NavigationLink(
+                                    destination:
+                                        OrderDetailView(
+                                            order: order,
+                                            orderItem: [firstItem],
+                                            source: .allOrders,
+                                            activeTab: .constant(.belumBayar)
+                                        )
+                                        .environmentObject(session) ) {
+                                            OrderCard(order: order, orderItem: firstItem)
+                                        }
+                                        .buttonStyle(PlainButtonStyle())
                             }
                         }
                         
-                    } else {
+                    }
+                    else {
                         // --- SORT BY NAME (GROUPED BY PRODUCT TYPE) ---
                         
                         // Ambil semua item order yang relevan dengan tanggal itu
@@ -59,9 +71,29 @@ struct OrderListView: View {
                         ForEach(sortedTypes, id: \.self) { type in
                             if let items = groupedItems[type] {
                                 VStack(alignment: .leading, spacing: 8) {
-                                    Text(type.uppercased())
-                                        .font(.title3.bold())
-                                        .padding(.horizontal)
+                                    
+                                    HStack {
+                                        Text(type.uppercased())
+                                            .font(.title3.bold())
+                                        
+                                        Spacer()
+                                        
+                                        Text("\(items.count)")
+                                            .padding(.vertical, 3)
+                                            .padding(.horizontal, 6)
+                                            .font(.headline.bold())
+                                            .foregroundColor(.blue)
+                                            .background(Color.clear)
+                                            .overlay(
+                                                RoundedRectangle(cornerRadius: 8)
+                                                    .stroke(Color.blue, lineWidth: 2)
+                                            )
+                                        
+                                    }
+                                    .padding(.horizontal)
+                                    
+                                    Divider()
+                                        .padding(.bottom, 3)
                                     
                                     // Urutkan nama produk di dalam group
                                     let sortedItems = items.sorted {
@@ -70,7 +102,16 @@ struct OrderListView: View {
                                     
                                     ForEach(sortedItems) { item in
                                         if let order = ordersForSelectedDate.first(where: { $0.id == item.orderId }) {
-                                            NavigationLink(destination: OrderDetailView(order: order, orderItem: [item])) {
+                                            NavigationLink(
+                                                destination:
+                                                    OrderDetailView(
+                                                        order: order,
+                                                        orderItem: [item],
+                                                        source: .allOrders,
+                                                        activeTab: .constant(.belumBayar)
+                                                    )
+                                                    .environmentObject(session)
+                                            ) {
                                                 OrderCard(order: order, orderItem: item)
                                             }
                                             .buttonStyle(PlainButtonStyle())

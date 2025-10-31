@@ -7,15 +7,38 @@
 
 import SwiftUI
 
+// To tell where the user open this page from
+enum OrderSource {
+    case allOrders
+    case activeOrders
+}
+
 struct OrderDetailView: View {
     
+    
+    @State private var viewModel = AllOrdersViewModel()
     @EnvironmentObject var session: SessionManager
     let order: OrderRecord
     let orderItem: [OrderItemRecord]
-    @State private var viewModel = AllOrdersViewModel()
-    @State private var statusUpdatedMessage: String? = nil
+    
+    
+    @State private var showSuccessToast = false
+    @Environment(\.dismiss) private var dismiss
+    
+    let source: OrderSource
+    
+    
+    @Binding var activeTab: TabModel
 
+    private var userIdString: String? { session.userId }
+    
+    enum ActiveAlert {
+        case payment
+        case cancel
+    }
 
+    @State private var activeAlert: ActiveAlert? = nil
+    
     
     private func currency(_ value: Double) -> String {
         let formatter = NumberFormatter()
@@ -38,7 +61,7 @@ struct OrderDetailView: View {
         }
     }
     
-
+    
     var body: some View {
         
         ZStack(alignment: .bottom){
@@ -47,24 +70,13 @@ struct OrderDetailView: View {
                 
                 VStack{
                     
-                    // Status
-                    Text(order.status)
-                        .padding(.vertical, 6)
-                        .padding(.horizontal, 20)
-                        .frame(maxWidth: .infinity)
-                        .background(
-                            RoundedRectangle(cornerRadius: 30)
-                                .fill(Color.white)
-                                .overlay( // add colored stroke
-                                    RoundedRectangle(cornerRadius: 30)
-                                        .stroke(order.statusColor, lineWidth: 2)
-                                )
-                        )
-                        .padding(.horizontal)
-                        .padding(.bottom)
+                    OrderStatus(order: order)
                     
                     
-                    
+//                    Text("Order ID: \(order.id.uuidString)")
+//                    Text("User ID: \(userIdString ?? "nil")")
+//                    
+//                    Text("User ID: \(session.userId ?? "nil")")
                     
                     
                     VStack{
@@ -251,11 +263,6 @@ struct OrderDetailView: View {
                         .background(.secondary.opacity(0.1))
                         .cornerRadius(10)
                         
-                        
-                        
-                        
-                        
-                        
                         Text("Referensi Foto")
                             .bold()
                             .frame(maxWidth: .infinity, alignment: .leading)
@@ -381,54 +388,174 @@ struct OrderDetailView: View {
             
             if let buttonTitle = buttonText(for: order.status) {
                 Button {
-                    Task {
-                        if let userIdString = session.userId,
-                             let userId = UUID(uuidString: userIdString) {
-                              
-                              print("➡️ Updating order status for order id: \(order.id)")
-                              
-                              await viewModel.updateOrderStatus(for: order)
-                              await viewModel.fetchOrders(for: userId)
-                              
-                              print("✅ Order status updated for order id: \(order.id)")
-                              
-                              // Optional: show confirmation in UI
-                              statusUpdatedMessage = "Status updated successfully!"
+                    
+                    if order.status == "Terkirim" {
+                        
+                        activeAlert = .payment
+                        
+                    }
+                    else {
+                        
+                        Task {
+                            await handleStatusUpdate()
                         }
-                            }
+                    }
+                    
                 } label: {
                     Text(buttonTitle)
-                        .padding()
+                        .bold()
                         .frame(maxWidth: .infinity)
+                        .padding()
                         .foregroundColor(.white)
-                        .glassEffect(.clear.tint(.blue))
+                        .glassEffect(.clear.tint(.blue), in: .rect(cornerRadius: 30))
                         .padding(.horizontal)
                 }
-            }        }
-//            .background(Color.white.ignoresSafeArea())
-//            .padding(.bottom, 70)
+            }
             
-        
-        
-        
+            if activeAlert != nil {
+                CustomAlert(activeAlert: $activeAlert) { status in
+                    await handleStatusUpdate(to: status)
+                        
+                }
+            }
             
-        
+        }
+        .overlay(
+            Group {
+                if showSuccessToast {
+                    VStack {
+                        HStack {
+                            Image(systemName: "checkmark.circle.fill")
+                                .foregroundColor(.white)
+                            Text("Status updated successfully!")
+                                .foregroundColor(.white)
+                                .fontWeight(.semibold)
+                        }
+                        .padding()
+                        .background(Color.green.opacity(0.9))
+                        .cornerRadius(12)
+                        .shadow(radius: 5)
+                        Spacer()
+                    }
+                    .padding(.top, 40)
+                    .transition(.move(edge: .top).combined(with: .opacity))
+                }
+            }
+        )
         .navigationTitle("Rincian Pesanan")
         .toolbar {
             if order.status == "Belum Terbayar" || order.status == "Diproses" {
-                    ToolbarItem(placement: .topBarTrailing) {
-                        Button {
-                            print("Delete tapped")
-                            // Add your delete logic or confirmation alert here
-                        } label: {
-                            Image(systemName: "trash")
-//                                .foregroundColor(.red)
-                        }
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        activeAlert = .cancel
+                    } label: {
+                        Image(systemName: "trash")
+                        //                                .foregroundColor(.red)
                     }
                 }
+            }
+        }
+        .task {
+            viewModel.configure(userId: session.userId)
+            if let userIdString = viewModel.userId {
+                await viewModel.fetchBusinessName(for: UUID(uuidString: userIdString))
+                await viewModel.fetchOrders(for: UUID(uuidString: userIdString))
+                await viewModel.fetchOrderItems(for: UUID(uuidString: userIdString))
+            } else {
+                print("❌ Passed session.userId invalid or nil")
+            }
+        }
+        
+//        .alert(isPresented: .constant(activeAlert != nil)) {
+//            switch activeAlert {
+//            case .payment:
+//                return Alert(
+//                    title: Text("Pembeli sudah melunasi pembayaran?"),
+//                    message: Text("Jika sudah dibayar penuh, status akan diubah menjadi 'Selesai'."),
+//                    primaryButton: .default(Text("Sudah")) {
+//                        Task { await handleStatusUpdate(to: "Selesai") }
+//                    },
+//                    secondaryButton: .cancel(Text("Belum"))
+//                )
+//
+//            case .cancel:
+//                return Alert(
+//                    title: Text("Batalkan pesanan ini?"),
+//                    message: Text("Pesanan yang dibatalkan tidak dapat dipulihkan."),
+//                    primaryButton: .destructive(Text("Ya, batalkan")) {
+//                        Task { await handleStatusUpdate(to: "Dibatalkan") }
+//                    },
+//                    secondaryButton: .cancel(Text("Tidak"))
+//                )
+//
+//            case .none:
+//                return Alert(title: Text(""))
+//            }
+//        }
+
+
+        
+    }
+    
+    private func handleStatusUpdate(to newStatus: String? = nil) async {
+        guard let userIdString = session.userId,
+              let userId = UUID(uuidString: userIdString) else { return }
+
+        do {
+            // Determine next status before the update
+            var finalStatus: String
+
+            if let newStatus = newStatus {
+                finalStatus = newStatus
+                try await SupabaseManager.shared.updateOrderStatus(orderId: order.id, newStatus: newStatus)
+                print("✅ Manually updated status to:", newStatus)
+            } else {
+                // Calculate next step manually just like your viewModel.updateOrderStatus
+                switch order.status.lowercased() {
+                case "belum terbayar": finalStatus = "Diproses"
+                case "diproses": finalStatus = "Terkirim"
+                case "terkirim": finalStatus = "Selesai"
+                default: return
+                }
+
+                try await SupabaseManager.shared.updateOrderStatus(orderId: order.id, newStatus: finalStatus)
+                print("✅ Automatically updated status to:", finalStatus)
+            }
+
+            // 2️⃣ Refresh all orders
+            await viewModel.fetchOrders(for: userId)
+
+            // 3️⃣ Show success toast
+            withAnimation { showSuccessToast = true }
+
+            // 4️⃣ Hide toast after delay and handle navigation
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                withAnimation { showSuccessToast = false }
+
+                // 5️⃣ Switch tab based on *new* final status
+                if source == .allOrders {
+                    switch finalStatus.lowercased() {
+                    case "belum terbayar": activeTab = .belumBayar
+                    case "diproses": activeTab = .diproses
+                    case "terkirim": activeTab = .terkirim
+                    case "selesai": activeTab = .selesai
+                    case "dibatalkan": activeTab = .dibatalkan
+                    default: break
+                    }
+                }
+
+                // 6️⃣ Dismiss to go back
+                dismiss()
+            }
+
+        } catch {
+            print("❌ Failed to update status:", error.localizedDescription)
         }
     }
+
+
 }
+
 
 
 #Preview {

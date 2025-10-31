@@ -102,6 +102,7 @@ struct OrderRecord: Codable, Identifiable {
     let customFields: [String: AnyCodable]?
     let createdAt: String?
     let updatedAt: String?
+    let downPayment: Decimal?
 
     enum CodingKeys: String, CodingKey {
         case id
@@ -129,6 +130,7 @@ struct OrderRecord: Codable, Identifiable {
         case customFields = "custom_fields"
         case createdAt = "created_at"
         case updatedAt = "updated_at"
+        case downPayment = "down_payment"
     }
 }
 
