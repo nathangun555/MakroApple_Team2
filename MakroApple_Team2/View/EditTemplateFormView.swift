@@ -49,8 +49,8 @@ struct EditTemplateFormView: View {
                                 title: "Rincian Pesanan",
                                 fields: $viewModel.orderFields,
                                 onAddColumn: { viewModel.addOrderField() },
-                                showDelete: true,
-                                onDelete: { index in viewModel.deleteOrderField(at: index) }
+//                                showDelete: true,
+//                                onDelete: { index in viewModel.deleteOrderField(at: index) }
                             )
                             
                             // Lain-Lain Section
@@ -58,8 +58,8 @@ struct EditTemplateFormView: View {
                                 title: "Lain - Lain",
                                 fields: $viewModel.otherFields,
                                 onAddColumn: { viewModel.addOtherField() },
-                                showDelete: true,
-                                onDelete: { index in viewModel.deleteOtherField(at: index) }
+//                                showDelete: true,
+//                                onDelete: { index in viewModel.deleteOtherField(at: index) }
                             )
                             
                             // Referensi Foto Section

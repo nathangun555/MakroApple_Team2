@@ -10,20 +10,25 @@ import Foundation
 import PhotosUI
 
 struct NewOrderView: View {
-    
+    @State private var viewModel = NewOrderViewModel()
+    @EnvironmentObject var session: SessionManager
     @State private var formPesanan = ""
     
     @State private var selectedItems: [PhotosPickerItem?] = [nil, nil, nil]
     @State private var selectedImages: [UIImage?] = [nil, nil, nil]
     @State private var savedImagePaths: [URL?] = [nil, nil, nil]
     
+    @State private var isLoading = false
+    @State private var resultJSON: String? = nil
+    @State private var errorMessage: String? = nil
+    
+    let edgeFunctionURL = URL(string: "https://iznjcwyoziqjgfjahemb.supabase.co/functions/v1/form-template")!
+    
     var body: some View {
         GeometryReader { geometry in
             ZStack(alignment: .bottom){
                 ScrollView{
                     VStack(alignment: .leading){
-                        
-                        
                         HStack{
                             Text("Formulir Pesanan")
                                 .font(.title3)
@@ -108,9 +113,6 @@ struct NewOrderView: View {
                                             VStack {
                                                 Image(systemName: "photo.badge.plus")
                                                     .font(.title)
-                                                
-//                                                Text("Unggah Foto")
-//                                                    .font(.subheadline)
                                             }
                                             .foregroundColor(.black)
                                             .frame(width: 115, height: 115)
@@ -128,22 +130,20 @@ struct NewOrderView: View {
                             
                         }
                         
-                        
                         // Info penyimpanan gambar
                         if savedImagePaths.contains(where: { $0 != nil }) {
                             Text("✅ \(savedImagePaths.compactMap { $0 }.count) gambar terunggah.")
                                 .font(.footnote)
                                 .foregroundColor(.green)
                         }
-                        
-                        
-                        
-                        
                     }
                     .padding()
                 }
                 Button(action: {
-                    print("saved")
+                    Task{
+                        await viewModel.parseOrder(text: formPesanan)
+                        print("saved")
+                    }
                 }) {
                     Text("Tinjau Pesanan")
                         .fontWeight(.semibold)
@@ -156,9 +156,14 @@ struct NewOrderView: View {
                         .shadow(radius: 5)
                 }
             }
-                .navigationTitle("Add New Order")
+            .navigationTitle("Add New Order")
+            .task {
+                viewModel.configure(userId: session.userId)
+            }
+            .navigationDestination(isPresented: $viewModel.navigateToConfirm) {
+                EditOrderView(parsedOrderData: viewModel.parsedOrderData ?? [:])
+            }
         }
-        
     }
     // 🔹 Fungsi memuat dan menyimpan gambar per slot
     private func loadImage(for index: Int) async {
@@ -188,10 +193,14 @@ struct NewOrderView: View {
             return nil
         }
     }
-    
 }
 
 
 #Preview {
-    NewOrderView()
+    let session = SessionManager()
+    session.isSignedIn = true
+    session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
+    
+    return NewOrderView()
+        .environmentObject(session)
 }

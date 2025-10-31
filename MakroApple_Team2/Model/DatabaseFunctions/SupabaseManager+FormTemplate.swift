@@ -12,8 +12,8 @@ extension SupabaseManager {
   func fetchFormTemplate(by id: UUID) async throws -> UserRecord? {
     let response = try await client
       .from("users")
-      .select("templateFormat")
-      .eq("id", value: id)
+      .select("id, email, template_format")
+      .eq("id", value: id.uuidString)
       .limit(1)
       .execute()
 

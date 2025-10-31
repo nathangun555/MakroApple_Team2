@@ -35,6 +35,8 @@ class InvoicePreviewViewModel {
     var isLoading = false
     var errorMessage: String?
     
+    var exportFormat: ExportFormat = .pdf
+    
     private(set) var userId: String?
     
     func configure(userId: String?) {
@@ -205,6 +207,11 @@ class InvoicePreviewViewModel {
             completion(true)
         }
     }
+}
+
+enum ExportFormat {
+    case pdf
+    case image
 }
 
 // MARK: - Data Models
