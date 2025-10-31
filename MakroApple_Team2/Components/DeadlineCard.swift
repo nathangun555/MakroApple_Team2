@@ -9,25 +9,51 @@ import SwiftUI
 
 struct DeadlineCard: View {
     
-   
+    var orders: [OrderRecord]
+    
+    private var todayDeadlineCount: Int {
+        let today = Calendar.current.startOfDay(for: Date())
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd" // adjust to your actual format
+        
+        return orders.filter {
+            guard let dateString = $0.orderDdayDate, // String
+                  let date = dateFormatter.date(from: dateString) else {
+                return false
+            }
+            return Calendar.current.isDate(date, inSameDayAs: today)
+        }.count
+    }
     
     var body: some View {
         // Today's Deadline Card
-        VStack(alignment: .leading){
-
-            Text("Deadline Hari Ini")
-            Spacer()
-            Text("38")
-                .font(.largeTitle)
+        
+        HStack {
+            VStack {
+                Image(systemName: "bookmark.fill")
+                    .font(.title3)
+            }
+            
+            
+            
+            VStack(alignment: .leading) {
+                Text("Deadline Hari Ini")
+                    .font(.title2)
                 .fontWeight(.bold)
-            Spacer()
+                
+                Spacer()
+                Text("\(todayDeadlineCount) Pesanan yang perlu selesai")
+                    .font(.body)
+            }
         }
         .padding()
         .frame(maxWidth: .infinity, alignment: .leading)
-        .frame(height: 100)
-        .cornerRadius(30)
-        .glassEffect(.regular, in: .rect(cornerRadius:30))
+        .foregroundStyle(.primaryButton)
+        .background(.deadlineCard)
+        .frame(height: 80)
+        .cornerRadius(10)
         .padding(.horizontal)
+        
 
         
     }
@@ -35,5 +61,14 @@ struct DeadlineCard: View {
 }
 
 #Preview {
-    DeadlineCard()
+    // Create a stub session
+    let session = SessionManager()
+    session.isSignedIn = true
+    session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
+    
+    // Create the view
+    let view = AllOrdersView()
+    
+    // Inject the environment object
+    return view.environmentObject(session)
 }
