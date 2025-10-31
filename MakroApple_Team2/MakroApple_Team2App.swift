@@ -28,7 +28,7 @@ struct MakroApple_Team2App: App {
   var body: some Scene {
     WindowGroup {
       NavigationStack {
-        ActiveOrdersView()
+        NewOrderView()
           .environmentObject(session)   // Inject globally
       }
       .task {

@@ -125,13 +125,18 @@ class EditTemplateViewModel {
         var templateDict: [String: Any] = [:]
         
         for field in customerFields + scheduleFields + orderFields + otherFields {
-                if let data = field.value.data(using: .utf8),
-                   let array = try? JSONSerialization.jsonObject(with: data) as? [Any] {
-                    templateDict[field.label] = array
-                } else {
-                    templateDict[field.label] = field.value
-                }
+                
+            guard !field.label.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+                continue
             }
+            
+            if let data = field.value.data(using: .utf8),
+               let array = try? JSONSerialization.jsonObject(with: data) as? [Any] {
+                templateDict[field.label] = array
+            } else {
+                templateDict[field.label] = field.value
+            }
+        }
         
         print(templateDict)
         

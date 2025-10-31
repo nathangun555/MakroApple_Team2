@@ -1,23 +1,11 @@
-//
-//  NewTemplateFormView.swift
-//  MakroApple_Team2
-//
-//  Created by Alfred Hans Witono on 21/10/25.
-//
-
 import SwiftUI
 import Foundation
 
 struct NewTemplateFormView: View {
     
     @State private var formPesanan = ""
-    @State private var isLoading = false
-    @State private var resultJSON: String? = nil
-    @State private var errorMessage: String? = nil
     @State private var viewModel = NewTemplateViewModel()
     @EnvironmentObject var session: SessionManager
-    
-    let edgeFunctionURL = URL(string: "https://iznjcwyoziqjgfjahemb.supabase.co/functions/v1/form-template")!
     
     var body: some View {
         NavigationStack {
@@ -83,7 +71,9 @@ struct NewTemplateFormView: View {
                                         }
                                     }
                                 )
-                            if let json = resultJSON {
+                            
+                            // ✅ Show result from ViewModel
+                            if let json = viewModel.resultJSON {
                                 Text("✅ Template JSON:")
                                     .font(.headline)
                                     .padding(.top)
@@ -96,7 +86,8 @@ struct NewTemplateFormView: View {
                                 }
                             }
                             
-                            if let error = errorMessage ?? viewModel.errorMessage {
+                            // ✅ Show error from ViewModel
+                            if let error = viewModel.errorMessage {
                                 Text("❌ Error: \(error)")
                                     .foregroundColor(.red)
                                     .padding(.top)
@@ -105,12 +96,13 @@ struct NewTemplateFormView: View {
                         .padding()
                     }
                     
+                    // ✅ Simplified button
                     Button(action: {
                         Task {
-                            await sendToEdgeFunction()
+                            await viewModel.generateTemplate(from: formPesanan)
                         }
                     }) {
-                        if isLoading || viewModel.isLoading {
+                        if viewModel.isLoading {
                             ProgressView()
                                 .tint(.white)
                                 .frame(maxWidth: .infinity)
@@ -130,7 +122,7 @@ struct NewTemplateFormView: View {
                                 .shadow(radius: 5)
                         }
                     }
-                    .disabled(formPesanan.isEmpty || isLoading || viewModel.isLoading)
+                    .disabled(formPesanan.isEmpty || viewModel.isLoading)
                 }
                 .navigationDestination(isPresented: $viewModel.didSave) {
                     EditTemplateFormView()
@@ -141,49 +133,6 @@ struct NewTemplateFormView: View {
             viewModel.configure(userId: session.userId)
         }
     }
-    
-    // MARK: - Send Function
-    func sendToEdgeFunction() async {
-        guard !formPesanan.isEmpty else { return }
-        
-        isLoading = true
-        errorMessage = nil
-        resultJSON = nil
-        
-        do {
-            var request = URLRequest(url: edgeFunctionURL)
-            request.httpMethod = "POST"
-            request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-            request.addValue("Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml6bmpjd3lvemlxamdmamFoZW1iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY3MTg3NjksImV4cCI6MjA3MjI5NDc2OX0.J9zQpQajTg3V6qAN18W5Fkv2jCDobL_XzuRS3BdPmdA", forHTTPHeaderField: "Authorization")
-            
-            let body = ["input": formPesanan]
-            request.httpBody = try JSONSerialization.data(withJSONObject: body)
-            
-            let (data, response) = try await URLSession.shared.data(for: request)
-            
-            guard let httpResponse = response as? HTTPURLResponse,
-                  (200...299).contains(httpResponse.statusCode) else {
-                throw URLError(.badServerResponse)
-            }
-            
-            if let decoded = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-               let outputObject = decoded["outputJson"] as? [String: Any] {
-                if let jsonData = try? JSONSerialization.data(withJSONObject: outputObject, options: []),
-                   let jsonString = String(data: jsonData, encoding: .utf8) {
-                    resultJSON = jsonString
-                }
-            } else {
-                resultJSON = String(data: data, encoding: .utf8)
-            }
-
-            await viewModel.saveTemplate(templateString: resultJSON ?? "")
-            
-        } catch {
-            errorMessage = error.localizedDescription
-        }
-        
-        isLoading = false
-    }
 }
 
 #Preview {
@@ -191,7 +140,6 @@ struct NewTemplateFormView: View {
     session.isSignedIn = true
     session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
     
-    let view = NewTemplateFormView()
-    
-    return view.environmentObject(session)
+    return NewTemplateFormView()
+        .environmentObject(session)
 }

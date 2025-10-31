@@ -1,74 +1,14 @@
 //
-//  InvoicePreviewView.swift
+//  InvoiceView.swift
 //  MakroApple_Team2
 //
-//  Created by Assistant on 24/10/25.
+//  Created by Alfred Hans Witono on 28/10/25.
 //
 
 import SwiftUI
 
-struct InvoicePreviewView: View {
-    @State private var viewModel = InvoicePreviewViewModel()
-    @EnvironmentObject var session: SessionManager
-    @Environment(\.dismiss) var dismiss
-    
-    @State private var exportFormat: ExportFormat = .pdf
-    
-    var body: some View {
-        NavigationStack {
-            ZStack {
-                if viewModel.isLoading {
-                    ProgressView("Memuat invoice...")
-                } else if let errorMessage = viewModel.errorMessage {
-                    VStack {
-                        Text("❌ Error")
-                            .font(.headline)
-                        Text(errorMessage)
-                            .foregroundColor(.red)
-                            .multilineTextAlignment(.center)
-                            .padding()
-                    }
-                } else {
-                    ScrollView {
-                        invoiceContent
-                            .padding(20)
-                            .background(Color.white)
-                    }
-                    .background(Color(.systemGray6))
-                }
-            }
-            .navigationTitle("Preview Invoice")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                
-                ToolbarItem(placement: .topBarTrailing) {
-                    Menu {
-                        Button(action: {
-                            exportFormat = .pdf
-                            exportAndShare()
-                        }) {
-                            Label("Export as PDF", systemImage: "doc.fill")
-                        }
-                        
-                        Button(action: {
-                            exportFormat = .image
-                            exportAndShare()
-                        }) {
-                            Label("Export as Image", systemImage: "photo.fill")
-                        }
-                    } label: {
-                        Image(systemName: "square.and.arrow.up")
-                            .foregroundColor(.primary)
-                    }
-                }
-            }
-        }
-        .task {
-            viewModel.configure(userId: session.userId)
-            await viewModel.loadInvoiceData()
-        }
-    }
-    
+extension InvoicePreviewView {
+    @ViewBuilder
     // MARK: - Invoice Content
     var invoiceContent: some View {
         VStack(spacing: 12) {
@@ -109,7 +49,7 @@ struct InvoicePreviewView: View {
             deliveryDetailsSection
         }
     }
-    
+
     // MARK: - Header Section
     var headerSection: some View {
         HStack(alignment: .top, spacing: 12) {
@@ -159,7 +99,7 @@ struct InvoicePreviewView: View {
             }
         }
     }
-    
+
     // MARK: - Billed To Section
     var billedToSection: some View {
         VStack(alignment: .leading, spacing: 4) {
@@ -177,7 +117,7 @@ struct InvoicePreviewView: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
-    
+
     // MARK: - Payment Info Section
     var paymentInfoSection: some View {
         VStack(alignment: .trailing, spacing: 4) {
@@ -195,7 +135,7 @@ struct InvoicePreviewView: View {
                 .font(.system(size: 10))
         }
     }
-    
+
     // MARK: - Recipient Section
     var recipientSection: some View {
         VStack(alignment: .leading, spacing: 4) {
@@ -217,7 +157,7 @@ struct InvoicePreviewView: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
-    
+
     // MARK: - Date Info Section
     var dateInfoSection: some View {
         VStack(alignment: .trailing, spacing: 4) {
@@ -240,7 +180,7 @@ struct InvoicePreviewView: View {
                 .frame(maxWidth: 150)
         }
     }
-    
+
     // MARK: - Order Items Table
     var orderItemsTable: some View {
         VStack(spacing: 0) {
@@ -294,7 +234,7 @@ struct InvoicePreviewView: View {
             }
         }
     }
-    
+
     // MARK: - Totals Section
     var totalsSection: some View {
         VStack(spacing: 6) {
@@ -340,7 +280,7 @@ struct InvoicePreviewView: View {
         .frame(maxWidth: .infinity, alignment: .trailing)
         .padding(.horizontal, 6)
     }
-    
+
     // MARK: - Delivery Details Section
     var deliveryDetailsSection: some View {
         VStack(alignment: .leading, spacing: 6) {
@@ -362,66 +302,5 @@ struct InvoicePreviewView: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
-    
-    // MARK: - Export Functions
-    private func exportAndShare() {
-        switch exportFormat {
-        case .pdf:
-            exportAsPDF()
-        case .image:
-            exportAsImage()
-        }
-    }
-    
-    private func exportAsPDF() {
-        let invoiceView = invoiceContent
-            .padding(20)
-            .background(Color.white)
-            .frame(width: 595)
-        
-        if let pdfData = viewModel.exportAsPDF(view: invoiceView) {
-            let tempURL = FileManager.default.temporaryDirectory
-                .appendingPathComponent("Invoice_\(viewModel.generateInvoiceCode().replacingOccurrences(of: "/", with: "_")).pdf")
-            
-            do {
-                try pdfData.write(to: tempURL)
-                viewModel.shareInvoice(items: [tempURL]) { success in
-                    if success {
-                        print("PDF shared successfully")
-                    }
-                }
-            } catch {
-                print("Error saving PDF: \(error)")
-            }
-        }
-    }
-    
-    private func exportAsImage() {
-        let invoiceView = invoiceContent
-            .padding(20)
-            .background(Color.white)
-            .frame(width: 595)
-        
-        if let image = viewModel.exportAsImage(view: invoiceView) {
-            viewModel.shareInvoice(items: [image]) { success in
-                if success {
-                    print("Image shared successfully")
-                }
-            }
-        }
-    }
-}
 
-enum ExportFormat {
-    case pdf
-    case image
-}
-
-#Preview {
-    let session = SessionManager()
-    session.isSignedIn = true
-    session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
-    
-    return InvoicePreviewView()
-        .environmentObject(session)
 }
