@@ -119,10 +119,10 @@ struct CustomAlert: View {
 //    let session = SessionManager()
 //    session.isSignedIn = true
 //    session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
-//    
+//
 //    // Create the view
 //    let view = AllOrdersView()
-//    
+//
 //    // Inject the environment object
 //    return view.environmentObject(session)
 //}

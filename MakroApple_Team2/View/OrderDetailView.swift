@@ -75,7 +75,7 @@ struct OrderDetailView: View {
                     
 //                    Text("Order ID: \(order.id.uuidString)")
 //                    Text("User ID: \(userIdString ?? "nil")")
-//                    
+//
 //                    Text("User ID: \(session.userId ?? "nil")")
                     
                     
@@ -570,4 +570,3 @@ struct OrderDetailView: View {
     // Inject the environment object
     return view.environmentObject(session)
 }
-

@@ -105,7 +105,7 @@ extension SupabaseManager {
         var query = client
             .from("products")
             .select()
-            .eq("user_id", value: userId)
+            .eq("user_id", value: userId.uuidString) //
 
         if let limit, let offset {
             query = query.range(from: offset, to: offset + limit - 1) as! PostgrestFilterBuilder
@@ -118,6 +118,72 @@ extension SupabaseManager {
 
         return try JSONDecoder().decode([ProductRecord].self, from: response.data)
     }
+    
+    // MARK: - Delete Product(s)
+        /// Delete single product by id. Does not require returned row.
+        func deleteProduct(id: UUID) async throws {
+            print("🗑️ Deleting product id:", id.uuidString)
+            let response = try await client
+                .from("products")
+                .delete()
+                .eq("id", value: id.uuidString)
+                .execute()
+
+            // Log raw response for debugging
+            print("🗑️ Delete raw response:", String(data: response.data, encoding: .utf8) ?? "nil")
+            print("🗑️ Status:", response.status)
+
+            // If server returns HTTP error status, throw
+            let statusCode = response.status ?? 0
+            if statusCode >= 400 {
+                throw NSError(domain: "SupabaseDeleteError", code: statusCode, userInfo: [NSLocalizedDescriptionKey: "Failed to delete product (status \(statusCode))."])
+            }
+
+            // Note: Supabase may return empty data on delete; that's fine.
+        }
+
+        /// Delete multiple products by ids (helper)
+        func deleteProducts(ids: [UUID]) async throws {
+            guard !ids.isEmpty else { return }
+            // convert UUIDs to string array
+            let idStrings = ids.map { $0.uuidString }
+            print("🗑️ Deleting products ids:", idStrings)
+            // Use PostgREST IN filter with "in" (the library might support .in)
+            // If your Supabase swift SDK exposes `.in` method, use it; otherwise do loop fallback.
+            if let builder = client.from("products") as? PostgrestFilterBuilder {
+                // Attempt to use `in` via filter builder if available
+                // NOTE: If your SDK doesn't expose `.in`, fallback to per-id deletes below.
+                // Fallback simple loop:
+                for id in ids {
+                    try await deleteProduct(id: id)
+                }
+            } else {
+                for id in ids {
+                    try await deleteProduct(id: id)
+                }
+            }
+        }
+    
+    
+    func deleteProductsByCategory(userId: UUID, productType: String) async throws {
+      _ = try await client
+        .from("products")
+        .delete()
+        .eq("user_id", value: userId)
+        .eq("product_type", value: productType)
+        .execute()
+    }
+    
+    func bulkRenameCategory(userId: UUID, from oldType: String, to newType: String) async throws {
+      _ = try await client
+        .from("products")
+        .update(["product_type": newType])
+        .eq("user_id", value: userId)
+        .eq("product_type", value: oldType)
+        .execute()
+    }
+
+
 }
 
 // MARK: - Type Erasure for Encodable values
@@ -141,3 +207,4 @@ struct AnyEncodable: Encodable {
         try _encode(encoder)
     }
 }
+

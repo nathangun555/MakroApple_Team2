@@ -66,9 +66,6 @@
 		};
 		7C98DB552E93CAD400F06C20 /* MakroApple_Team2 */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				7C87A9E32EB4A41900DE50F3 /* Exceptions for "MakroApple_Team2" folder in "MakroApple_Team2" target */,
-			);
 			path = MakroApple_Team2;
 			sourceTree = "<group>";
 		};
