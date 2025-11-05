@@ -8,72 +8,72 @@
 import SwiftUI
 import Supabase
 
-struct ContentView: View {
-    @EnvironmentObject var session: SessionManager
-    @SceneStorage("selectedTab") var selectedTab = 0
-
-    var body: some View {
-        Group {
-            if session.isSignedIn {
-                // ✅ Main app after login
-                MainTabView(selectedTab: $selectedTab)
-            } else {
-                // 👇 Sign-in screen
-//                SignInWithAppleView()
-                MainTabView(selectedTab: $selectedTab)
-            }
-        }
-//        .task {
-//            await checkSession()
+//struct ContentView: View {
+//    @EnvironmentObject var session: SessionManager
+//    @SceneStorage("selectedTab") var selectedTab = 0
+//
+//    var body: some View {
+//        Group {
+//            if session.isSignedIn {
+//                // ✅ Main app after login
+//                MainTabView(selectedTab: $selectedTab, sharedText: .constant(""), hasNewSharedText: <#Binding<Bool>#>)
+//            } else {
+//                // 👇 Sign-in screen
+////                SignInWithAppleView()
+//                MainTabView(selectedTab: $selectedTab, sharedText: .constant(""))
+//            }
 //        }
-    }
-
-    // MARK: - Auto-login check
-    private func checkSession() async {
-        do {
-            let sessionResult = try await SupabaseManager.shared.client.auth.session
-            let user = sessionResult.user
-            await MainActor.run {
-                session.userId = user.id.uuidString
-                session.isSignedIn = true
-            }
-            print("✅ Auto-login for user: \(user.email ?? "No email")")
-        } catch {
-            await MainActor.run {
-                session.isSignedIn = false
-                session.userId = nil
-            }
-            print("ℹ️ No active session: \(error.localizedDescription)")
-        }
-    }
-}
+////        .task {
+////            await checkSession()
+////        }
+//    }
+//
+//    // MARK: - Auto-login check
+//    private func checkSession() async {
+//        do {
+//            let sessionResult = try await SupabaseManager.shared.client.auth.session
+//            let user = sessionResult.user
+//            await MainActor.run {
+//                session.userId = user.id.uuidString
+//                session.isSignedIn = true
+//            }
+//            print("✅ Auto-login for user: \(user.email ?? "No email")")
+//        } catch {
+//            await MainActor.run {
+//                session.isSignedIn = false
+//                session.userId = nil
+//            }
+//            print("ℹ️ No active session: \(error.localizedDescription)")
+//        }
+//    }
+//}
 
 struct MainTabView: View {
     @Binding var selectedTab: Int
-//    @Binding var showNewOrder: Bool
+    @Binding var sharedText: String
+    @Binding var hasNewSharedText: Bool
 
     var body: some View {
-        NavigationStack {
-            TabView(selection: $selectedTab) {
-                Tab("Pesanan", systemImage: "basket.fill", value: 0) {
-                    AllOrdersView()
-                }
-                Tab("Jadwal", systemImage: "tray.full", value: 1) {
-                    ActiveOrdersView()
-                }
-                Tab("Analitik", systemImage: "chart.bar", value: 2) {
-                    AnalyticsView()
-                }
-                Tab("Pengaturan", systemImage: "gearshape", value: 3) {
-                    SettingsView()
-                }
-                if selectedTab == 0 || selectedTab == 4 {
-                    Tab("Cari Nama atau Pesanan", systemImage: "magnifyingglass", value: 4, role: .search) {
-                        AllOrdersView()
-                    }
+        TabView(selection: $selectedTab) {
+            Tab("Pesanan", systemImage: "basket.fill", value: 0) {
+                AllOrdersView(sharedText: $sharedText, hasNewSharedText: $hasNewSharedText)
+            }
+            Tab("Jadwal", systemImage: "tray.full", value: 1) {
+                ActiveOrdersView()
+            }
+            Tab("Analitik", systemImage: "chart.bar", value: 2) {
+                AnalyticsView()
+            }
+            Tab("Pengaturan", systemImage: "gearshape", value: 3) {
+                SettingsView()
+            }
+            if selectedTab == 0 || selectedTab == 4 {
+                Tab("Cari Nama atau Pesanan", systemImage: "magnifyingglass", value: 4, role: .search) {
+                    AllOrdersView(sharedText: $sharedText,  hasNewSharedText: $hasNewSharedText)
                 }
             }
         }
+        
         
         
 //        NavigationStack {
@@ -121,11 +121,11 @@ struct MainTabView: View {
 //        }
     }
 }
-
-#Preview {
-    ContentView()
-        .environmentObject(SessionManager())
-}
+//
+//#Preview {
+//    ContentView()
+//        .environmentObject(SessionManager())
+//}
 
 
 
@@ -203,6 +203,3 @@ struct MainTabView: View {
 //    }
 //}
 //
-#Preview {
-    ContentView()
-}

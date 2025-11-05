@@ -14,18 +14,22 @@ struct NewOrderView: View {
     @EnvironmentObject var session: SessionManager
     @State private var formPesanan = ""
     
-    @State private var selectedItems: [PhotosPickerItem?] = [nil, nil, nil]
-    @State private var selectedImages: [UIImage?] = [nil, nil, nil]
-    @State private var savedImagePaths: [URL?] = [nil, nil, nil]
+    @State private var selectedItems: [PhotosPickerItem?] = [nil]
+    @State private var selectedImages: [UIImage?] = [nil]
+    @State private var savedImagePaths: [URL?] = [nil]
     
     @State private var isLoading = false
     @State private var resultJSON: String? = nil
     @State private var errorMessage: String? = nil
     
+    @Binding var sharedText: String
+    
     let edgeFunctionURL = URL(string: "https://iznjcwyoziqjgfjahemb.supabase.co/functions/v1/form-template")!
     
     var body: some View {
-        GeometryReader { geometry in
+        
+        ZStack{
+            
             ZStack(alignment: .bottom){
                 ScrollView{
                     VStack(alignment: .leading){
@@ -49,28 +53,27 @@ struct NewOrderView: View {
                                     .cornerRadius(20)
                             }
                         }
-                    
                         
-                        TextEditor(text: $formPesanan)
-                            .padding(3)
-                            .frame(height: geometry.size.height / 3)
-                            .cornerRadius(10)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 10)
-                                    .stroke(Color.gray.opacity(5), lineWidth: 0.5)
-                            )
-                            .overlay(
-                                Group {
-                                    if formPesanan.isEmpty {
-                                        Text("Tempel formulir pesanan anda di sini ✨")
-                                            .foregroundColor(.gray)
-                                            .padding(.horizontal, 14)
-                                            .padding(.vertical, 12)
-                                            .frame(maxWidth: .infinity, alignment: .leading)
-                                    }
-                                }
-                            )
-
+                        
+                        ZStack(alignment: .topLeading) {
+                            
+                            
+                            TextEditor(text: $formPesanan)
+                                .padding(8)
+                                .frame(minHeight: 200)
+                            
+                            if formPesanan.isEmpty {
+                                Text("Tempel formulir pesanan anda di sini ✨")
+                                    .foregroundColor(.gray)
+                                    .padding(.horizontal, 8)
+                                    .padding(.vertical, 12)
+                            }
+                        }
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 10)
+                                .stroke(Color.gray.opacity(0.4), lineWidth: 0.8)
+                        )
+                        
                         
                         
                         Text("Masukkan Foto Referensi")
@@ -79,7 +82,7 @@ struct NewOrderView: View {
                             .padding(.top)
                         
                         HStack(spacing: 12) {
-                            ForEach(0..<3, id: \.self) { index in
+                            ForEach(0..<selectedImages.count, id: \.self) { index in
                                 VStack {
                                     if let image = selectedImages[index] {
                                         Image(uiImage: image)
@@ -139,9 +142,32 @@ struct NewOrderView: View {
                     }
                     .padding()
                 }
+                
+                
+                //                Button(action: {
+                //                    Task{
+                //                        await viewModel.parseOrder(text: formPesanan)
+                //                        print("saved")
+                //                    }
+                //                }) {
+                //                    Text("Tinjau Pesanan")
+                //                        .fontWeight(.semibold)
+                //                        .frame(maxWidth: .infinity)
+                //                        .padding()
+                //                        .background(Color.blue)
+                //                        .foregroundColor(.white)
+                //                        .cornerRadius(30)
+                //                        .padding(.horizontal)
+                //                        .shadow(radius: 5)
+                //                }
+                
                 Button(action: {
+                    isLoading = true              // 1) show loading
+                    
                     Task{
                         await viewModel.parseOrder(text: formPesanan)
+                        
+                        isLoading = false         // 2) hide loading setelah selesai
                         print("saved")
                     }
                 }) {
@@ -155,15 +181,33 @@ struct NewOrderView: View {
                         .padding(.horizontal)
                         .shadow(radius: 5)
                 }
+                
             }
-            .navigationTitle("Add New Order")
-            .task {
-                viewModel.configure(userId: session.userId)
+            .onAppear {
+                if !sharedText.isEmpty && formPesanan.isEmpty {
+                    formPesanan = sharedText
+                    print("📥 Initial shared text loaded into formPesanan: \(sharedText)")
+                }
             }
-            .navigationDestination(isPresented: $viewModel.navigateToConfirm) {
-                EditOrderView(parsedOrderData: viewModel.parsedOrderData ?? [:])
+            .onChange(of: sharedText) { newValue in
+                print("SHARED TEXT INSIDE THE NEW ORDER \(newValue)")
+                formPesanan = newValue
             }
         }
+//        .onReceive(NotificationCenter.default.publisher(for: Notification.Name("SharedTextReceived"))) { notif in
+//            if let text = notif.object as? String {
+//                formPesanan = text    // paste into TextEditor
+//            }
+//        }
+        
+        .navigationTitle("Add New Order")
+        .task {
+            viewModel.configure(userId: session.userId)
+        }
+        .navigationDestination(isPresented: $viewModel.navigateToConfirm) {
+            EditOrderView(parsedOrderData: viewModel.parsedOrderData ?? [:])
+        }
+        
     }
     // 🔹 Fungsi memuat dan menyimpan gambar per slot
     private func loadImage(for index: Int) async {
@@ -174,6 +218,28 @@ struct NewOrderView: View {
             if let savedPath = saveImageToDocuments(uiImage) {
                 savedImagePaths[index] = savedPath
             }
+        }
+        
+        if selectedImages.count < 3 && selectedImages.allSatisfy({ $0 != nil }) {
+                    selectedImages.append(nil)
+                    selectedItems.append(nil)
+                    savedImagePaths.append(nil)
+                }
+    }
+    
+    private func cleanUpEmptySlots() {
+        // Remove all trailing nils except one at the end
+        while selectedImages.count > 1, selectedImages.last == nil, selectedImages.dropLast().contains(nil) {
+            selectedImages.removeLast()
+            selectedItems.removeLast()
+            savedImagePaths.removeLast()
+        }
+        
+        // Always ensure exactly one empty slot at the end
+        if selectedImages.last != nil {
+            selectedImages.append(nil)
+            selectedItems.append(nil)
+            savedImagePaths.append(nil)
         }
     }
     
@@ -201,6 +267,6 @@ struct NewOrderView: View {
     session.isSignedIn = true
     session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
     
-    return NewOrderView()
+    return NewOrderView(sharedText: .constant(""))
         .environmentObject(session)
 }

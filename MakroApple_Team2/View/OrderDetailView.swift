@@ -15,10 +15,11 @@ enum OrderSource {
 
 struct OrderDetailView: View {
     
+    @State private var activeAlert: CustomAlertType?
     
     @State private var viewModel = AllOrdersViewModel()
     @EnvironmentObject var session: SessionManager
-    let order: OrderRecord
+    @State var order: OrderRecord
     let orderItem: [OrderItemRecord]
     
     
@@ -32,12 +33,6 @@ struct OrderDetailView: View {
 
     private var userIdString: String? { session.userId }
     
-    enum ActiveAlert {
-        case payment
-        case cancel
-    }
-
-    @State private var activeAlert: ActiveAlert? = nil
     
     
     private func currency(_ value: Double) -> String {
@@ -56,8 +51,10 @@ struct OrderDetailView: View {
             return "Lanjut ke Pengiriman"
         case "Terkirim":
             return "Pesanan Diterima Pemesan"
+        case "Dibatalkan" :
+            return "Pesan Kembali"
         default:
-            return nil // hide button for "Selesai" or "Dibatalkan"
+            return nil
         }
     }
     
@@ -71,12 +68,6 @@ struct OrderDetailView: View {
                 VStack{
                     
                     OrderStatus(order: order)
-                    
-                    
-//                    Text("Order ID: \(order.id.uuidString)")
-//                    Text("User ID: \(userIdString ?? "nil")")
-//                    
-//                    Text("User ID: \(session.userId ?? "nil")")
                     
                     
                     VStack{
@@ -394,8 +385,10 @@ struct OrderDetailView: View {
                         activeAlert = .payment
                         
                     }
+                    else if order.status == "Dibatalkan"{
+                        activeAlert = .reorder
+                    }
                     else {
-                        
                         Task {
                             await handleStatusUpdate()
                         }
@@ -450,7 +443,6 @@ struct OrderDetailView: View {
                         activeAlert = .cancel
                     } label: {
                         Image(systemName: "trash")
-                        //                                .foregroundColor(.red)
                     }
                 }
             }
@@ -465,36 +457,16 @@ struct OrderDetailView: View {
                 print("❌ Passed session.userId invalid or nil")
             }
         }
-        
-//        .alert(isPresented: .constant(activeAlert != nil)) {
-//            switch activeAlert {
-//            case .payment:
-//                return Alert(
-//                    title: Text("Pembeli sudah melunasi pembayaran?"),
-//                    message: Text("Jika sudah dibayar penuh, status akan diubah menjadi 'Selesai'."),
-//                    primaryButton: .default(Text("Sudah")) {
-//                        Task { await handleStatusUpdate(to: "Selesai") }
-//                    },
-//                    secondaryButton: .cancel(Text("Belum"))
-//                )
-//
-//            case .cancel:
-//                return Alert(
-//                    title: Text("Batalkan pesanan ini?"),
-//                    message: Text("Pesanan yang dibatalkan tidak dapat dipulihkan."),
-//                    primaryButton: .destructive(Text("Ya, batalkan")) {
-//                        Task { await handleStatusUpdate(to: "Dibatalkan") }
-//                    },
-//                    secondaryButton: .cancel(Text("Tidak"))
-//                )
-//
-//            case .none:
-//                return Alert(title: Text(""))
-//            }
-//        }
-
-
-        
+        .onDisappear {
+            switch order.status.lowercased() {
+            case "belum terbayar": activeTab = .belumBayar
+            case "diproses": activeTab = .diproses
+            case "terkirim": activeTab = .terkirim
+            case "selesai": activeTab = .selesai
+            case "dibatalkan": activeTab = .dibatalkan
+            default: break
+            }
+        }
     }
     
     private func handleStatusUpdate(to newStatus: String? = nil) async {
@@ -515,6 +487,7 @@ struct OrderDetailView: View {
                 case "belum terbayar": finalStatus = "Diproses"
                 case "diproses": finalStatus = "Terkirim"
                 case "terkirim": finalStatus = "Selesai"
+                case "dibatalkan": finalStatus = "Belum Terbayar"
                 default: return
                 }
 
@@ -524,6 +497,11 @@ struct OrderDetailView: View {
 
             // 2️⃣ Refresh all orders
             await viewModel.fetchOrders(for: userId)
+            
+            // NEW: update local state
+            if let updated = viewModel.orders.first(where: { $0.id == order.id }) {
+                self.order = updated
+            }
 
             // 3️⃣ Show success toast
             withAnimation { showSuccessToast = true }
@@ -531,21 +509,6 @@ struct OrderDetailView: View {
             // 4️⃣ Hide toast after delay and handle navigation
             DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
                 withAnimation { showSuccessToast = false }
-
-                // 5️⃣ Switch tab based on *new* final status
-                if source == .allOrders {
-                    switch finalStatus.lowercased() {
-                    case "belum terbayar": activeTab = .belumBayar
-                    case "diproses": activeTab = .diproses
-                    case "terkirim": activeTab = .terkirim
-                    case "selesai": activeTab = .selesai
-                    case "dibatalkan": activeTab = .dibatalkan
-                    default: break
-                    }
-                }
-
-                // 6️⃣ Dismiss to go back
-                dismiss()
             }
 
         } catch {
@@ -558,16 +521,16 @@ struct OrderDetailView: View {
 
 
 
-#Preview {
-    // Create a stub session
-    let session = SessionManager()
-    session.isSignedIn = true
-    session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
-    
-    // Create the view
-    let view = AllOrdersView()
-    
-    // Inject the environment object
-    return view.environmentObject(session)
-}
+//#Preview {
+//    // Create a stub session
+//    let session = SessionManager()
+//    session.isSignedIn = true
+//    session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
+//    
+//    // Create the view
+//    let view = AllOrdersView()
+//    
+//    // Inject the environment object
+//    return view.environmentObject(session)
+//}
 
