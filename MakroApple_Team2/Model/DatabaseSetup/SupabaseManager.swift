@@ -21,3 +21,4 @@ final class SupabaseManager {
     client = SupabaseClient(supabaseURL: supabaseURL, supabaseKey: supabaseKey)
   }
 }
+
