@@ -82,12 +82,22 @@ struct MakroApple_Team2App: App {
         @State private var selectedTab: Int = 1   // 👈 Add this
 
 
-    
-    var body: some Scene {
-        WindowGroup {
-            MainTabView(selectedTab: $selectedTab)
-                .environmentObject(session)
-        }
+  var body: some Scene {
+    WindowGroup {
+      NavigationStack {
+          ConfirmInvoiceView(orderId: "57B1A943-1902-4977-8E49-FA0AB3DB57CE")
+      }
+      .environmentObject(session)   // Inject globally
+      .task {
+        #if DEV_STUB_SESSION
+        // Dev stub session: skip real auth and force a specific user
+        session.isSignedIn = true
+        session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
+        #else
+        // In non-dev builds, keep your normal flow (e.g., ContentView auto-checks session)
+        // If using ContentView in production, switch root to ContentView() here.
+        #endif
+      }
     }
 }
 

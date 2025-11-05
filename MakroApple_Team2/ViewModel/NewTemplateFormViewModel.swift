@@ -18,7 +18,6 @@ class NewTemplateViewModel {
         self.userId = userId
     }
     
-    // ✅ Move edge function logic here
     func generateTemplate(from input: String) async {
         guard !input.isEmpty else { return }
         
