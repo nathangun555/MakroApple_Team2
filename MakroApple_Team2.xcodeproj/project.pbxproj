@@ -30,16 +30,6 @@
 		7C98DB532E93CAD400F06C20 /* MakroApple_Team2.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MakroApple_Team2.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		35E6A00B2EB4ACCB00E3F33A /* Exceptions for "MakroApple_Team2" folder in "MakroApple_Team2" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				"MakroApple-Team2-Info.plist",
-			);
-			target = 7C98DB522E93CAD400F06C20 /* MakroApple_Team2 */;
-		};
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
-
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		35E69F7C2EB49E6100E3F33A /* MakroApple_Team2Tests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
@@ -48,9 +38,6 @@
 		};
 		7C98DB552E93CAD400F06C20 /* MakroApple_Team2 */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				35E6A00B2EB4ACCB00E3F33A /* Exceptions for "MakroApple_Team2" folder in "MakroApple_Team2" target */,
-			);
 			path = MakroApple_Team2;
 			sourceTree = "<group>";
 		};

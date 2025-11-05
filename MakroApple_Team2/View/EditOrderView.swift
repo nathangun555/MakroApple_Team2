@@ -7,11 +7,19 @@
 
 import SwiftUI
 import Foundation
+import PhotosUI
 
 struct EditOrderView: View {
     let parsedOrderData: [String: Any]
     
+    @Binding var selectedImages: [UIImage?]
+    
     @State private var viewModel = EditOrderViewModel()
+    @State private var selectedItems: [PhotosPickerItem?] = [nil, nil, nil]
+    @State private var navigateToConfirm = false
+    
+    @State private var lastOrderId: String = ""
+    
     @EnvironmentObject var session: SessionManager
     @Environment(\.dismiss) var dismiss
     
@@ -22,33 +30,34 @@ struct EditOrderView: View {
             } else {
                 ScrollView {
                     VStack(spacing: 24) {
-                        // Rincian Pelanggan
                         OrderFormSection(
                             title: "Rincian Pelanggan",
                             fields: $viewModel.customerFields
                         )
                         
-                        // Jadwal Pesanan
                         OrderFormSection(
                             title: "Jadwal Pesanan",
                             fields: $viewModel.scheduleFields
                         )
                         
-                        // Rincian Pesanan (Products)
                         ProductsSection(
                             products: $viewModel.products,
                             onAdd: { viewModel.addProduct() },
                             onDelete: { index in viewModel.deleteProduct(at: index) }
                         )
                         
-                        // Adds On
                         AddOnsSection(
                             addOns: $viewModel.addOns,
                             onAdd: { viewModel.addAddOn() },
                             onDelete: { index in viewModel.deleteAddOn(at: index) }
                         )
                         
-                        // Lain-Lain
+                        PhotoSection(
+                            selectedItems: $selectedItems,
+                            selectedImages: $selectedImages
+                        )
+                        .padding(.horizontal)
+                        
                         OrderFormSection(
                             title: "Lain - Lain",
                             fields: $viewModel.otherFields
@@ -64,10 +73,14 @@ struct EditOrderView: View {
             ToolbarItem(placement: .topBarTrailing) {
                 Button(action: {
                     Task {
-                        await viewModel.saveOrder()
+                        let order = await viewModel.saveOrder(photos: selectedImages.compactMap { $0 })
+                        if let order = order {
+                            lastOrderId = order.id.uuidString
+                            viewModel.didSave = true
+                        }
                     }
                 }) {
-                    if viewModel.isLoading {
+                    if viewModel.isLoading || viewModel.isUploadingPhotos {
                         ProgressView()
                     } else {
                         Image(systemName: "arrow.right")
@@ -82,15 +95,17 @@ struct EditOrderView: View {
         }
         .alert("Berhasil!", isPresented: $viewModel.didSave) {
             Button("OK") {
-                dismiss()
+                navigateToConfirm = true
             }
         } message: {
             Text("Pesanan berhasil disimpan!")
         }
         .task {
-            viewModel.configure(
-                parsedOrderData: parsedOrderData
-            )
+            let unwrappedImages = selectedImages.compactMap { $0 }
+            viewModel.configure(userId: session.userId, parsedOrderData: parsedOrderData, selectedPhotos: unwrappedImages)
+        }
+        .navigationDestination(isPresented: $navigateToConfirm) {
+            ConfirmInvoiceView(orderId: lastOrderId)
         }
     }
 }
@@ -135,7 +150,6 @@ struct ProductsSection: View {
                         }
                     }
                     
-                    // Product Name
                     VStack(alignment: .leading, spacing: 4) {
                         Text("Nama Produk :")
                             .font(.subheadline)
@@ -148,7 +162,6 @@ struct ProductsSection: View {
                         .textFieldStyle(.roundedBorder)
                     }
                     
-                    // Quantity
                     VStack(alignment: .leading, spacing: 4) {
                         Text("Jumlah Produk :")
                             .font(.subheadline)
@@ -210,7 +223,6 @@ struct AddOnsSection: View {
                         }
                     }
                     
-                    // Add-On Name
                     VStack(alignment: .leading, spacing: 4) {
                         Text("Nama Produk :")
                             .font(.subheadline)
@@ -223,7 +235,6 @@ struct AddOnsSection: View {
                         .textFieldStyle(.roundedBorder)
                     }
                     
-                    // Quantity
                     VStack(alignment: .leading, spacing: 4) {
                         Text("Jumlah Produk :")
                             .font(.subheadline)
@@ -255,15 +266,28 @@ struct AddOnsSection: View {
         "Nama Pemesan": "Nadia Prameswari",
         "No. Telp Pemesan": "0812-5566-2233",
         "Nama Penerima": "Rafi Setiawan",
+        "No. Telp Penerima": "0813-7788-9922",
         "Tanggal Pesanan": "20 Oktober 2025",
-        "Pesanan": [[
-            "item": "Strawberry Cake",
-            "quantity": 1
-        ]]
+        "Jam Kirim": "15.30 WIB",
+        "Alamat Kirim": "Jl. Dharmahusada Indah Barat No. 27",
+        "Pesanan": [
+            "[[{\"item\": \"Strawberry Fresh Cream Cake – ukuran 18 cm\", \"quantity\": 1}]]"
+        ],
+        "Adds-on": [
+            "[[{\"item\": \"Lilin angka \\\"30\\\"\", \"quantity\": 1}, {\"item\": \"pita dekorasi merah\", \"quantity\": 1}]]"
+        ],
+        "Notes": "Mohon kue dikirim dalam kondisi dingin"
     ]
     
+    let samplePhoto = UIImage(systemName: "photo.fill")!
+    @State var previewImages: [UIImage?] = [samplePhoto, samplePhoto, nil]
+
     return NavigationStack {
-        EditOrderView(parsedOrderData: sampleData)
-            .environmentObject(session)
+        EditOrderView(
+            parsedOrderData: sampleData,
+            selectedImages: $previewImages
+        )
+        .environmentObject(session)
     }
 }
+

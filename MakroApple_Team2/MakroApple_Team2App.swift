@@ -28,9 +28,9 @@ struct MakroApple_Team2App: App {
   var body: some Scene {
     WindowGroup {
       NavigationStack {
-        NewOrderView()
-          .environmentObject(session)   // Inject globally
+          ConfirmInvoiceView(orderId: "57B1A943-1902-4977-8E49-FA0AB3DB57CE")
       }
+      .environmentObject(session)   // Inject globally
       .task {
         #if DEV_STUB_SESSION
         // Dev stub session: skip real auth and force a specific user
