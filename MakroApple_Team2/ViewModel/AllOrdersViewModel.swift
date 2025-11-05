@@ -12,6 +12,11 @@ class AllOrdersViewModel {
     var orders: [OrderRecord] = []
     var orderItems: [OrderItemRecord] = []
     
+    private(set) var userId: String?
+    
+    func configure(userId: String?) {
+        self.userId = userId
+    }
     
 
     // MARK: - Fetch Business Name
@@ -130,15 +135,34 @@ class AllOrdersViewModel {
     }
     
     func updateOrderStatus(for order: OrderRecord) async {
+        print("🟡 updateOrderStatus() called for order id: \(order.id)")
+        print("🔹 Current status:", order.status)
+
         var nextStatus: String
-        
-        switch order.status {
-        case "belum terbayar": nextStatus = "diproses"
-        case "diproses": nextStatus = "dikirim"
-        case "dikirim": nextStatus = "selesai"
-        default: return
+
+        switch order.status.lowercased() {
+        case "belum terbayar":
+            nextStatus = "Diproses"
+        case "diproses":
+            nextStatus = "Terkirim"
+        case "terkirim":
+            nextStatus = "Selesai"
+        default:
+            print("⚠️ No next status for:", order.status)
+            return
         }
-        
+
+        print("🔸 Next status should be:", nextStatus)
+
+        do {
+            // Example: Update to Supabase or your backend
+            try await SupabaseManager.shared.updateOrderStatus(orderId: order.id, newStatus: nextStatus)
+            print("✅ Status successfully updated to:", nextStatus)
+        } catch {
+            print("❌ Failed to update status:", error.localizedDescription)
+        }
     }
+    
+    
 
 }

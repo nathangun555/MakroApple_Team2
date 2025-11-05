@@ -13,11 +13,11 @@ import SwiftUI
 extension OrderRecord {
     var statusColor: Color {
         switch status {
-        case "Belum Terbayar": return .orange
-        case "Diproses": return .blue
-        case "Terkirim": return .purple
-        case "Selesai": return .green
-        case "Dibatalkan": return .red
+        case "Belum Terbayar": return .belumBayar
+        case "Diproses": return .diproses
+        case "Terkirim": return .terkirim
+        case "Selesai": return .selesai
+        case "Dibatalkan": return .dibatalkan
         default: return .gray
         }
     }
@@ -31,6 +31,8 @@ struct OrderCard: View {
     
 //    let order : Order
     var body: some View {
+        
+        
         HStack{
 
             // Indikator
@@ -60,14 +62,30 @@ struct OrderCard: View {
                 .font(.subheadline)
                 .foregroundColor(.secondary)
                 
-                // Pesanan
-                Text(orderItem.productName)
-                    .font(Font.body.bold())
+                Spacer()
                 
+                HStack {
+                    // Pesanan
+                    Text(orderItem.productName)
+                        .font(Font.title3.bold())
+                    
+                    Spacer()
+                    
+                    if order.downPayment != nil {
+                        Text("DP")
+                            .font(.caption)
+                            .bold()
+                            .foregroundColor(.white)
+                            .frame(width: 24, height: 24)
+                            .background(Circle().fill(order.statusColor.opacity(0.7)))
+                    }
+                }
+                
+               
                 // Tambahan
-                Text("+ 3 more")
-                    .font(Font.subheadline)
-                    .foregroundColor(.secondary)
+//                Text("+ 3 more")
+//                    .font(Font.subheadline)
+//                    .foregroundColor(.secondary)
                 
             }
             .padding()
@@ -81,7 +99,7 @@ struct OrderCard: View {
             )
         )
         .cornerRadius(10)
-        .frame(height: 100)
+        .frame(height: 85)
         .padding(.horizontal, 20)
         
         

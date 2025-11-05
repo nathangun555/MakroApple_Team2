@@ -45,19 +45,19 @@ enum TabModel: String, CaseIterable {
     var color: Color {
         switch self {
         case .belumBayar:
-            return .orange
+            return .belumBayar
             
         case .diproses:
-            return .blue
+            return .diproses
             
         case .terkirim:
-            return .purple
+            return .terkirim
             
         case .selesai:
-            return .green
+            return .selesai
             
         case .dibatalkan:
-            return .red
+            return .dibatalkan
         }
     }
 }
@@ -99,8 +99,8 @@ struct CustomTabBar: View {
                     .lineLimit(1)
             }
         }
-        .padding(.horizontal, activeTab == tab ? 5 : 20)
-        .foregroundStyle(activeTab == tab ? .white : .black)
+        .padding(.horizontal, activeTab == tab ? 5 : 15)
+        .foregroundStyle(activeTab == tab ? .black : .gray)
         .frame(maxWidth: activeTab == tab ? .infinity : nil, maxHeight: .infinity)
         .background(activeTab == tab ? tab.color : .clear)
         .cornerRadius(30)
@@ -115,7 +115,7 @@ struct CustomTabBar: View {
                 activeTab = tab
             }
         }
-        .glassEffect()
+        .glassEffect(.clear.tint(.gray.opacity(0.1)))
     }
 }
 
