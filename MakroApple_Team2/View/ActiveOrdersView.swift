@@ -8,158 +8,135 @@
 import SwiftUI
 
 struct ActiveOrdersView: View {
+    @EnvironmentObject var session: SessionManager
+    @State private var viewModel = AllOrdersViewModel()
     @State private var selectedDate: Date = Date()
     @State private var currentMonth: Date = Date()
+    @State private var isCollapsed: Bool = false
+
+    @State private var lastListMinY: CGFloat = 0
+    private let collapseThreshold: CGFloat = 8
+    private let expandThreshold: CGFloat = 12
+    private let expandNearTop: CGFloat = 16
+    private let minDeltaToConsider: CGFloat = 0.5
     
-    private let calendar = Calendar.current
-    private let daysOfWeek = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"]
-    
-    // Dummy order data
-    private let sampleOrders: [Order] = [
-        Order(
-            customer_order_name: "Jane Stacey",
-            customer_order_phone: "08123456789",
-            productName: ["Strawberry Cheesecake XL"],
-            orderDate: Date(),
-            orderStatus: "Active",
-            total: 125000
-        ),
-        Order(
-            customer_order_name: "John Gunawan",
-            customer_order_phone: "08987654321",
-            productName: ["Burnt Cheesecake S"],
-            orderDate: Date(),
-            orderStatus: "Active",
-            total: 75000
-        )
-    ]
-    
-    
+    @State private var sortOption: String = "Waktu"
+    @State private var showSortPopover = false
+
     var body: some View {
-        NavigationStack{
-            VStack(spacing: 0) {
-                HStack {
-                    Button {
-                        currentMonth = calendar.date(byAdding: .month, value: -1, to: currentMonth)!
-                    } label: {
-                        Image(systemName: "chevron.left")
-                            .font(.title3)
-                    }
-                    Spacer()
-                    Text(formattedMonthYear(for: currentMonth))
-                        .font(.headline)
-                    Spacer()
-                    Button {
-                        currentMonth = calendar.date(byAdding: .month, value: 1, to: currentMonth)!
-                    } label: {
-                        Image(systemName: "chevron.right")
-                            .font(.title3)
-                    }
-                }
-                .padding(.horizontal)
-                .padding(.vertical, 10)
+        NavigationStack {
+          VStack(spacing: 0) {
+            CalendarHeaderView(
+              selectedDate: $selectedDate,
+              currentMonth: $currentMonth,
+              isCollapsed: $isCollapsed,
+              viewModel: viewModel
+            )
 
-                HStack {
-                    ForEach(daysOfWeek, id: \.self) { day in
-                        Text(day)
-                            .font(.caption2)
-                            .frame(maxWidth: .infinity)
-                            .foregroundStyle(.secondary)
-                    }
-                }
-                .padding(.horizontal)
-                .padding(.top, 8)
-                
-                let days = generateDays(for: currentMonth)
-                LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 7), spacing: 8) {
-                    ForEach(days, id: \.self) { day in
-                        let isCurrentMonth = calendar.isDate(day, equalTo: currentMonth, toGranularity: .month)
-                        
-                        Button {
-                            selectedDate = day
-                        } label: {
-                            Text("\(calendar.component(.day, from: day))")
-                                .frame(width: 36, height: 36)
-                                .background(
-                                    calendar.isDate(day, inSameDayAs: selectedDate)
-                                    ? Color.blue.opacity(0.9)
-                                    : .clear
-                                )
-                                .clipShape(RoundedRectangle(cornerRadius:10))
-                                .foregroundColor(
-                                    calendar.isDate(day, inSameDayAs: selectedDate)
-                                    ? .white
-                                    : (isCurrentMonth ? .primary : .gray.opacity(0.4))
-                                )
-                        }
-                    }
-                }
-                .padding(.horizontal)
-                .frame(maxHeight: 320)
-                
-                Divider()
-                    .padding(.bottom, 16)
-                
-                ScrollView {
-                    let ordersForSelectedDate = sampleOrders.filter { calendar.isDate($0.orderDate, inSameDayAs: selectedDate) }
+            Divider()
+              
+              HStack{
+                  
+                  Text("Urutkan Berdasarkan")
+                  Spacer()
+                  Menu {
+                      Section("Sort By") {
+                          Button {
+                              sortOption = "Waktu"
+                          } label: {
+                              Label("Waktu", systemImage: sortOption == "Waktu" ? "checkmark" : "")
+                          }
 
-                    if ordersForSelectedDate.isEmpty {
-                        Text("Nothing on your agenda")
-                            .foregroundStyle(.secondary)
-                            .padding(.top, 24)
-                    } else {
-                        VStack(alignment: .leading, spacing: 8) {
-                            ForEach(ordersForSelectedDate.indices, id: \.self) { index in
-                                let order = ordersForSelectedDate[index]
-                                NavigationLink {
-                                    OrderDetailView(order: order)
-                                } label: {
-                                    VStack(alignment: .leading, spacing: 4) {
-                                        Text(order.customer_order_name)
-                                            .fontWeight(.semibold)
-                                        Text("Pesanan: \(order.productName.joined(separator: ", "))")
-                                            .font(.subheadline)
-                                            .foregroundColor(.secondary)
-                                        Text("Total: Rp \(String(order.total))")
-                                            .font(.footnote)
-                                    }
-                                    .padding()
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                    .background(.secondary.opacity(0.07))
-                                    .cornerRadius(10)
-                                }
-                                .buttonStyle(.plain)
-                            }
+                          Button {
+                              sortOption = "Nama"
+                          } label: {
+                              Label("Nama", systemImage: sortOption == "Nama" ? "checkmark" : "")
+                          }
+                      }
+                  } label: {
+                      Image(systemName: "arrow.up.arrow.down.square.fill")
+                  }
+
+                  
+              }
+              .font(.title2)
+              .fontWeight(.bold)
+              .padding(.horizontal)
+              .padding(.top)
+
+            ScrollView {
+              LazyVStack(spacing: 0) {
+                OrderListView(
+                    selectedDate: selectedDate,
+                    viewModel: viewModel,
+                    sortOption: sortOption
+                )
+                .background(
+                  GeometryReader { geo in
+                    let minY = geo.frame(in: .named("ordersSpace")).minY
+                    Color.clear
+                      .onChange(of: minY, initial: true) { oldY, newY in
+                        let rawDelta = newY - oldY
+                          
+                        // Ignore jitter
+                        guard abs(rawDelta) > 15 else { return }
+
+                        // Velocity bias: quick flicks count more, but capped
+                        let bias = min(max(abs(rawDelta) / 18, 1), 2.0)
+                        let delta = rawDelta * bias
+
+                          withAnimation(.easeInOut(duration: 0)) {
+                          // Scrolling up (content moves up) => delta negative => collapse
+                          if delta < -6, !isCollapsed, newY < -20 {
+                            isCollapsed = true
+                          }
+                          // Scrolling down (content moves down) => delta positive => expand if near top
+                          else if delta > 6, isCollapsed, newY > 20 {
+                            isCollapsed = false
+                          }
                         }
-                        .padding(.horizontal)
-                    }
-                }
+                      }
+                  }
+                )
+              }
             }
-            .animation(.easeInOut, value: currentMonth)
+            .coordinateSpace(name: "ordersSpace")
+          }
+          .task {
+              // Pastikan user sudah login
+              if let userIdString = session.userId,
+                 let userId = UUID(uuidString: userIdString) {
+                  await viewModel.fetchBusinessName(for: userId)
+                  await viewModel.fetchOrders(for: userId)
+                  await viewModel.fetchOrderItems(for: userId)
+              } else {
+                  print("❌ User ID invalid or nil")
+              }
+          }
+          .navigationBarTitleDisplayMode(.inline)
         }
-    }
-    
-    func formattedMonthYear(for date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "MMMM yyyy"
-        return formatter.string(from: date).uppercased()
-    }
-    
-    func generateDays(for month: Date) -> [Date] {
-        guard let monthInterval = calendar.dateInterval(of: .month, for: month),
-              let firstWeek = calendar.dateInterval(of: .weekOfMonth, for: monthInterval.start)
-        else { return [] }
-        
-        var days: [Date] = []
-        (0..<42).forEach { i in
-            if let day = calendar.date(byAdding: .day, value: i, to: firstWeek.start) {
-                days.append(day)
-            }
-        }
-        return days
     }
 }
 
+// MARK: - Scroll Offset Preference Key
+struct ScrollOffsetPreferenceKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+    
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = nextValue()
+    }
+}
+
+
 #Preview {
-    ActiveOrdersView()
+    // Create a stub session
+    let session = SessionManager()
+    session.isSignedIn = true
+    session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
+    
+    // Create the view
+    let view = ActiveOrdersView()
+    
+    // Inject the environment object
+    return view.environmentObject(session)
 }

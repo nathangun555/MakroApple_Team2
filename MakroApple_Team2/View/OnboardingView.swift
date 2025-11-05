@@ -29,6 +29,8 @@ struct OnboardingView: View {
         }
         .padding(.top, 12)
         .padding(.horizontal, 16)
+        .opacity(page < 4 ? 1 : 0)
+        .scaleEffect(page < 4 ? 1 : 0.8)
 
         // Pages
         TabView(selection: $page) {
@@ -41,64 +43,66 @@ struct OnboardingView: View {
         .tabViewStyle(.page)
 
         // Bottom controls
-        Group {
-          if page < 4 {
-            HStack(alignment: .center) {
-              // Left arrow (previous)
+          HStack(alignment: .center) {
+              // Left arrow
               Button {
-                withAnimation { page = max(page, 0) }
+                  withAnimation(.easeInOut(duration: 0.35)) {
+                      page = max(page - 1, 0)
+                  }
               } label: {
-                Image(systemName: "chevron.left")
-                  .font(.title3.weight(.semibold))
-                  .padding(10)
-                  .background(reduceTransparency ? AnyShapeStyle(.bar) : AnyShapeStyle(.regularMaterial), in: Circle())
+                  Image(systemName: "chevron.left")
+                      .font(.title3.weight(.semibold))
+                      .padding(10)
+                      .background(reduceTransparency ? AnyShapeStyle(.bar) : AnyShapeStyle(.regularMaterial), in: Circle())
               }
               .opacity(page == 0 ? 0 : 1)
               .accessibilityLabel("Previous")
 
               Spacer(minLength: 12)
 
-              // Dots indicator (pure SwiftUI)
-              PageIndicator(count: 5, current: page,
-                            activeColor: .primary,
-                            inactiveColor: .secondary.opacity(0.3),
-                            size: 8, spacing: 6)
+              // Overlapping Dots and Start Button
+              ZStack {
+                  PageIndicator(count: 5, current: page,
+                                activeColor: .primary,
+                                inactiveColor: .secondary.opacity(0.3),
+                                size: 8, spacing: 6)
+                      .opacity(page < 4 ? 1 : 0)
+                      .scaleEffect(page < 4 ? 1 : 0.8)
+
+                  Button {
+                      finishOnboarding()
+                  } label: {
+                      Text("Start")
+                          .font(.headline.weight(.semibold))
+                          .padding(.horizontal, 18)
+                          .padding(.vertical, 12)
+                          .background(reduceTransparency ? AnyShapeStyle(.bar) : AnyShapeStyle(.ultraThickMaterial), in: Capsule())
+                  }
+                  .opacity(page == 4 ? 1 : 0)
+                  .scaleEffect(page == 4 ? 1 : 0.8)
+                  .accessibilityLabel("Start")
+              }
 
               Spacer(minLength: 12)
 
-              // Right arrow (next)
+              // Right arrow
               Button {
-                withAnimation { page = min(page + 1, 4) }
+                  withAnimation(.easeInOut(duration: 0.35)) {
+                      page = min(page + 1, 4)
+                  }
               } label: {
-                Image(systemName: "chevron.right")
-                  .font(.title3.weight(.semibold))
-                  .padding(10)
-                  .background(reduceTransparency ? AnyShapeStyle(.bar) : AnyShapeStyle(.ultraThickMaterial), in: Circle())
+                  Image(systemName: "chevron.right")
+                      .font(.title3.weight(.semibold))
+                      .padding(10)
+                      .background(reduceTransparency ? AnyShapeStyle(.bar) : AnyShapeStyle(.ultraThickMaterial), in: Circle())
               }
+              .opacity(page == 4 ? 0 : 1)
               .accessibilityLabel("Next")
-            }
-          } else {
-            VStack(spacing: 10) {
-              Button {
-                finishOnboarding()
-              } label: {
-                Text("Start")
-                  .font(.headline.weight(.semibold))
-                  .padding(.horizontal, 18)
-                  .padding(.vertical, 12)
-                  .background(reduceTransparency ? AnyShapeStyle(.bar) : AnyShapeStyle(.ultraThickMaterial), in: Capsule())
-              }
-              .accessibilityLabel("Start")
-
-              PageIndicator(count: 5, current: page,
-                            activeColor: .primary,
-                            inactiveColor: .secondary.opacity(0.3),
-                            size: 8, spacing: 6)
-            }
           }
-        }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 16)
+          .padding(.horizontal, 20)
+          .padding(.vertical, 16)
+          .animation(.easeInOut(duration: 0.35), value: page)
+
       }
     }
   }

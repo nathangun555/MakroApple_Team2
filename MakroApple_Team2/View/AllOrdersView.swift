@@ -9,9 +9,13 @@ import SwiftUI
 
 struct AllOrdersView: View {
     
-    //    let orders: [Order] = []
+    @EnvironmentObject var session: SessionManager
+    @State private var viewModel = AllOrdersViewModel()
+    
+    
     @SceneStorage("selectedTab") var selectedTab = 0
     @State private var searchText = ""
+    
     
     @State private var scrollOffset: CGFloat = 0
     @State private var topInset: CGFloat = 0
@@ -19,60 +23,101 @@ struct AllOrdersView: View {
     
     @State var activeTab: TabModel = .belumBayar
     
+    private var filteredOrders: [OrderRecord] {
+        viewModel.orders.filter { order in
+            order.status.localizedCaseInsensitiveCompare(activeTab.dbValue)  == .orderedSame
+        }
+    }
+    
     @State private var distance = 0
     var body: some View {
-        NavigationView{
-            ScrollView{
-                LazyVStack(pinnedViews: [.sectionHeaders]) {
-                    
-                    VStack{
-                        
+        GeometryReader{ geo in
+            NavigationView{
+                VStack{
+                    HStack{
                         // Business Name
-                        Text("Hi, Bake Buddy !")
-                            .font(Font.largeTitle)
-                            .fontWeight(.bold)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding()
+                        Text(viewModel.businessName.isEmpty ? "Loading..." : viewModel.businessName)
                         
-                        // Deadline Card
-                        DeadlineCard()
+                            .fontWeight(.bold)
+                        
+                        
+                        Spacer()
+                        
+                        NavigationLink(destination: NewOrderView()) {
+                            Image(systemName: "plus.circle.fill")
+                                .font(.system(size: 30))
+                                .foregroundColor(.blue)
+                        }
                         
                     }
+                    .font(.largeTitle)
+                    .padding(.horizontal)
                     
-                    // Sticky Header for Custom Tab Bar
-                    Section(
-                        header:
-                            VStack(spacing: 0){
-                                
-                                // Custom Tab Bar
-                                CustomTabBar(activeTab: $activeTab)
-                                    .frame(maxWidth: .infinity)
-                                    .padding(.vertical)
+                    
+                    
+                    
+                    // Deadline Card
+                    DeadlineCard()
+                    
+                    
+                    
+                    // Custom Tab Bar
+                    CustomTabBar(activeTab: $activeTab)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical)
+                    
+                    // Orders List
+                    ScrollView {
+                        LazyVStack(spacing: 12) {
+                            ForEach(filteredOrders) { order in
+                                if let firstItem = viewModel.orderItems.first(where: { $0.orderId == order.id }) {
+                                    NavigationLink(
+                                                        destination: OrderDetailView(order: order, orderItem: [firstItem])
+                                                    ) {
+                                                        OrderCard(order: order, orderItem: firstItem)
+                                                    }
+                                                    .buttonStyle(PlainButtonStyle())
+                                }
                             }
-                    )
-                    {
-                        // Order Cards
-                        ForEach(0..<10) { _ in
-                            OrderCardView()
                             
                         }
+                        .padding(.bottom, 20)
+                    }
+                    .navigationTitle("")
+                    .navigationBarHidden(true)
+                    
+                }
+                .task {
+                    // Pastikan user sudah login
+                    if let userIdString = session.userId,
+                       let userId = UUID(uuidString: userIdString) {
+                        await viewModel.fetchBusinessName(for: userId)
+                        await viewModel.fetchOrders(for: userId)
+                        await viewModel.fetchOrderItems(for: userId)
+                    } else {
+                        print("❌ User ID invalid or nil")
                     }
                 }
             }
-            .navigationTitle("")
-            .navigationBarHidden(true)
-            
-            
+            .isSearchable(selectedTab: selectedTab, filter: $searchText)
         }
-        .isSearchable(selectedTab: selectedTab, filter: $searchText)
-        
     }
+    
 }
     
 
 
 #Preview {
-    AllOrdersView()
+    // Create a stub session
+    let session = SessionManager()
+    session.isSignedIn = true
+    session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
+    
+    // Create the view
+    let view = AllOrdersView()
+    
+    // Inject the environment object
+    return view.environmentObject(session)
 }
 
 
