@@ -1,82 +1,87 @@
 import SwiftUI
 
 struct SettingsView: View {
-  @EnvironmentObject var session: SessionManager
+    @EnvironmentObject var session: SessionManager
 
-  @State private var showLogoutDialog = false
-  @State private var isLoggingOut = false
+    @State private var showLogoutDialog = false
+    @State private var isLoggingOut = false
 
-  var body: some View {
-    NavigationStack {
-      List {
-        NavigationLink { Set_ProfileView() } label: {
-          Label("Profil Saya", systemImage: "person.crop.circle")
-        }
-        NavigationLink { Set_BusinessDetailsView() } label: {
-          Label("Ubah Rincian Bisnis", systemImage: "building.2")
-        }
-        NavigationLink { Set_TemplateFormView() } label: {
-          Label("Ubah Template Form", systemImage: "square.and.pencil")
-        }
-        NavigationLink { Set_InvoiceVisibilityView() } label: {
-          Label("Ubah Visibilitas Rincian Invoice", systemImage: "doc.text.magnifyingglass")
-        }
-        NavigationLink { Set_MenuDetailsView() } label: {
-          Label("Ubah Rincian Menu", systemImage: "list.bullet.rectangle.portrait")
-        }
-        NavigationLink { Set_LanguageSettingsView() } label: {
-          Label("Language", systemImage: "globe")
-        }
+    var body: some View {
+        NavigationStack {
+            List {
+                // Group 1
+                Section {
+                    NavigationLink(destination: Set_BusinessDetailsView()) {
+                        Label("Rincian Bisnis", systemImage: "building.2")
+                    }
 
-        // Delete account full-screen flow
-        NavigationLink {
-          Set_DeleteAccountView()
-        } label: {
-          Label("Delete My Account", systemImage: "trash")
-            .foregroundStyle(.red)
-        }
+                    NavigationLink(destination: Set_MenuDetailsView()) {
+                        Label("Rincian Menu / Katalog", systemImage: "list.bullet.rectangle.portrait")
+                    }
 
-        // Logout
-        Button {
-          showLogoutDialog = true
-        } label: {
-          if isLoggingOut {
-            HStack { ProgressView(); Text("Logging out…") }
-          } else {
-            Label("Logout", systemImage: "rectangle.portrait.and.arrow.right")
-              .foregroundStyle(.blue)
-          }
-        }
-        .disabled(isLoggingOut || showLogoutDialog)
-      }
-      .navigationTitle("Settings")
-      //.toolbarTitleDisplayMode(.large) // optional styling
+                    NavigationLink(destination: Set_TemplateFormView()) {
+                        Label("Template Formulir Bisnis", systemImage: "square.and.pencil")
+                    }
 
-      .alert("Keluar dari akun?", isPresented: $showLogoutDialog) {
-        Button("Logout", role: .destructive) {
-          isLoggingOut = true
-          Task {
-            defer {
-              isLoggingOut = false
-              showLogoutDialog = false
+                    NavigationLink(destination: Set_LanguageSettingsView()) {
+                        Label("Pilih Bahasa", systemImage: "globe")
+                    }
+                }
+
+                // Hapus akun
+                Section {
+                    NavigationLink(destination: Set_DeleteAccountView()) {
+                        Label("Hapus Akun Saya", systemImage: "trash")
+                            .foregroundStyle(.red)
+                    }
+                }
+
+                // Logout
+                Section {
+                    NavigationLink(destination: EmptyView()) {
+                        Label("Logout", systemImage: "rectangle.portrait.and.arrow.right")
+                            .foregroundStyle(.blue)
+                    }
+                    .simultaneousGesture(TapGesture().onEnded {
+                        showLogoutDialog = true
+                    })
+                }
             }
-            await session.signOut()
-          }
+            .listStyle(.plain)
+            .scrollContentBackground(.hidden) // biar background putih polos
+            .background(Color.white)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .principal) {
+                    Text("Pengaturan")
+                        .font(.title2.bold())
+                }
+            }
+            .alert("Keluar dari akun?", isPresented: $showLogoutDialog) {
+                Button("Logout", role: .destructive) {
+                    isLoggingOut = true
+                    Task {
+                        defer {
+                            isLoggingOut = false
+                            showLogoutDialog = false
+                        }
+                        await session.signOut()
+                    }
+                }
+                Button("Cancel", role: .cancel) {
+                    showLogoutDialog = false
+                }
+            } message: {
+                Text("Anda bisa masuk kembali kapan saja.")
+            }
         }
-        Button("Cancel", role: .cancel) {
-          showLogoutDialog = false
-        }
-      } message: {
-        Text("Anda bisa masuk kembali kapan saja.")
-      }
     }
-  }
 }
 
 #Preview {
-  let session = SessionManager()
-  session.isSignedIn = true
-  session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
-  return NavigationStack { SettingsView() }
-    .environmentObject(session)
+    let session = SessionManager()
+    session.isSignedIn = true
+    session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
+    return NavigationStack { SettingsView() }
+        .environmentObject(session)
 }
