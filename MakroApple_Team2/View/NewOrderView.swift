@@ -227,8 +227,13 @@ struct NewOrderView: View {
             viewModel.configure(userId: session.userId)
         }
         .navigationDestination(isPresented: $viewModel.navigateToConfirm) {
-            EditOrderView(parsedOrderData: viewModel.parsedOrderData ?? [:])
-        }
+                        if let parsedData = viewModel.parsedOrderData {
+                            EditOrderView(
+                                parsedOrderData: parsedData,
+                                selectedImages: $selectedImages
+                            )
+                        }
+                    }
         
     }
     // 🔹 Fungsi memuat dan menyimpan gambar per slot
