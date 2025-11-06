@@ -28,6 +28,21 @@ final class Set_BusinessDetailsViewModel: ObservableObject {
   @Published var isSaving = false
   @Published var errorMessage: String?
   @Published var saveSuccess = false
+  
+  @Published var fieldErrors: [String: String] = [:]
+  @Published var hasChanges = false  // ✅ Track changes
+  
+  // ✅ Store original data
+  private var originalData: (
+    businessName: String,
+    businessPhone: String,
+    businessAddress: String,
+    businessLogoUrl: String,
+    businessEmail: String,
+    bankAccountNumber: String,
+    bankAccountName: String,
+    bankName: String
+  )?
 
   private(set) var userId: String?
 
@@ -55,23 +70,80 @@ final class Set_BusinessDetailsViewModel: ObservableObject {
         bankAccountNumber   = u.bankAccountNumber ?? ""
         bankAccountName     = u.bankAccountName ?? ""
         bankName            = u.bankName ?? ""
+        
+        // ✅ Simpan original data
+        originalData = (
+          businessName: businessName,
+          businessPhone: businessPhone,
+          businessAddress: businessAddress,
+          businessLogoUrl: businessLogoUrl,
+          businessEmail: businessEmail,
+          bankAccountNumber: bankAccountNumber,
+          bankAccountName: bankAccountName,
+          bankName: bankName
+        )
+        
+        hasChanges = false
       }
     } catch {
       errorMessage = "Gagal memuat data: \(error.localizedDescription)"
     }
   }
 
-  func validate() -> String? {
-    if businessName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-      return "Nama bisnis wajib diisi."
+  // ✅ Check if data changed
+  func checkForChanges() {
+    guard let original = originalData else {
+      hasChanges = false
+      return
     }
-    if !businessEmail.isEmpty {
+    
+    hasChanges = businessName != original.businessName ||
+                 businessPhone != original.businessPhone ||
+                 businessAddress != original.businessAddress ||
+                 businessLogoUrl != original.businessLogoUrl ||
+                 businessEmail != original.businessEmail ||
+                 bankAccountNumber != original.bankAccountNumber ||
+                 bankAccountName != original.bankAccountName ||
+                 bankName != original.bankName
+  }
+
+  func validateAllFields() -> Bool {
+    fieldErrors.removeAll()
+    
+    if businessName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+      fieldErrors["businessName"] = "Nama bisnis wajib diisi"
+    }
+    
+    if businessAddress.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+      fieldErrors["businessAddress"] = "Alamat bisnis wajib diisi"
+    }
+    
+    if businessPhone.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+      fieldErrors["businessPhone"] = "Nomor telepon wajib diisi"
+    }
+    
+    if businessEmail.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+      fieldErrors["businessEmail"] = "Email bisnis wajib diisi"
+    } else {
       let pattern = #"^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$"#
       if businessEmail.range(of: pattern, options: [.regularExpression, .caseInsensitive]) == nil {
-        return "Format email bisnis tidak valid."
+        fieldErrors["businessEmail"] = "Format email tidak valid"
       }
     }
-    return nil
+    
+    if bankAccountName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+      fieldErrors["bankAccountName"] = "Nama akun wajib diisi"
+    }
+    
+    if bankAccountNumber.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+      fieldErrors["bankAccountNumber"] = "Nomor rekening wajib diisi"
+    }
+    
+    if bankName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+      fieldErrors["bankName"] = "Nama bank wajib diisi"
+    }
+    
+    return fieldErrors.isEmpty
   }
 
   func save() async {
@@ -79,8 +151,11 @@ final class Set_BusinessDetailsViewModel: ObservableObject {
       errorMessage = "User belum login atau UID tidak valid."
       return
     }
-    if let msg = validate() {
-      errorMessage = msg
+    
+    fieldErrors.removeAll()
+    let isValid = validateAllFields()
+    
+    guard isValid else {
       return
     }
 
@@ -103,6 +178,19 @@ final class Set_BusinessDetailsViewModel: ObservableObject {
       )
        
       saveSuccess = true
+      hasChanges = false  // ✅ Reset setelah save
+      
+      // ✅ Update original data
+      originalData = (
+        businessName: businessName,
+        businessPhone: businessPhone,
+        businessAddress: businessAddress,
+        businessLogoUrl: businessLogoUrl,
+        businessEmail: businessEmail,
+        bankAccountNumber: bankAccountNumber,
+        bankAccountName: bankAccountName,
+        bankName: bankName
+      )
     } catch {
       errorMessage = "Gagal menyimpan: \(error.localizedDescription)"
     }
@@ -116,38 +204,32 @@ final class Set_BusinessDetailsViewModel: ObservableObject {
       defer { setUploadingFlag(false) }
       
       do {
-          // 1. Load image data
           guard let imageData = try await item.loadTransferable(type: Data.self) else {
               errorMessage = "Gagal memuat foto"
               return
           }
           
-          // 2. Compress image
           guard let uiImage = UIImage(data: imageData),
                 let compressedData = uiImage.jpegData(compressionQuality: 0.7) else {
               errorMessage = "Gagal memproses foto"
               return
           }
           
-          // 3. Generate nama file unik
           let fileName = "\(UUID().uuidString).jpg"
           let filePath = "business-logos/\(fileName)"
           
-          // 4. Upload ke Supabase Storage
           let _ = try await SupabaseManager.shared.client.storage
-              .from("MakroAppleTeam2_Bucket") // ⚠️ GANTI dengan nama bucket kamu
+              .from("MakroAppleTeam2_Bucket")
               .upload(
                   path: filePath,
                   file: compressedData,
                   options: FileOptions(contentType: "image/jpeg")
               )
           
-          // 5. Generate public URL using the known path string
           let publicUrl = try SupabaseManager.shared.client.storage
-              .from("MakroAppleTeam2_Bucket") // ⚠️ GANTI dengan nama bucket kamu
+              .from("MakroAppleTeam2_Bucket")
               .getPublicURL(path: filePath)
           
-          // 6. Update businessLogoUrl
           await MainActor.run {
               self.businessLogoUrl = publicUrl.absoluteString
               self.saveSuccess = false
