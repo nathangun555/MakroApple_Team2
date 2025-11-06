@@ -9,9 +9,8 @@ import SwiftUI
 import Supabase
 
 struct ContentView: View {
-    @EnvironmentObject var session: SessionManager   // ✅ Global session
+    @EnvironmentObject var session: SessionManager
     @SceneStorage("selectedTab") var selectedTab = 0
-//    @State private var showNewOrder = false
 
     var body: some View {
         Group {
@@ -24,9 +23,9 @@ struct ContentView: View {
                 MainTabView(selectedTab: $selectedTab)
             }
         }
-        .task {
-            await checkSession()
-        }
+//        .task {
+//            await checkSession()
+//        }
     }
 
     // MARK: - Auto-login check
@@ -55,47 +54,71 @@ struct MainTabView: View {
 
     var body: some View {
         NavigationStack {
-            ZStack(alignment: .bottom) {
-                TabView(selection: $selectedTab) {
+            TabView(selection: $selectedTab) {
+                Tab("Pesanan", systemImage: "basket.fill", value: 0) {
                     AllOrdersView()
-                        .tabItem { Label("Pesanan", systemImage: "basket.fill") }
-                        .tag(0)
-
-                    ActiveOrdersView()
-                        .tabItem { Label("Jadwal", systemImage: "tray.full") }
-                        .tag(1)
-
-                    AnalyticsView()
-                        .tabItem { Label("Analitik", systemImage: "chart.bar") }
-                        .tag(2)
-
-                    SettingsView()
-                        .tabItem { Label("Pengaturan", systemImage: "gearshape") }
-                        .tag(3)
                 }
-
-//                if selectedTab == 0 {
-//                    Button(action: { showNewOrder = true }) {
-//                        HStack {
-//                            Image(systemName: "plus")
-//                            Text("Tambah Pesanan")
-//                        }
-//                        .frame(maxWidth: .infinity)
-//                        .padding()
-//                        .background(Color.blue)
-//                        .foregroundColor(.white)
-//                        .cornerRadius(12)
-//                        .shadow(radius: 4)
-//                    }
-//                    .padding(.horizontal)
-//                    .padding(.bottom, 8)
-//                }
+                Tab("Jadwal", systemImage: "tray.full", value: 1) {
+                    ActiveOrdersView()
+                }
+                Tab("Analitik", systemImage: "chart.bar", value: 2) {
+                    AnalyticsView()
+                }
+                Tab("Pengaturan", systemImage: "gearshape", value: 3) {
+                    SettingsView()
+                }
+                if selectedTab == 0 || selectedTab == 4 {
+                    Tab("Cari Nama atau Pesanan", systemImage: "magnifyingglass", value: 4, role: .search) {
+                        AllOrdersView()
+                    }
+                }
             }
-//            .navigationDestination(isPresented: $showNewOrder) {
-//                NewOrderView()
-//                    .navigationBarBackButtonHidden(false)
-//            }
         }
+        
+        
+//        NavigationStack {
+//            ZStack(alignment: .bottom) {
+//                TabView(selection: $selectedTab) {
+//                    AllOrdersView()
+//                        .tabItem { Label("Pesanan", systemImage: "basket.fill") }
+//                        .tag(0)
+//
+//                    ActiveOrdersView()
+//                        .tabItem { Label("Jadwal", systemImage: "tray.full") }
+//                        .tag(1)
+//
+//                    AnalyticsView()
+//                        .tabItem { Label("Analitik", systemImage: "chart.bar") }
+//                        .tag(2)
+//
+//                    SettingsView()
+//                        .tabItem { Label("Pengaturan", systemImage: "gearshape") }
+//                        .tag(3)
+//                    
+//                }
+//
+////                if selectedTab == 0 {
+////                    Button(action: { showNewOrder = true }) {
+////                        HStack {
+////                            Image(systemName: "plus")
+////                            Text("Tambah Pesanan")
+////                        }
+////                        .frame(maxWidth: .infinity)
+////                        .padding()
+////                        .background(Color.blue)
+////                        .foregroundColor(.white)
+////                        .cornerRadius(12)
+////                        .shadow(radius: 4)
+////                    }
+////                    .padding(.horizontal)
+////                    .padding(.bottom, 8)
+////                }
+//            }
+////            .navigationDestination(isPresented: $showNewOrder) {
+////                NewOrderView()
+////                    .navigationBarBackButtonHidden(false)
+////            }
+//        }
     }
 }
 
