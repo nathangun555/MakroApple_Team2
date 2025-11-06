@@ -8,10 +8,13 @@
 import Foundation
 import SwiftUI
 import Combine
+import PhotosUI
+import UIKit
+import Storage
+import Supabase
 
 @MainActor
 final class Set_BusinessDetailsViewModel: ObservableObject {
-  // Form state
   @Published var businessName = ""
   @Published var businessPhone = ""
   @Published var businessAddress = ""
@@ -21,7 +24,6 @@ final class Set_BusinessDetailsViewModel: ObservableObject {
   @Published var bankAccountName = ""
   @Published var bankName = ""
 
-  // UI state
   @Published var isLoading = false
   @Published var isSaving = false
   @Published var errorMessage: String?
@@ -54,7 +56,6 @@ final class Set_BusinessDetailsViewModel: ObservableObject {
         bankAccountName     = u.bankAccountName ?? ""
         bankName            = u.bankName ?? ""
       }
-      print("#load: ", uuid)
     } catch {
       errorMessage = "Gagal memuat data: \(error.localizedDescription)"
     }
@@ -102,10 +103,62 @@ final class Set_BusinessDetailsViewModel: ObservableObject {
       )
        
       saveSuccess = true
-      // Optionally reload after save to reflect server changes
-      // await load()
     } catch {
       errorMessage = "Gagal menyimpan: \(error.localizedDescription)"
     }
+  }
+  
+  // MARK: - Upload Logo
+  func uploadLogo(from item: PhotosPickerItem?, setUploadingFlag: @escaping (Bool) -> Void) async {
+      guard let item else { return }
+      
+      setUploadingFlag(true)
+      defer { setUploadingFlag(false) }
+      
+      do {
+          // 1. Load image data
+          guard let imageData = try await item.loadTransferable(type: Data.self) else {
+              errorMessage = "Gagal memuat foto"
+              return
+          }
+          
+          // 2. Compress image
+          guard let uiImage = UIImage(data: imageData),
+                let compressedData = uiImage.jpegData(compressionQuality: 0.7) else {
+              errorMessage = "Gagal memproses foto"
+              return
+          }
+          
+          // 3. Generate nama file unik
+          let fileName = "\(UUID().uuidString).jpg"
+          let filePath = "business-logos/\(fileName)"
+          
+          // 4. Upload ke Supabase Storage
+          let _ = try await SupabaseManager.shared.client.storage
+              .from("MakroAppleTeam2_Bucket") // ⚠️ GANTI dengan nama bucket kamu
+              .upload(
+                  path: filePath,
+                  file: compressedData,
+                  options: FileOptions(contentType: "image/jpeg")
+              )
+          
+          // 5. Generate public URL using the known path string
+          let publicUrl = try SupabaseManager.shared.client.storage
+              .from("MakroAppleTeam2_Bucket") // ⚠️ GANTI dengan nama bucket kamu
+              .getPublicURL(path: filePath)
+          
+          // 6. Update businessLogoUrl
+          await MainActor.run {
+              self.businessLogoUrl = publicUrl.absoluteString
+              self.saveSuccess = false
+          }
+          
+          print("✅ Logo uploaded successfully:", publicUrl.absoluteString)
+          
+      } catch {
+          await MainActor.run {
+              self.errorMessage = "Gagal upload logo: \(error.localizedDescription)"
+          }
+      }
   }
 }
