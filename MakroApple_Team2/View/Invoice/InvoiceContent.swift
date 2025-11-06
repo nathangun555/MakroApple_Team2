@@ -1,23 +1,21 @@
 //
-//  InvoiceView.swift
+//  InvoiceContentView.swift
 //  MakroApple_Team2
 //
-//  Created by Alfred Hans Witono on 28/10/25.
+//  Created by Alfred Hans Witono on 06/11/25.
 //
 
 import SwiftUI
 
-extension InvoicePreviewView {
-    @ViewBuilder
-    // MARK: - Invoice Content
-    var invoiceContent: some View {
+struct InvoiceContentView: View {
+    let viewModel: InvoicePreviewViewModel
+    
+    var body: some View {
         VStack(spacing: 12) {
-            // Header
             headerSection
             
             Divider()
             
-            // Customer and Payment Info
             HStack(alignment: .top, spacing: 20) {
                 billedToSection
                 Spacer()
@@ -26,7 +24,6 @@ extension InvoicePreviewView {
             
             Divider()
             
-            // Recipient and Date Info
             HStack(alignment: .top, spacing: 20) {
                 recipientSection
                 Spacer()
@@ -34,26 +31,22 @@ extension InvoicePreviewView {
             }
             
             Divider()
-            
-            // Order Items Table
+
             orderItemsTable
             
             Spacer(minLength: 30)
             
-            // Totals
             totalsSection
             
             Spacer(minLength: 40)
             
-            // Delivery Details
             deliveryDetailsSection
         }
     }
 
     // MARK: - Header Section
-    var headerSection: some View {
+    private var headerSection: some View {
         HStack(alignment: .top, spacing: 12) {
-            // Logo
             RoundedRectangle(cornerRadius: 4)
                 .fill(Color(.systemGray5))
                 .frame(width: 60, height: 60)
@@ -63,9 +56,8 @@ extension InvoicePreviewView {
                         .foregroundColor(.gray)
                 )
             
-            // Business Info
             VStack(alignment: .leading, spacing: 2) {
-                Text(viewModel.userRecord?.businessName ?? "TaskFlow Bakerydd")
+                Text(viewModel.userRecord?.businessName ?? "TaskFlow Bakery")
                     .font(.system(size: 14, weight: .bold))
                 
                 if let address = viewModel.userRecord?.businessAddress, !address.isEmpty {
@@ -86,14 +78,13 @@ extension InvoicePreviewView {
             }
             
             Spacer()
-            
-            // Invoice Title
+
             VStack(alignment: .trailing, spacing: 0) {
                 Text("INVOICE")
                     .font(.system(size: 24, weight: .bold))
                     .tracking(1)
                 
-                Text("Invoice Code : \(viewModel.generateInvoiceCode())")
+                Text("Invoice Code : \(viewModel.invoiceNumber)")
                     .font(.system(size: 8))
                     .foregroundColor(.secondary)
             }
@@ -101,7 +92,7 @@ extension InvoicePreviewView {
     }
 
     // MARK: - Billed To Section
-    var billedToSection: some View {
+    private var billedToSection: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text("Ditagihkan Ke")
                 .font(.system(size: 11, weight: .bold))
@@ -119,25 +110,25 @@ extension InvoicePreviewView {
     }
 
     // MARK: - Payment Info Section
-    var paymentInfoSection: some View {
+    private var paymentInfoSection: some View {
         VStack(alignment: .trailing, spacing: 4) {
             Text("Informasi Pembayaran")
                 .font(.system(size: 11, weight: .bold))
                 .underline()
             
-            Text(viewModel.userRecord?.bankAccountName ?? "Nathana")
+            Text(viewModel.accountName)
                 .font(.system(size: 10))
             
-            Text(viewModel.userRecord?.bankAccountNumber ?? "238904421")
+            Text(viewModel.accountNumber)
                 .font(.system(size: 10))
             
-            Text(viewModel.userRecord?.bankName ?? "Boca")
+            Text(viewModel.bankName)
                 .font(.system(size: 10))
         }
     }
 
     // MARK: - Recipient Section
-    var recipientSection: some View {
+    private var recipientSection: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text("Informasi Penerima")
                 .font(.system(size: 11, weight: .bold))
@@ -159,17 +150,17 @@ extension InvoicePreviewView {
     }
 
     // MARK: - Date Info Section
-    var dateInfoSection: some View {
+    private var dateInfoSection: some View {
         VStack(alignment: .trailing, spacing: 4) {
             Text("Informasi Tanggal")
                 .font(.system(size: 11, weight: .bold))
                 .underline()
             
             VStack(alignment: .trailing, spacing: 2) {
-                Text("Tanggal Invoice : \(viewModel.orderDate)")
+                Text("Tanggal Invoice : \(viewModel.invoiceDate)")
                     .font(.system(size: 10))
                 
-                Text("Jatuh Tempo Pembayaran : \(viewModel.deliveryTime)")
+                Text("Jatuh Tempo Pembayaran : \(viewModel.invoiceDueDate)")
                     .font(.system(size: 10))
             }
             
@@ -182,7 +173,7 @@ extension InvoicePreviewView {
     }
 
     // MARK: - Order Items Table
-    var orderItemsTable: some View {
+    private var orderItemsTable: some View {
         VStack(spacing: 0) {
             // Table Header
             HStack {
@@ -206,23 +197,22 @@ extension InvoicePreviewView {
             .padding(.horizontal, 6)
             .background(Color(.systemGray5))
             
-            // Table Rows
-            ForEach(viewModel.orderItems) { item in
+            ForEach(viewModel.displayOrderItems) { item in
                 VStack(spacing: 0) {
                     HStack {
                         Text(item.description)
                             .font(.system(size: 10))
                             .frame(maxWidth: .infinity, alignment: .leading)
                         
-                        Text("")
+                        Text(item.unitPrice.formatted())
                             .font(.system(size: 10))
                             .frame(width: 70)
                         
-                        Text("")
+                        Text("\(item.quantity)")
                             .font(.system(size: 10))
                             .frame(width: 50)
                         
-                        Text("")
+                        Text(item.total.formatted())
                             .font(.system(size: 10))
                             .frame(width: 70, alignment: .trailing)
                     }
@@ -236,13 +226,13 @@ extension InvoicePreviewView {
     }
 
     // MARK: - Totals Section
-    var totalsSection: some View {
+    private var totalsSection: some View {
         VStack(spacing: 6) {
             HStack {
                 Text("Subtotal")
                     .font(.system(size: 10))
                 Spacer()
-                Text("")
+                Text(viewModel.subtotal.formatted())
                     .font(.system(size: 10))
             }
             
@@ -252,7 +242,7 @@ extension InvoicePreviewView {
                 Text("Ongkir")
                     .font(.system(size: 10))
                 Spacer()
-                Text("")
+                Text(viewModel.shippingCost.formatted())
                     .font(.system(size: 10))
             }
             
@@ -262,7 +252,7 @@ extension InvoicePreviewView {
                 Text("Total")
                     .font(.system(size: 10, weight: .bold))
                 Spacer()
-                Text("")
+                Text(viewModel.total.formatted())
                     .font(.system(size: 10, weight: .bold))
             }
             
@@ -272,7 +262,7 @@ extension InvoicePreviewView {
                 Text("Down Payment")
                     .font(.system(size: 10))
                 Spacer()
-                Text("")
+                Text(viewModel.downPayment.formatted())
                     .font(.system(size: 10))
             }
         }
@@ -282,7 +272,7 @@ extension InvoicePreviewView {
     }
 
     // MARK: - Delivery Details Section
-    var deliveryDetailsSection: some View {
+    private var deliveryDetailsSection: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack {
                 Text("Tanggal Kirim :")
@@ -302,5 +292,4 @@ extension InvoicePreviewView {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
-
 }

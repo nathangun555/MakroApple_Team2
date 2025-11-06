@@ -17,13 +17,19 @@ final class Set_MenuDetailsViewModel: ObservableObject {
         var items: [EditableProduct]
         var isEditing: Bool = false
         var originalTitle: String
+        var isDeleted: Bool = false
     }
 
-    @Published var sections: [SectionModel] = []
+    @Published var sections: [SectionModel] = [] {
+        didSet { detectChanges() } // ✅ otomatis deteksi setiap kali sections berubah
+    }
     @Published var isLoading = false
     @Published var errorMessage: String?
+    @Published var hasPendingChanges = false // ✅ tombol save aktif kalau true
 
     private(set) var userId: String?
+    private var deletedProducts: [EditableProduct] = []
+    private var deletedCategories: [SectionModel] = []
 
     func configure(userId: String?) { self.userId = userId }
 
@@ -33,6 +39,7 @@ final class Set_MenuDetailsViewModel: ObservableObject {
             errorMessage = "User belum login atau UID tidak valid."
             return
         }
+
         isLoading = true
         errorMessage = nil
         defer { isLoading = false }
@@ -47,12 +54,48 @@ final class Set_MenuDetailsViewModel: ObservableObject {
 
             self.sections = sortedKeys.map { key in
                 let items = grouped[key]!.map { EditableProduct(record: $0) }
-                return SectionModel(title: key, items: items, isEditing: false, originalTitle: key)
+                return SectionModel(
+                    title: key,
+                    items: items,
+                    isEditing: false,
+                    originalTitle: key
+                )
             }
+
+            hasPendingChanges = false // ✅ reset status saat pertama load
+            deletedProducts.removeAll()
+            deletedCategories.removeAll()
 
         } catch {
             errorMessage = "Gagal memuat produk: \(error.localizedDescription)"
         }
+    }
+
+    // MARK: - Deteksi Perubahan
+    private func detectChanges() {
+        Task { @MainActor in
+            for section in sections {
+                if section.title != section.originalTitle {
+                    hasPendingChanges = true
+                    return
+                }
+                for item in section.items {
+                    if item.isNew || item.hasChanges {
+                        hasPendingChanges = true
+                        return
+                    }
+                }
+            }
+            if !deletedProducts.isEmpty || !deletedCategories.isEmpty {
+                hasPendingChanges = true
+                return
+            }
+            hasPendingChanges = false
+        }
+    }
+
+    func markChanged() {
+        hasPendingChanges = true
     }
 
     // MARK: - Toggle Edit Mode
@@ -65,6 +108,7 @@ final class Set_MenuDetailsViewModel: ObservableObject {
     // MARK: - Tambah Produk Baru
     func addTemporaryProduct(to sectionIndex: Int) {
         guard let userUUID = UUID(uuidString: userId ?? "") else { return }
+
         let newRecord = ProductRecord(
             id: UUID(),
             userId: userUUID,
@@ -72,18 +116,20 @@ final class Set_MenuDetailsViewModel: ObservableObject {
             price: 0,
             notes: nil,
             isActive: true,
-            createdAt: nil, // ⚠️ penting: biarkan nil agar bisa dikenali sebagai produk baru
+            createdAt: nil,
             updatedAt: nil,
             productType: sections[sectionIndex].title
         )
+
         var new = EditableProduct(record: newRecord)
-        new.isNew = true // ✅ tandai produk ini baru
+        new.isNew = true
+
         sections[sectionIndex].items.insert(new, at: 0)
+        hasPendingChanges = true // ✅ perubahan terdeteksi
     }
-    
-    // MARK: - Tambah Kategori Baru (belum tersimpan)
+
+    // MARK: - Tambah Kategori Baru
     func addTemporaryCategory() {
-        // Buat section baru dengan 1 produk kosong di dalamnya
         let newSection = SectionModel(
             title: "Nama Kategori",
             items: [
@@ -120,14 +166,34 @@ final class Set_MenuDetailsViewModel: ObservableObject {
             originalTitle: "Nama Kategori"
         )
 
-        // Insert di urutan paling atas
         sections.insert(newSection, at: 0)
+        hasPendingChanges = true
     }
 
+    // MARK: - Hapus Produk Sementara
+    func deleteTemporaryProduct(from sectionIndex: Int, at productIndex: Int) {
+        guard sectionIndex < sections.count,
+              productIndex < sections[sectionIndex].items.count else { return }
 
-    // MARK: - Simpan Semua Perubahan (insert + update)
-    // MARK: - Simpan Semua Perubahan (insert + update) — FIXED kategori-propagation
-    func saveAll() async {
+        let product = sections[sectionIndex].items[productIndex]
+        deletedProducts.append(product)
+        sections[sectionIndex].items.remove(at: productIndex)
+        hasPendingChanges = true
+    }
+
+    // MARK: - Hapus Kategori Sementara
+    func deleteTemporaryCategory(at index: Int) {
+        guard index < sections.count else { return }
+
+        let category = sections[index]
+        deletedCategories.append(category)
+        sections.remove(at: index)
+        hasPendingChanges = true
+    }
+
+    // MARK: - Simpan Semua Perubahan
+    // MARK: - Simpan Semua Perubahan
+    func saveAll(dismiss: @escaping () -> Void) async {
         isLoading = true
         errorMessage = nil
         defer { isLoading = false }
@@ -137,7 +203,7 @@ final class Set_MenuDetailsViewModel: ObservableObject {
             return
         }
 
-        // MARK: - 1) Hitung section yang title-nya berubah
+        // 🔹 1) Simpan perubahan kategori yg berubah title
         var sectionTitleChanged: Set<UUID> = []
         for sIndex in sections.indices {
             let sec = sections[sIndex]
@@ -146,118 +212,86 @@ final class Set_MenuDetailsViewModel: ObservableObject {
             }
         }
 
-        // MARK: - 2) Kumpulkan toInsert & toUpdate, dan pastikan productType sinkron dengan section title
+        // 🔹 2) Kumpulkan data insert / update
         var toInsert: [(EditableProduct, Int)] = []
         var toUpdate: [(EditableProduct, Int)] = []
 
         for sIndex in sections.indices {
             let secTitle = sections[sIndex].title
-
             for item in sections[sIndex].items {
-                // make a mutable copy to adjust productType if needed
                 var mutableItem = item
-
-                // If the section title changed, ensure the product's productType is updated to the new title
                 if sectionTitleChanged.contains(sections[sIndex].id) {
-                    // update the editable product's productType so payload will carry new category
                     mutableItem.productType = secTitle
                 }
 
                 if mutableItem.isNew {
                     toInsert.append((mutableItem, sIndex))
                 } else if mutableItem.hasChanges || sectionTitleChanged.contains(sections[sIndex].id) {
-                    // existing item changed OR its section category changed -> update
                     toUpdate.append((mutableItem, sIndex))
                 }
             }
         }
 
-        // MARK: - 3) Nothing to do?
-        guard !toInsert.isEmpty || !toUpdate.isEmpty else {
-            for i in sections.indices { sections[i].isEditing = false }
-            return
-        }
-
-        // MARK: - 4) Execute (parallel)
         do {
-            try await withThrowingTaskGroup(of: (UUID, ProductRecord).self) { group in
-                // Updates
-                for (ep, _) in toUpdate {
-                    group.addTask {
-                        var payload = await ep.changedFieldsPayload()
-                        // ensure product_type included if not present
-                        if payload["product_type"] == nil {
-                            payload["product_type"] = await ep.productType ?? NSNull()
+            try await withThrowingTaskGroup(of: Void.self) { group in
+                // 🔹 Delete kategori
+                for category in deletedCategories {
+                    for item in category.items where !item.isNew {
+                        group.addTask {
+                            try await SupabaseManager.shared.deleteProduct(id: item.id)
                         }
-                        let updated = try await SupabaseManager.shared.updateProduct(id: ep.id, values: payload)
-                        return (ep.id, updated)
                     }
                 }
 
-                // Inserts
+                // 🔹 Delete produk
+                for item in deletedProducts where !item.isNew {
+                    group.addTask {
+                        try await SupabaseManager.shared.deleteProduct(id: item.id)
+                    }
+                }
+
+                // 🔹 Update
+                for (ep, _) in toUpdate {
+                    group.addTask {
+                        var payload = await ep.changedFieldsPayload()
+                        if payload["product_type"] == nil {
+                            payload["product_type"] = await ep.productType ?? NSNull()
+                        }
+                        _ = try await SupabaseManager.shared.updateProduct(id: ep.id, values: payload)
+                    }
+                }
+
+                // 🔹 Insert
                 for (ep, _) in toInsert {
                     group.addTask {
-                        let inserted = try await SupabaseManager.shared.insertProduct(
+                        _ = try await SupabaseManager.shared.insertProduct(
                             name: ep.name,
                             price: Double(truncating: ep.price as NSNumber),
                             productType: ep.productType ?? "Uncategorized",
                             userId: uuid
                         )
-                        return (inserted.id, inserted)
                     }
                 }
 
-                // Collect results (use DB id as key)
-                var results: [UUID: ProductRecord] = [:]
-                for try await (_, record) in group {
-                    results[record.id] = record
-                }
-
-                // MARK: - 5) Apply results to local state
-                for sIndex in sections.indices {
-                    for (idx, item) in sections[sIndex].items.enumerated() {
-                        // If DB returned a record with same local id (rare), use it
-                        if let newRecordById = results[item.id] {
-                            sections[sIndex].items[idx] = EditableProduct(record: newRecordById)
-                            continue
-                        }
-
-                        // Otherwise try match by name+price for newly inserted items
-                        if item.isNew {
-                            if let match = results.values.first(where: {
-                                $0.name == item.name &&
-                                $0.price == Decimal(Double(truncating: item.price as NSNumber))
-                            }) {
-                                var updatedEditable = EditableProduct(record: match)
-                                updatedEditable.isNew = false
-                                sections[sIndex].items[idx] = updatedEditable
-                            }
-                        } else {
-                            // For existing items that had their section title changed but didn't get matched by id (edge cases),
-                            // attempt to update their productType locally to reflect new section title.
-                            if sectionTitleChanged.contains(sections[sIndex].id) {
-                                // update productType locally to keep UI consistent
-                                let current = sections[sIndex].items[idx]
-                                current.productType = sections[sIndex].title
-                            }
-                        }
-                    }
-                }
+                try await group.waitForAll()
             }
 
-            // MARK: - 6) Reorganize & exit edit mode
+            // 🔹 3) Reset
+            deletedProducts.removeAll()
+            deletedCategories.removeAll()
             await reorganizeSections()
             for i in sections.indices { sections[i].isEditing = false }
 
-        } catch {
-            print("❌ Error detail:", error)
-            if let decodingError = error as? DecodingError {
-                print("🧩 DecodingError:", decodingError)
+            // 🔹 4) Setelah semua sukses → kembali ke SettingsView
+            await MainActor.run {
+                dismiss()
             }
+
+        } catch {
+            print("❌ Error saving:", error)
             errorMessage = "Gagal menyimpan perubahan: \(error.localizedDescription)"
         }
     }
-
 
 
     // MARK: - Reorganize Sections
@@ -266,10 +300,16 @@ final class Set_MenuDetailsViewModel: ObservableObject {
         let grouped = Dictionary(grouping: allProducts) { (p: EditableProduct) -> String in
             p.productType ?? "Uncategorized"
         }
+
         let sortedKeys = grouped.keys.sorted { $0.lowercased() < $1.lowercased() }
 
         sections = sortedKeys.map { key in
-            SectionModel(title: key, items: grouped[key]!, isEditing: false, originalTitle: key)
+            SectionModel(
+                title: key,
+                items: grouped[key]!,
+                isEditing: false,
+                originalTitle: key
+            )
         }
     }
 }
