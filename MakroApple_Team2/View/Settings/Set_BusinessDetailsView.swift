@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import PhotosUI
 
 private struct RowDivider: View {
   var body: some View { Rectangle().fill(Color(.separator)).frame(height: 0.5) }
@@ -58,6 +59,9 @@ struct Set_BusinessDetailsView: View {
   @EnvironmentObject var session: SessionManager
   @StateObject private var vm = Set_BusinessDetailsViewModel()
   @FocusState private var focusedField: Field?
+  
+  @State private var selectedPhotoItem: PhotosPickerItem?
+  @State private var isUploadingLogo = false
 
   enum Field: Hashable {
     case businessName, businessPhone, businessAddress, businessLogoUrl, businessEmail
@@ -116,51 +120,87 @@ struct Set_BusinessDetailsView: View {
         }
         RowDivider()
 
-          LabeledRow(label: "Logo Bisnis :", labelWidth: labelWidth) {
-            HStack(spacing: 8) {
-              ZStack {
-                if vm.businessLogoUrl.isEmpty {
-                  // Placeholder kalau belum ada URL
-                  RoundedRectangle(cornerRadius: 10)
-                    .stroke(style: StrokeStyle(lineWidth: 1, dash: [4]))
-                    .foregroundStyle(Color(.tertiaryLabel))
-                    .frame(width: 112, height: 112)
-                  Image(systemName: "photo.on.rectangle.angled")
-                    .font(.system(size: 24))
-                    .foregroundStyle(Color(.secondaryLabel))
-                } else {
-                  // Load gambar dari URL
-                  AsyncImage(url: URL(string: vm.businessLogoUrl)) { phase in
-                    switch phase {
-                    case .empty:
+        LabeledRow(label: "Logo Bisnis :", labelWidth: labelWidth) {
+          HStack(spacing: 8) {
+            ZStack {
+              if vm.businessLogoUrl.isEmpty {
+                // Placeholder - bisa di-tap untuk upload
+                PhotosPicker(selection: $selectedPhotoItem, matching: .images) {
+                  ZStack {
+                    RoundedRectangle(cornerRadius: 10)
+                      .stroke(style: StrokeStyle(lineWidth: 1, dash: [4]))
+                      .foregroundStyle(Color(.tertiaryLabel))
+                      .frame(width: 112, height: 112)
+                    
+                    if isUploadingLogo {
                       ProgressView()
-                        .frame(width: 112, height: 112)
-                    case .success(let image):
-                      image
-                        .resizable()
-                        .scaledToFill()
-                        .frame(width: 112, height: 112)
-                        .clipShape(RoundedRectangle(cornerRadius: 10))
-                    case .failure:
-                      // Error loading, tampilkan icon error
-                      ZStack {
-                        RoundedRectangle(cornerRadius: 10)
-                          .stroke(Color.red, lineWidth: 1)
-                          .frame(width: 112, height: 112)
-                        Image(systemName: "exclamationmark.triangle")
+                    } else {
+                      VStack(spacing: 4) {
+                        Image(systemName: "photo.on.rectangle.angled")
                           .font(.system(size: 24))
-                          .foregroundStyle(.red)
+                          .foregroundStyle(Color(.secondaryLabel))
+                        Text("Upload")
+                          .font(.caption)
+                          .foregroundStyle(Color(.secondaryLabel))
                       }
-                    @unknown default:
-                      EmptyView()
                     }
                   }
                 }
+                .disabled(isUploadingLogo)
+              } else {
+                // Sudah ada gambar - bisa di-tap untuk ganti
+                PhotosPicker(selection: $selectedPhotoItem, matching: .images) {
+                  ZStack(alignment: .bottomTrailing) {
+                    AsyncImage(url: URL(string: vm.businessLogoUrl)) { phase in
+                      switch phase {
+                      case .empty:
+                        ProgressView()
+                          .frame(width: 112, height: 112)
+                      case .success(let image):
+                        image
+                          .resizable()
+                          .scaledToFill()
+                          .frame(width: 112, height: 112)
+                          .clipShape(RoundedRectangle(cornerRadius: 10))
+                      case .failure:
+                        ZStack {
+                          RoundedRectangle(cornerRadius: 10)
+                            .stroke(Color.red, lineWidth: 1)
+                            .frame(width: 112, height: 112)
+                          Image(systemName: "exclamationmark.triangle")
+                            .font(.system(size: 24))
+                            .foregroundStyle(.red)
+                        }
+                      @unknown default:
+                        EmptyView()
+                      }
+                    }
+                    
+                    // Icon edit di pojok kanan bawah
+                    if !isUploadingLogo {
+                      Image(systemName: "pencil.circle.fill")
+                        .font(.system(size: 24))
+                        .foregroundStyle(.white)
+                        .background(Circle().fill(Color.blue))
+                        .offset(x: -4, y: -4)
+                    } else {
+                      ProgressView()
+                        .offset(x: -4, y: -4)
+                    }
+                  }
+                }
+                .disabled(isUploadingLogo)
               }
-              Spacer(minLength: 0)
             }
+            Spacer(minLength: 0)
           }
-
+        }
+        .onChange(of: selectedPhotoItem) { newItem in
+          Task {
+            await vm.uploadLogo(from: newItem, setUploadingFlag: { isUploadingLogo = $0 })
+            selectedPhotoItem = nil
+          }
+        }
 
         // Informasi Pembayaran
         Text("Informasi Pembayaran")
@@ -205,7 +245,6 @@ struct Set_BusinessDetailsView: View {
     .toolbar {
       ToolbarItem(placement: .topBarTrailing) {
         Button {
-          // PERILAKU LAMA: tanpa guard userId di sini
           Task { await vm.save() }
         } label: {
           if vm.isSaving { ProgressView() } else { Text("Save") }
@@ -214,14 +253,12 @@ struct Set_BusinessDetailsView: View {
       }
     }
     .task {
-      // Pastikan VM menerima userId dan hanya load jika valid (seperti versi stabil kamu)
       vm.configure(userId: session.userId)
       if let id = session.userId, UUID(uuidString: id) != nil {
         await vm.load()
         focusedField = .businessName
       }
     }
-    // reset success on edit
     .onChange(of: vm.businessName) { _ in vm.saveSuccess = false }
     .onChange(of: vm.businessPhone) { _ in vm.saveSuccess = false }
     .onChange(of: vm.businessAddress) { _ in vm.saveSuccess = false }
