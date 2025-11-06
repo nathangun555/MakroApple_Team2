@@ -14,9 +14,9 @@ struct NewOrderView: View {
     @EnvironmentObject var session: SessionManager
     @State private var formPesanan = ""
     
-    @State private var selectedItems: [PhotosPickerItem?] = [nil]
-    @State private var selectedImages: [UIImage?] = [nil]
-    @State private var savedImagePaths: [URL?] = [nil]
+    @State private var selectedItems: [PhotosPickerItem?] = [nil, nil, nil]
+    @State private var selectedImages: [UIImage?] = [nil, nil, nil]
+    @State private var savedImagePaths: [URL?] = [nil, nil, nil]
     
     @State private var isLoading = false
     @State private var resultJSON: String? = nil
@@ -81,85 +81,6 @@ struct NewOrderView: View {
                             .fontWeight(.bold)
                             .padding(.top)
                         
-                        HStack(spacing: 12) {
-                            ForEach(0..<selectedImages.count, id: \.self) { index in
-                                VStack {
-                                    if let image = selectedImages[index] {
-                                        Image(uiImage: image)
-                                            .resizable()
-                                            .scaledToFill()
-                                            .frame(width: 115, height: 115)
-                                            .clipped()
-                                            .cornerRadius(10)
-                                            .overlay(
-                                                Button(action: {
-                                                    selectedImages[index] = nil
-                                                    selectedItems[index] = nil
-                                                    savedImagePaths[index] = nil
-                                                }) {
-                                                    Image(systemName: "xmark.circle.fill")
-                                                        .foregroundColor(.white)
-                                                        .background(Color.black.opacity(0.6))
-                                                        .clipShape(Circle())
-                                                }
-                                            )
-                                    } else {
-                                        PhotosPicker(selection: Binding(
-                                            get: { selectedItems[index] },
-                                            set: { newValue in
-                                                selectedItems[index] = newValue
-                                                Task {
-                                                    await loadImage(for: index)
-                                                }
-                                            }
-                                        ), matching: .images) {
-                                            VStack {
-                                                Image(systemName: "photo.badge.plus")
-                                                    .font(.title)
-                                            }
-                                            .foregroundColor(.black)
-                                            .frame(width: 115, height: 115)
-                                            .overlay(
-                                                RoundedRectangle(cornerRadius: 10)
-                                                    .strokeBorder(style: StrokeStyle(lineWidth: 1, dash: [5]))
-                                                    .foregroundStyle(Color.secondary)
-                                                    .background(.gray.opacity(0.1))
-                                                    .cornerRadius(10)
-                                            )
-                                        }
-                                    }
-                                }) {
-                                    Label("Tempel", systemImage: "list.clipboard.fill")
-                                        .font(.caption)
-                                        .fontWeight(.bold)
-                                        .padding(8)
-                                        .labelStyle(.titleAndIcon)
-                                        .foregroundColor(.white)
-                                        .background(.blue)
-                                        .cornerRadius(20)
-                                }
-                            }
-                            
-                            TextEditor(text: $formPesanan)
-                                .padding(3)
-                                .frame(height: geometry.size.height / 3)
-                                .cornerRadius(10)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 10)
-                                        .stroke(Color.gray.opacity(0.5), lineWidth: 0.5)
-                                )
-                                .overlay(
-                                    Group {
-                                        if formPesanan.isEmpty {
-                                            Text("Tempel formulir pesanan anda di sini ✨")
-                                                .foregroundColor(.gray)
-                                                .padding(.horizontal, 14)
-                                                .padding(.vertical, 12)
-                                                .frame(maxWidth: .infinity, alignment: .leading)
-                                        }
-                                    }
-                                )
-                        }
                         
                         PhotoSection(
                             selectedItems: $selectedItems,
@@ -235,23 +156,6 @@ struct NewOrderView: View {
                         }
                     }
         
-    }
-    // 🔹 Fungsi memuat dan menyimpan gambar per slot
-    private func loadImage(for index: Int) async {
-        guard let item = selectedItems[index] else { return }
-        if let data = try? await item.loadTransferable(type: Data.self),
-           let uiImage = UIImage(data: data) {
-            selectedImages[index] = uiImage
-            if let savedPath = saveImageToDocuments(uiImage) {
-                savedImagePaths[index] = savedPath
-            }
-        }
-        
-        if selectedImages.count < 3 && selectedImages.allSatisfy({ $0 != nil }) {
-                    selectedImages.append(nil)
-                    selectedItems.append(nil)
-                    savedImagePaths.append(nil)
-                }
     }
     
     private func cleanUpEmptySlots() {
