@@ -57,16 +57,13 @@ struct Set_MenuDetailsView: View {
             }
             .disabled(showUnsavedChangesAlert)
             
-            // MARK: Overlay stabil tanpa flicker
             if showUnsavedChangesAlert {
-                // Layer hitam (NO transition)
                 Color.black
                     .opacity(showUnsavedChangesAlert ? 0.45 : 0)
                     .ignoresSafeArea()
                     .animation(.easeInOut(duration: 0.25), value: showUnsavedChangesAlert)
                     .zIndex(10)
                 
-                // Alert box (boleh pakai animasi)
                 CustomUnsavedAlert(
                     title: "Perubahan Belum Disimpan",
                     message: "Apakah Anda yakin ingin membatalkan perubahan yang telah dibuat?",
@@ -80,17 +77,12 @@ struct Set_MenuDetailsView: View {
                 .animation(.spring(response: 0.3, dampingFraction: 0.8), value: showUnsavedChangesAlert)
             }
         }
-
         .task {
             vm.configure(userId: session.userId)
             await vm.load()
         }
     }
-
-
-
     
-    // MARK: - Extracted Main View
     private var contentView: some View {
         ZStack(alignment: .bottom) {
             ScrollView {
@@ -106,61 +98,73 @@ struct Set_MenuDetailsView: View {
                         
                         VStack(alignment: .leading, spacing: 12) {
                             // Header kategori
-                            HStack {
-                                if section.isEditing {
-                                    TextField(
-                                        "Nama Kategori",
-                                        text: Binding(
-                                            get: {
-                                                let raw = section.title.trimmingCharacters(in: .whitespacesAndNewlines)
-                                                // Placeholder hanya muncul kalau kosong / dummy
-                                                if raw.isEmpty { return "" }
-                                                if ["ZZZ", "Silakan isi nama kategori", "Nama Kategori"].contains(raw) {
-                                                    return ""
+                            VStack(alignment: .leading, spacing: 4) {
+                                HStack {
+                                    if section.isEditing {
+                                        TextField(
+                                            "Nama Kategori",
+                                            text: Binding(
+                                                get: {
+                                                    let raw = section.title.trimmingCharacters(in: .whitespacesAndNewlines)
+                                                    if raw.isEmpty { return "" }
+                                                    if ["ZZZ", "Silakan isi nama kategori", "Nama Kategori"].contains(raw) {
+                                                        return ""
+                                                    }
+                                                    return raw
+                                                },
+                                                set: { newValue in
+                                                    vm.sections[sIndex].title = newValue
                                                 }
-                                                return raw
-                                            },
-                                            set: { newValue in
-                                                vm.sections[sIndex].title = newValue
-                                            }
+                                            )
                                         )
-                                    )
-                                    .font(.headline)
-                                    .padding(.horizontal, 10)
-                                    .padding(.vertical, 6)
-                                    .background(Color(.systemGray6))
-                                    .cornerRadius(10)
-                                    .textInputAutocapitalization(.words)
-                                    .autocorrectionDisabled(true)
-                                } else {
-                                    Text(section.title)
                                         .font(.headline)
                                         .padding(.horizontal, 10)
                                         .padding(.vertical, 6)
-                                }
-                                
-                                Spacer()
-                                
-                                if section.isEditing {
+                                        .background(Color(.systemGray6))
+                                        .cornerRadius(10)
+                                        .textInputAutocapitalization(.words)
+                                        .autocorrectionDisabled(true)
+                                    } else {
+                                        Text(section.title)
+                                            .font(.headline)
+                                            .padding(.horizontal, 10)
+                                            .padding(.vertical, 6)
+                                    }
+                                    
+                                    Spacer()
+                                    
+                                    if section.isEditing {
+                                        Button {
+                                            withAnimation {
+                                                vm.deleteTemporaryCategory(at: sIndex)
+                                            }
+                                        } label: {
+                                            Image(systemName: "trash")
+                                                .foregroundColor(.red)
+                                                .padding(.trailing, 6)
+                                        }
+                                    }
+                                    
                                     Button {
                                         withAnimation {
-                                            vm.deleteTemporaryCategory(at: sIndex)
+                                            vm.toggleEdit(sectionIndex: sIndex)
                                         }
                                     } label: {
-                                        Image(systemName: "trash")
-                                            .foregroundColor(.red)
-                                            .padding(.trailing, 6)
+                                        Text(section.isEditing ? "Selesai" : "Edit")
+                                            .font(.subheadline)
+                                            .foregroundColor(.blue)
                                     }
                                 }
                                 
-                                Button {
-                                    withAnimation {
-                                        vm.toggleEdit(sectionIndex: sIndex)
-                                    }
-                                } label: {
-                                    Text(section.isEditing ? "Selesai" : "Edit")
-                                        .font(.subheadline)
-                                        .foregroundColor(.blue)
+                                // ✅ Error untuk nama kategori
+                                if vm.validationErrors.contains("\(sIndex)-cat") {
+                                    HStack(spacing: 0) {
+                                           Text("Nama kategori tidak boleh kosong")
+                                               .font(.caption)
+                                               .foregroundColor(.red)
+                                               .padding(.leading, 3)
+                                           Spacer()
+                                       }
                                 }
                             }
                             
@@ -188,7 +192,10 @@ struct Set_MenuDetailsView: View {
                                     HStack(alignment: .top) {
                                         EditableProductRow(
                                             viewModel: item,
-                                            isEditing: section.isEditing
+                                            isEditing: section.isEditing,
+                                            sectionIndex: sIndex,
+                                            productIndex: pIndex,
+                                            validationErrors: vm.validationErrors
                                         )
                                         if section.isEditing {
                                             Button {
@@ -216,7 +223,6 @@ struct Set_MenuDetailsView: View {
                 .padding(.top)
             }
             
-            // Floating Button
             Button {
                 withAnimation {
                     vm.addTemporaryCategory()
@@ -240,8 +246,7 @@ struct Set_MenuDetailsView: View {
     }
 }
 
-// MARK: - Custom Alert View
-// MARK: - Custom Alert View (Desain seperti contoh screenshot)
+// MARK: - Custom Alert
 struct CustomUnsavedAlert: View {
     var title: String
     var message: String
@@ -252,13 +257,11 @@ struct CustomUnsavedAlert: View {
     
     var body: some View {
         ZStack {
-            // Dimmed background
             Color.black.opacity(0.45)
                 .ignoresSafeArea()
                 .onTapGesture { onCancel() }
             
             VStack(spacing: 20) {
-                // Ikon di atas
                 Image(systemName: "gear.badge.xmark")
                     .resizable()
                     .scaledToFit()
@@ -266,13 +269,11 @@ struct CustomUnsavedAlert: View {
                     .foregroundColor(Color.blue)
                     .padding(.top, 8)
                 
-                // Judul
                 Text(title)
                     .font(.system(size: 20, weight: .semibold))
                     .foregroundColor(.black)
                     .multilineTextAlignment(.center)
                 
-                // Pesan
                 Text(message)
                     .font(.system(size: 15))
                     .foregroundColor(.black)
@@ -280,7 +281,6 @@ struct CustomUnsavedAlert: View {
                     .padding(.horizontal)
                     .padding(.bottom, 6)
                 
-                // Tombol aksi
                 HStack(spacing: 16) {
                     Button(action: onCancel) {
                         Text(cancelTitle)
@@ -316,108 +316,132 @@ struct CustomUnsavedAlert: View {
     }
 }
 
-
-// MARK: - Baris Produk
-// MARK: - Baris Produk (final, placeholder behaves like Harga Produk)
+// MARK: - EditableProductRow
 struct EditableProductRow: View {
     @ObservedObject var viewModel: EditableProduct
     var isEditing: Bool
+    var sectionIndex: Int
+    var productIndex: Int
+    var validationErrors: Set<String>
 
-    // If your app uses a specific dummy string when creating new items,
-    // add it here so placeholder still shows. Add more entries if needed.
     private let sentinelPlaceholders: Set<String> = [
-        "Silakan Isi Nama Produk", // common dummy text in your code
-        "ZZZ"                      // your earlier example
+        "Silakan Isi Nama Produk",
+        "ZZZ"
     ]
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-
             // MARK: Nama Produk
-            HStack(alignment: .center) {
-                Text("Nama Produk :")
-                    .font(.subheadline)
-                    .frame(width: 110, alignment: .leading)
-
-                // Use same pattern as Harga Produk: Binding(get:set:)
-                TextField(
-                    "Silakan Isi Nama Produk",
-                    text: Binding(
-                        get: {
-                            // If underlying value is empty OR equals a sentinel dummy,
-                            // return "" so the TextField shows the placeholder.
-                            let raw = viewModel.name.trimmingCharacters(in: .whitespacesAndNewlines)
-                            if raw.isEmpty { return "" }
-                            if sentinelPlaceholders.contains(raw) { return "" }
-                            return raw
-                        },
-                        set: { newValue in
-                            // Save exactly what user types (trim trailing newlines),
-                            // keep model consistent.
-                            viewModel.name = newValue
-                        }
-                    )
-                )
-                .disabled(!isEditing)
-                .padding(.vertical, 6)
-                .padding(.horizontal, 8)
-                .background(Color.white)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 8)
-                        .stroke(Color.black, lineWidth: 1)
-                        .allowsHitTesting(false)
-                )
-                .cornerRadius(8)
-                .frame(maxWidth: .infinity)
-                .opacity(isEditing ? 1 : 0.7)
-                .autocorrectionDisabled(true)
-                .textInputAutocapitalization(.words)
-            }
-
-            // MARK: Harga Produk (unchanged — your working version)
-            HStack(alignment: .center) {
-                Text("Harga Produk :")
-                    .font(.subheadline)
-                    .frame(width: 110, alignment: .leading)
-
-                HStack(spacing: 4) {
-                    Text("Rp")
-                        .foregroundColor(.black)
+            VStack(alignment: .leading, spacing: 4) {
+                HStack(alignment: .center) {
+                    Text("Nama Produk :")
+                        .font(.subheadline)
+                        .frame(width: 110, alignment: .leading)
 
                     TextField(
-                        "0",
+                        "Silakan Isi Nama Produk",
                         text: Binding(
                             get: {
-                                let value = NSDecimalNumber(decimal: viewModel.price).intValue
-                                return value == 0 ? "" : "\(value)"
+                                let raw = viewModel.name.trimmingCharacters(in: .whitespacesAndNewlines)
+                                if raw.isEmpty { return "" }
+                                if sentinelPlaceholders.contains(raw) { return "" }
+                                return raw
                             },
                             set: { newValue in
-                                let filtered = newValue.filter { $0.isNumber }
-                                if let intVal = Int(filtered) {
-                                    viewModel.price = Decimal(intVal)
-                                } else {
-                                    viewModel.price = 0
-                                }
+                                viewModel.name = newValue
                             }
                         )
                     )
-                    .keyboardType(.numberPad)
                     .disabled(!isEditing)
-                    .font(.system(size: 16))
-                    .monospacedDigit()
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.vertical, 6)
+                    .padding(.horizontal, 8)
+                    .background(Color.white)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(Color.black, lineWidth: 1)
+                            .allowsHitTesting(false)
+                    )
+                    .cornerRadius(8)
+                    .frame(maxWidth: .infinity)
+                    .opacity(isEditing ? 1 : 0.7)
+                    .autocorrectionDisabled(true)
+                    .textInputAutocapitalization(.words)
                 }
-                .padding(.vertical, 6)
-                .padding(.horizontal, 8)
-                .background(Color.white)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 8)
-                        .stroke(Color.black, lineWidth: 1)
-                        .allowsHitTesting(false)
-                )
-                .cornerRadius(8)
-                .frame(maxWidth: .infinity)
-                .opacity(isEditing ? 1 : 0.7)
+                
+                // ✅ Error untuk nama produk
+                if validationErrors.contains("\(sectionIndex)-\(productIndex)-name") {
+                    HStack(spacing: 0) {
+                                           Color.clear
+                                               .frame(width: 110) // spacer sama lebar dengan label
+                                           Text("Nama produk tidak boleh kosong")
+                                               .font(.caption)
+                                               .foregroundColor(.red)
+                                               .padding(.leading, 8)
+                                           Spacer()
+                                       }
+                }
+            }
+
+            // MARK: Harga Produk
+            VStack(alignment: .leading, spacing: 4) {
+                HStack(alignment: .center) {
+                    Text("Harga Produk :")
+                        .font(.subheadline)
+                        .frame(width: 110, alignment: .leading)
+
+                    HStack(spacing: 4) {
+                        Text("Rp")
+                            .foregroundColor(.black)
+
+                        TextField(
+                            "0",
+                            text: Binding(
+                                get: {
+                                    let value = NSDecimalNumber(decimal: viewModel.price).intValue
+                                    return value == 0 ? "" : "\(value)"
+                                },
+                                set: { newValue in
+                                    let filtered = newValue.filter { $0.isNumber }
+                                    if let intVal = Int(filtered) {
+                                        viewModel.price = Decimal(intVal)
+                                    } else {
+                                        viewModel.price = 0
+                                    }
+                                }
+                            )
+                        )
+                        .keyboardType(.numberPad)
+                        .disabled(!isEditing)
+                        .font(.system(size: 16))
+                        .monospacedDigit()
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                    .padding(.vertical, 6)
+                    .padding(.horizontal, 8)
+                    .background(Color.white)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(Color.black, lineWidth: 1)
+                            .allowsHitTesting(false)
+                    )
+                    .cornerRadius(8)
+                    .frame(maxWidth: .infinity)
+                    .opacity(isEditing ? 1 : 0.7)
+                }
+                
+                // ✅ Error untuk harga produk
+                if validationErrors.contains("\(sectionIndex)-\(productIndex)-price") {
+                    HStack(spacing: 0) {
+                                           Color.clear
+                                               .frame(width: 110)
+                                           Text("Harga harus lebih dari 0")
+                                               .font(.caption)
+                                               .foregroundColor(.red)
+                                               .padding(.leading, 8)
+                                           Spacer()
+                                       }
+                    
+                }
             }
         }
         .padding(12)
@@ -428,11 +452,6 @@ struct EditableProductRow: View {
     }
 }
 
-
-
-
-
-// MARK: - Formatter Helper
 extension NumberFormatter {
     static func currencyFormatter() -> NumberFormatter {
         let f = NumberFormatter()

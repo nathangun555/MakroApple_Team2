@@ -21,7 +21,7 @@ struct OrderStatus: View {
                     .background(
                         Circle()
                             .stroke(Color.orange, lineWidth: 2)
-                            .background(Circle().fill(order.statusColor))
+                            .background(Circle().fill(statusColors[order.status] ?? .gray))
                     )
             }
             Spacer()
@@ -36,7 +36,7 @@ struct OrderStatus: View {
                 .fill(Color.white)
                 .overlay(
                     RoundedRectangle(cornerRadius: 30)
-                        .stroke(order.statusColor, lineWidth: 2)
+                        .stroke(statusColors[order.status] ?? .gray, lineWidth: 2)
                 )
         )
         .padding(.horizontal)

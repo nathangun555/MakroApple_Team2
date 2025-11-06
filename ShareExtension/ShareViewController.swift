@@ -5,66 +5,135 @@
 //  Created by Edward Suwandi on 30/10/25.
 //
 
+//
+//  ShareViewController.swift
+//  ShareExtension
+//
+
+//
+//  ShareViewController.swift
+//  ShareToMyAppExtension
+//
+//  Created by Edward Suwandi on 05/11/25.
+//
+
 import UIKit
-import Social
+import SwiftUI
 import UniformTypeIdentifiers
 
-class ShareViewController: SLComposeServiceViewController {
+class ShareViewController: UIViewController {
+    private var hostingController: UIHostingController<ShareContentView>?
 
-    override func isContentValid() -> Bool {
-        return true
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        setupSwiftUIView()
+        handleIncomingData()
     }
 
-    override func didSelectPost() {
-        // Save shared data
-        if let extensionItem = extensionContext?.inputItems.first as? NSExtensionItem {
-            for attachment in extensionItem.attachments ?? [] {
-                if attachment.hasItemConformingToTypeIdentifier(UTType.text.identifier) {
-                    attachment.loadItem(forTypeIdentifier: UTType.text.identifier, options: nil) { item, error in
-                        if let text = item as? String {
-                            self.saveToApp(text: text)
-                            self.openMainApp()
+    private func setupSwiftUIView() {
+        let swiftUIView = ShareContentView()
+        let host = UIHostingController(rootView: swiftUIView)
+
+        addChild(host)
+        host.view.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(host.view)
+
+        NSLayoutConstraint.activate([
+            host.view.topAnchor.constraint(equalTo: view.topAnchor),
+            host.view.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            host.view.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            host.view.trailingAnchor.constraint(equalTo: view.trailingAnchor)
+        ])
+
+        host.didMove(toParent: self)
+        self.hostingController = host
+    }
+
+//    private func handleIncomingData() {
+//        guard let extensionItem = extensionContext?.inputItems.first as? NSExtensionItem else { return }
+//
+//        for provider in extensionItem.attachments ?? [] {
+//            if provider.hasItemConformingToTypeIdentifier(UTType.text.identifier) {
+//                provider.loadItem(forTypeIdentifier: UTType.text.identifier, options: nil) { item, error in
+//                    if let text = item as? String {
+//                        print("📩 Received text from WhatsApp: \(text)")
+//
+//                        // ✅ Save to shared UserDefaults (App Group)
+//                        if let defaults = UserDefaults(suiteName: "group.com.edward.makroa2.shared") {
+//                            defaults.set(text, forKey: "sharedText")
+//                            defaults.synchronize()
+//                        } else {
+//                            print("❌ Failed to access shared defaults")
+//                        }
+//
+//                        // ✅ Tell the system we're done
+//                        self.extensionContext?.completeRequest(returningItems: nil, completionHandler: nil)
+//
+//                        // ✅ Ask the system to open the main app (via URL scheme)
+//                        self.openMainApp()
+//                    }
+//                }
+//                return
+//            }
+//        }
+//    }
+    
+    private func handleIncomingData() {
+        guard let extensionItem = extensionContext?.inputItems.first as? NSExtensionItem else { return }
+
+        for provider in extensionItem.attachments ?? [] {
+            if provider.hasItemConformingToTypeIdentifier(UTType.text.identifier) {
+                provider.loadItem(forTypeIdentifier: UTType.text.identifier, options: nil) { item, error in
+                    if let text = item as? String {
+                        print("📩 Received text: \(text)")
+
+                        // Save to App Group
+                        if let defaults = UserDefaults(suiteName: "group.com.please.shared") {
+                            print("USER DEFAULT SET \(text)")
+                            defaults.set(text, forKey: "sharedText")
+                            defaults.synchronize()
                         }
-                    }
-                } else if attachment.hasItemConformingToTypeIdentifier(UTType.image.identifier) {
-                    attachment.loadItem(forTypeIdentifier: UTType.image.identifier, options: nil) { item, error in
-                        if let url = item as? URL {
-                            self.saveToApp(imageURL: url)
-                            self.openMainApp()
-                        } else if let image = item as? UIImage {
-                            if let data = image.pngData() {
-                                let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent("shared.png")
-                                try? data.write(to: tempURL)
-                                self.saveToApp(imageURL: tempURL)
-                                self.openMainApp()
+
+                        // Open the main app first
+                        if let url = URL(string: "makroa2://fromwhatsapp") {
+                            var responder: UIResponder? = self
+                            
+                            while responder != nil {
+                                if let application = responder as? UIApplication {
+                                    application.open(url)
+                                    print("MAIN APP OPENED")
+                                    break
+                                } else {
+                                    print("❌ Failed to open main app")
+                                }
+                                responder = responder?.next
                             }
+                        } else {
+                            self.extensionContext?.completeRequest(returningItems: nil, completionHandler: nil)
                         }
                     }
                 }
+                return
             }
         }
-
-        self.extensionContext?.completeRequest(returningItems: [], completionHandler: nil)
     }
 
-    private func saveToApp(text: String? = nil, imageURL: URL? = nil) {
-        let sharedDefaults = UserDefaults(suiteName: "group.com.macroa2.identifier")
-        sharedDefaults?.set(text, forKey: "sharedText")
-        sharedDefaults?.set(imageURL?.absoluteString, forKey: "sharedImage")
-        sharedDefaults?.synchronize()
-    }
 
+    
     private func openMainApp() {
-        // Open your main app via custom URL scheme
-        if let url = URL(string: "macroa2://share") {
-            var responder: UIResponder? = self
-            while responder != nil {
-                if let app = responder as? UIApplication {
-                    app.open(url, options: [:], completionHandler: nil)
-                    break
-                }
-                responder = responder?.next
+        guard let url = URL(string: "makroa2://fromwhatsapp") else { return }
+
+        // ✅ This is the official API for opening your main app from a Share Extension
+        extensionContext?.open(url, completionHandler: { success in
+            if success {
+                print("✅ Successfully opened main app.")
+            } else {
+                print("❌ Failed to open main app.")
             }
-        }
+        })
     }
+
+
 }
+
+

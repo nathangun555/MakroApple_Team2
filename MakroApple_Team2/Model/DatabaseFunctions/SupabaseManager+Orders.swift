@@ -180,18 +180,18 @@ extension SupabaseManager {
     }
     
     func updateOrderStatus(orderId: UUID, newStatus: String) async throws {
-        let response = try await client
-            .from("orders")
-            .update(["status": newStatus])
-            .eq("id", value: orderId)
-            .select()
-            .execute()
-        
-        // Optional: check if update actually succeeded
-        if response.status != 200 {
-            throw NSError(domain: "SupabaseError", code: response.status, userInfo: [
-                NSLocalizedDescriptionKey: "Failed to update order status"
-            ])
+            let response = try await client
+                .from("orders")
+                .update(["status": newStatus])
+                .eq("id", value: orderId)
+                .select()
+                .execute()
+            
+            // Optional: check if update actually succeeded
+            if response.status != 200 {
+                throw NSError(domain: "SupabaseError", code: response.status, userInfo: [
+                    NSLocalizedDescriptionKey: "Failed to update order status"
+                ])
+            }
         }
-    }
 }

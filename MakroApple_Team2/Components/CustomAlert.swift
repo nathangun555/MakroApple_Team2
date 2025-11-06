@@ -7,8 +7,19 @@
 
 import SwiftUI
 
+enum CustomAlertType {
+    case payment
+    case cancel
+    case reorder
+    case deleteSetting
+    case changeSetting
+    case firstTimeOrder
+}
+
+
 struct CustomAlert: View {
-    @Binding var activeAlert: OrderDetailView.ActiveAlert?
+    
+    @Binding var activeAlert: CustomAlertType?
     let handleStatusUpdate: (String) async -> Void
     
     var body: some View {
@@ -18,11 +29,11 @@ struct CustomAlert: View {
                 
                 ZStack {
                     Rectangle()
-                        .fill(.ultraThinMaterial) // the blur layer
+                        .fill(.ultraThinMaterial)
                         .ignoresSafeArea()
 
                     Rectangle()
-                        .fill(Color.black.opacity(0.6)) // slight black overlay tint
+                        .fill(Color.black.opacity(0.6))
                         .ignoresSafeArea()
                 }
                 .onTapGesture {
@@ -34,45 +45,34 @@ struct CustomAlert: View {
                 
                 // Alert Box
                 VStack {
-                    
-                    // Image Icon
-                    Image(systemName: activeAlert == .payment ? "checkmark.rectangle.stack.fill" : "xmark.bin.fill")
-                        .font(.title)
-                        .foregroundColor(.primaryButton)
-                        .padding(.top, 5)
-                    
-                    // Alert Message
-                    if activeAlert == .payment {
-                        VStack {
-                            Text("Pesanan Selesai")
-                                .font(.headline)
-                                .padding(3)
-                            
-                            Text("Apakah Anda yakin pesanan ini sudah dibayar lunas dan diterima oleh customer? Pesanan akan dipindahkan ke section Selesai.")
-                                .font(.caption)
-                                .padding(.bottom)
-                        }
-                        .multilineTextAlignment(.center)
+                    switch activeAlert {
+                        
+                    case .payment:
+                        PaymentContent()
                         
                         
+                    case .cancel:
+                        CancelContent()
                         
-                    } else {
-                        VStack {
-                            Text("Batalkan Pesanan")
-                                .font(.headline)
-                                .padding(3)
-                            
-                            
-                            Text ("Apakah Anda yakin ingin membatalkan pesanan ini? Pesanan akan dipindahkan ke bagian dibatalkan.")
-                                .font(.caption)
-                                .padding(.bottom)
-                            
-                        }
-                        .multilineTextAlignment(.center)
+                    case .reorder:
+                        ReorderContent()
+                        
+                        
+                    case .deleteSetting:
+                        DeleteSettingContent()
+                        
+                    case .changeSetting:
+                        ChangeSettingContent()
+                        
+                    case .firstTimeOrder:
+                        FirstTimeOrderContent()
+                        
                     }
+                    
                     // Confirmation Button
                     HStack {
-                        Button(activeAlert == .payment ? "Belum" : "Tidak") {
+                        
+                        Button("Tidak") {
                             withAnimation(.spring()) {
                                 self.activeAlert = nil
                             }
@@ -83,15 +83,25 @@ struct CustomAlert: View {
                         .glassEffect(.clear.tint(.gray), in: .rect(cornerRadius: 30))
                         
                         // Confirm button
-                        Button(activeAlert == .payment ? "Sudah" : "Ya, batalkan") {
+                        Button("Ya") {
                             withAnimation(.spring()) {
                                 self.activeAlert = nil
                             }
                             Task {
-                                if activeAlert == .payment {
-                                    await handleStatusUpdate("Selesai")
-                                } else {
-                                    await handleStatusUpdate("Dibatalkan")
+                                switch activeAlert {
+                                case .payment: await handleStatusUpdate("Selesai")
+                                case .cancel: await handleStatusUpdate("Dibatalkan")
+                                case .reorder: await handleStatusUpdate("Belum Terbayar")
+                                    
+                                case .deleteSetting:
+                                    await print("HALO")
+                                    
+                                case .changeSetting:
+                                    await print("HALO")
+                                    
+                                case .firstTimeOrder:
+                                    await print("HALO")
+                                    
                                 }
                             }
                         }
@@ -114,23 +124,136 @@ struct CustomAlert: View {
     }
 }
 
-//#Preview {
-//    // Create a stub session
-//    let session = SessionManager()
-//    session.isSignedIn = true
-//    session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
-//    
-//    // Create the view
-//    let view = AllOrdersView()
-//    
-//    // Inject the environment object
-//    return view.environmentObject(session)
-//}
+struct PaymentContent: View {
+    var body: some View {
+        VStack {
+            Image(systemName: "checkmark.rectangle.stack.fill")
+                .font(.title)
+                .foregroundColor(.primaryButton)
+                .padding(.top, 5)
+            
+            Text("Pesanan Selesai")
+                .font(.headline)
+                .padding(3)
+            
+            Text("Apakah Anda yakin pesanan ini sudah dibayar lunas dan diterima oleh customer? Pesanan akan dipindahkan ke section Selesai.")
+                .font(.caption)
+                .padding(.bottom)
+                .multilineTextAlignment(.center)
+        }
+    }
+}
+
+struct CancelContent: View {
+    var body: some View {
+        VStack {
+            // Image Icon
+            Image(systemName: "xmark.bin.fill")
+                .font(.title)
+                .foregroundColor(.primaryButton)
+                .padding(.top, 5)
+            
+            Text("Batalkan Pesanan")
+                .font(.headline)
+                .padding(3)
+            
+            
+            Text("Apakah Anda yakin ingin membatalkan pesanan ini? Pesanan akan dipindahkan ke bagian dibatalkan.")
+                .font(.caption)
+                .padding(.bottom)
+                .multilineTextAlignment(.center)
+        }
+    }
+}
+
+struct ReorderContent: View {
+    var body: some View {
+        VStack {
+            // Image Icon
+            Image(systemName: "basket.fill")
+                .font(.title)
+                .foregroundColor(.primaryButton)
+                .padding(.top, 5)
+            
+            Text("Pesan Kembali Pesanan")
+                .font(.headline)
+                .padding(3)
+            
+            Text ("Sistem akan membuat ulang pesanan dan memindahkannya ke status Belum Dibayar.")
+                .font(.caption)
+                .padding(.bottom)
+                .multilineTextAlignment(.center)
+        }
+    }
+}
+
+struct DeleteSettingContent: View {
+    var body: some View {
+        VStack {
+            // Image Icon
+            Image(systemName: "trash.fill")
+                .font(.title)
+                .foregroundColor(.primaryButton)
+                .padding(.top, 5)
+            
+            Text("Hapus")
+                .font(.headline)
+                .padding(3)
+            
+            Text ("Apakah Anda yakin ingin menghapus bagian ini?")
+                .font(.caption)
+                .padding(.bottom)
+                .multilineTextAlignment(.center)
+        }
+    }
+}
+
+struct ChangeSettingContent: View {
+    var body: some View {
+        VStack {
+            // Image Icon
+            Image(systemName: "gear.badge.xmark")
+                .font(.title)
+                .foregroundColor(.primaryButton)
+                .padding(.top, 5)
+            
+            Text("Perubahan Belum Disimpan")
+                .font(.headline)
+                .padding(3)
+            
+            Text ("Sistem akan membuat ulang pesanan dan memindahkannya ke status Belum Dibayar.")
+                .font(.caption)
+                .padding(.bottom)
+                .multilineTextAlignment(.center)
+        }
+    }
+}
+
+struct FirstTimeOrderContent: View {
+    var body: some View {
+        VStack {
+            // Image Icon
+            Image(systemName: "building.2.crop.circle.fill")
+                .font(.title)
+                .foregroundColor(.primaryButton)
+                .padding(.top, 5)
+            
+            Text("Lengkapi Data Bisnis Anda")
+                .font(.headline)
+                .padding(3)
+            
+            Text ("Untuk menambahkan pesanan pertama Anda, lengkapi terlebih dahulu data bisnis yang diperlukan.")
+                .font(.caption)
+                .padding(.bottom)
+                .multilineTextAlignment(.center)
+        }
+    }
+}
+
 #Preview {
-    // Create a mock alert state for preview
-    @State var activeAlert: OrderDetailView.ActiveAlert? = .cancel
+    @State var activeAlert: CustomAlertType? = .payment
     
-    CustomAlert(
+    return CustomAlert(
         activeAlert: $activeAlert,
         handleStatusUpdate: { status in
             print("Status updated to \(status)")

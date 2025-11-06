@@ -13,26 +13,21 @@ struct AllOrdersView: View {
 
     @State private var viewModel = AllOrdersViewModel()
     
-    
-    
     @SceneStorage("selectedTab") var selectedTab = 0
     @State private var searchText = ""
     
     
     @State var activeTab: TabModel = .belumBayar
     
-//    private var filteredOrders: [OrderRecord] {
-//        viewModel.orders.filter { order in
-//            order.status.localizedCaseInsensitiveCompare(activeTab.dbValue)  == .orderedSame
-//        }
-//        
-//        .sorted { a, b in
-//            guard let dateA = a.orderDdayDate, let dateB = b.orderDdayDate else {
-//                return false
-//            }
-//            return dateA < dateB
-//        }
-//    }
+    @Binding var sharedText: String
+    @Binding var hasNewSharedText: Bool
+    @State var showNewOrderView = false
+    
+    @AppStorage("showBelumBayarGuide") private var showBelumBayarGuide: Bool = true
+    @AppStorage("showDiprosesGuide") private var showDiprosesGuide: Bool = true
+    @AppStorage("showDikirimGuide") private var showDikirimGuide: Bool = true
+    @AppStorage("showSelesaiGuide") private var showSelesaiGuide: Bool = true
+    @AppStorage("showDibatalkanGuide") private var showDibatalkanGuide: Bool = true
     
     private var filteredOrders: [OrderRecord] {
         viewModel.orders
@@ -61,18 +56,10 @@ struct AllOrdersView: View {
 
     
     var body: some View {
-        GeometryReader{ geo in
-            NavigationView{
+        
+            NavigationStack{
                 VStack{
                     HStack{
-                        let sharedDefaults = UserDefaults(suiteName: "group.com.macroa2.identifier")
-                        if let sharedText = sharedDefaults?.string(forKey: "sharedText") {
-                            
-                            Text(sharedText)
-                        }
-                        
-                        // Business Name
-//                        Text(viewModel.businessName.isEmpty ? "Loading..." : viewModel.businessName)
                         
                         Text("Pesanan")
                             .font(.largeTitle)
@@ -80,7 +67,7 @@ struct AllOrdersView: View {
                         
                         Spacer()
                         
-                        NavigationLink(destination: NewOrderView()) {
+                        NavigationLink(destination: NewOrderView(sharedText: $sharedText)) {
                             Image(systemName: "plus.circle.fill")
                                 .font(.system(size: 44))
                                 .foregroundColor(.primaryButton)
@@ -91,17 +78,31 @@ struct AllOrdersView: View {
                     .padding(.horizontal)
                     
                     
-                    
-                    
                     // Deadline Card
                     DeadlineCard(orders: viewModel.orders)
-                    
                     
                     
                     // Custom Tab Bar
                     CustomTabBar(activeTab: $activeTab)
 //                        .frame(maxWidth: .infinity)
-                        .padding(.vertical)
+                    
+                    GuideMessage(activeTab: activeTab, isVisible: activeTab == .belumBayar ? $showBelumBayarGuide :
+                                    activeTab == .diproses ? $showDiprosesGuide :
+                                    activeTab == .terkirim ? $showDikirimGuide :
+                                    activeTab == .selesai ? $showSelesaiGuide :
+                                    $showDibatalkanGuide)
+                        .padding(.vertical,5)
+                    
+                    Button("Tampilkan Panduan Lagi") {
+                        showBelumBayarGuide = true
+                        showDiprosesGuide = true
+                        showDikirimGuide = true
+                        showSelesaiGuide = true
+                        showDibatalkanGuide = true
+                    }
+                    .font(.caption2)
+                    .background(Color.blue.opacity(0.2))
+                    .cornerRadius(8)
                     
                     // Orders List
                     ScrollView {
@@ -137,50 +138,44 @@ struct AllOrdersView: View {
                     await viewModel.fetchOrders(for: userId)
                     await viewModel.fetchOrderItems(for: userId)
                 }
+                .onAppear {
+                                // ✅ If the shared text already exists when view appears
+                                if hasNewSharedText {
+                                    print("📩 Detected shared text on appear:", sharedText)
+                                    showNewOrderView = true
+                                    hasNewSharedText = false
+                                }
+                            }
+                            .onChange(of: hasNewSharedText) { newValue in
+                                // ✅ If shared text changes while already in app
+                                if newValue {
+                                    print("📩 Detected new shared text via onChange:", sharedText)
+                                    showNewOrderView = true
+                                    hasNewSharedText = false
+                                }
+                            }
+                            .navigationDestination(isPresented: $showNewOrderView) {
+                                NewOrderView(sharedText: $sharedText)
+                            }
             }
-            .isSearchable(selectedTab: selectedTab, filter: $searchText)
-        }
+            .searchable(text: $searchText, prompt: "Cari Nama Pelanggan")
+        
     }
     
 }
     
 
 
-#Preview {
-    // Create a stub session
-    let session = SessionManager()
-    session.isSignedIn = true
-    session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
-    
-    // Create the view
-    let view = AllOrdersView()
-    
-    // Inject the environment object
-    return view.environmentObject(session)
-}
+//#Preview {
+//    // Create a stub session
+//    let session = SessionManager()
+//    session.isSignedIn = true
+//    session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
+//    
+//    // Create the view
+//    let view = AllOrdersView(sharedText: .constant(""))
+//    
+//    // Inject the environment object
+//    view.environmentObject(session)
+//}
 
-
-
-// Struct and Extension to remove the search bar under the navigation title,
-// NOTE : Change to the real data filter later, code below is only a dummy.
-struct IsSearchableModifier: ViewModifier {
-    
-    let selectedTab: Int
-    @Binding var filter: String
-    
-    func body(content: Content) -> some View {
-        if selectedTab == 4 {
-            content
-                .searchable(text: $filter, prompt: "Cari Nama atau Pesanan")
-        }
-        else {
-            content
-        }
-    }
-}
-
-extension View {
-    func isSearchable(selectedTab: Int, filter: Binding<String>) -> some View {
-        self.modifier(IsSearchableModifier(selectedTab: selectedTab, filter: filter))
-    }
-}
