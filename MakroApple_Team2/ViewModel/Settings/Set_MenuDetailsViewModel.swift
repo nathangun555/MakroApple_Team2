@@ -21,11 +21,12 @@ final class Set_MenuDetailsViewModel: ObservableObject {
     }
 
     @Published var sections: [SectionModel] = [] {
-        didSet { detectChanges() } // ✅ otomatis deteksi setiap kali sections berubah
+        didSet { detectChanges() }
     }
     @Published var isLoading = false
     @Published var errorMessage: String?
-    @Published var hasPendingChanges = false // ✅ tombol save aktif kalau true
+    @Published var hasPendingChanges = false
+    @Published var validationErrors: Set<String> = [] // ✅ untuk tracking field error
 
     private(set) var userId: String?
     private var deletedProducts: [EditableProduct] = []
@@ -62,13 +63,45 @@ final class Set_MenuDetailsViewModel: ObservableObject {
                 )
             }
 
-            hasPendingChanges = false // ✅ reset status saat pertama load
+            hasPendingChanges = false
+            validationErrors.removeAll()
             deletedProducts.removeAll()
             deletedCategories.removeAll()
 
         } catch {
             errorMessage = "Gagal memuat produk: \(error.localizedDescription)"
         }
+    }
+
+    // MARK: - Validasi
+    func validate() -> [(sectionIndex: Int, productIndex: Int?, field: String)] {
+        var errors: [(Int, Int?, String)] = []
+        
+        for sIndex in sections.indices {
+            let sec = sections[sIndex]
+            
+            // Validasi nama kategori
+            let catName = sec.title.trimmingCharacters(in: .whitespacesAndNewlines)
+            if catName.isEmpty || ["Nama Kategori", "ZZZ", "Silakan isi nama kategori"].contains(catName) {
+                errors.append((sIndex, nil, "category"))
+            }
+            
+            // Validasi tiap produk
+            for pIndex in sec.items.indices {
+                let item = sec.items[pIndex]
+                let prodName = item.name.trimmingCharacters(in: .whitespacesAndNewlines)
+                
+                if prodName.isEmpty || ["Silakan Isi Nama Produk", "ZZZ"].contains(prodName) {
+                    errors.append((sIndex, pIndex, "name"))
+                }
+                
+                if item.price <= 0 {
+                    errors.append((sIndex, pIndex, "price"))
+                }
+            }
+        }
+        
+        return errors
     }
 
     // MARK: - Deteksi Perubahan
@@ -125,7 +158,7 @@ final class Set_MenuDetailsViewModel: ObservableObject {
         new.isNew = true
 
         sections[sectionIndex].items.insert(new, at: 0)
-        hasPendingChanges = true // ✅ perubahan terdeteksi
+        hasPendingChanges = true
     }
 
     // MARK: - Tambah Kategori Baru
@@ -192,8 +225,22 @@ final class Set_MenuDetailsViewModel: ObservableObject {
     }
 
     // MARK: - Simpan Semua Perubahan
-    // MARK: - Simpan Semua Perubahan
     func saveAll(dismiss: @escaping () -> Void) async {
+        // ✅ Validasi dulu
+        let errors = validate()
+        if !errors.isEmpty {
+            validationErrors = Set(errors.map { err in
+                if let pIndex = err.productIndex {
+                    return "\(err.sectionIndex)-\(pIndex)-\(err.field)"
+                } else {
+                    return "\(err.sectionIndex)-cat"
+                }
+            })
+            return // Jangan lanjut simpan
+        }
+        
+        validationErrors.removeAll() // Clear kalau valid
+        
         isLoading = true
         errorMessage = nil
         defer { isLoading = false }
@@ -292,7 +339,6 @@ final class Set_MenuDetailsViewModel: ObservableObject {
             errorMessage = "Gagal menyimpan perubahan: \(error.localizedDescription)"
         }
     }
-
 
     // MARK: - Reorganize Sections
     private func reorganizeSections() async {

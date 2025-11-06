@@ -116,20 +116,51 @@ struct Set_BusinessDetailsView: View {
         }
         RowDivider()
 
-        LabeledRow(label: "Logo Bisnis :", labelWidth: labelWidth) {
-          HStack(spacing: 8) {
-            ZStack {
-              RoundedRectangle(cornerRadius: 10)
-                .stroke(style: StrokeStyle(lineWidth: 1, dash: [4]))
-                .foregroundStyle(Color(.tertiaryLabel))
-                .frame(width: 112, height: 112)
-              Image(systemName: "photo.on.rectangle.angled")
-                .font(.system(size: 24))
-                .foregroundStyle(Color(.secondaryLabel))
+          LabeledRow(label: "Logo Bisnis :", labelWidth: labelWidth) {
+            HStack(spacing: 8) {
+              ZStack {
+                if vm.businessLogoUrl.isEmpty {
+                  // Placeholder kalau belum ada URL
+                  RoundedRectangle(cornerRadius: 10)
+                    .stroke(style: StrokeStyle(lineWidth: 1, dash: [4]))
+                    .foregroundStyle(Color(.tertiaryLabel))
+                    .frame(width: 112, height: 112)
+                  Image(systemName: "photo.on.rectangle.angled")
+                    .font(.system(size: 24))
+                    .foregroundStyle(Color(.secondaryLabel))
+                } else {
+                  // Load gambar dari URL
+                  AsyncImage(url: URL(string: vm.businessLogoUrl)) { phase in
+                    switch phase {
+                    case .empty:
+                      ProgressView()
+                        .frame(width: 112, height: 112)
+                    case .success(let image):
+                      image
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: 112, height: 112)
+                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                    case .failure:
+                      // Error loading, tampilkan icon error
+                      ZStack {
+                        RoundedRectangle(cornerRadius: 10)
+                          .stroke(Color.red, lineWidth: 1)
+                          .frame(width: 112, height: 112)
+                        Image(systemName: "exclamationmark.triangle")
+                          .font(.system(size: 24))
+                          .foregroundStyle(.red)
+                      }
+                    @unknown default:
+                      EmptyView()
+                    }
+                  }
+                }
+              }
+              Spacer(minLength: 0)
             }
-            Spacer(minLength: 0)
           }
-        }
+
 
         // Informasi Pembayaran
         Text("Informasi Pembayaran")
