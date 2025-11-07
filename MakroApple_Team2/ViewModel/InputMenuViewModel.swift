@@ -110,7 +110,7 @@ class InputMenuViewModel {
     }
 
     func menuScanBatch(imageUrls: [String], completion: @escaping (String?) -> Void) {
-        guard let url = URL(string: "https://iznjcwyoziqjgfjahemb.supabase.co/functions/v1/extract-menu-products") else {
+        guard let url = URL(string: "https://iznjcwyoziqjgfjahemb.supabase.co/functions/v1/menu-parser") else {
             print("❌ URL is invalid.")
             completion(nil)
             return

@@ -38,192 +38,210 @@ struct InputMenuView: View {
     @State private var submitState: SubmitState = .idle
     @State private var showErrorAlert = false
     @State private var errorMessage = ""
-    
     @State private var scannedCategories: [MenuCategory] = []
     
     var viewModel = InputMenuViewModel()
     
     var body: some View {
+        mainContent
+            .navigationTitle("Rincian Menu / Katalog")
+            .navigationBarTitleDisplayMode(.inline)
+            .task {
+                viewModel.configure(userId: session.userId)
+            }
+            .fileImporter(
+                isPresented: $isFileImporterPresented,
+                allowedContentTypes: [.pdf, .image],
+                allowsMultipleSelection: true
+            ) { result in
+                handleFileImport(result)
+            }
+            .sheet(isPresented: $isPhotoPickerPresented) {
+                ImagePicker(sourceType: .photoLibrary) { url in
+                    if let url = url {
+                        addFile(url: url)
+                    }
+                }
+            }
+            .sheet(isPresented: $isCameraPresented) {
+                ImagePicker(sourceType: .camera) { url in
+                    if let url = url {
+                        addFile(url: url)
+                    }
+                }
+            }
+            .confirmationDialog("Pilih Sumber File", isPresented: $showUploadOptions, titleVisibility: .visible) {
+                Button("Pilih File (PDF/Image)") { isFileImporterPresented = true }
+                Button("Pilih dari Galeri") { isPhotoPickerPresented = true }
+                Button("Ambil Foto") { isCameraPresented = true }
+                Button("Batal", role: .cancel) {}
+            }
+            .alert("Error", isPresented: $showErrorAlert) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text(errorMessage)
+            }
+            .navigationDestination(isPresented: $navigateToConfirm) {
+                ConfirmMenuView(scannedCategories: scannedCategories)
+                    .environmentObject(session)
+            }
+    }
+    
+    // ✅ MARK: - Main Content
+    private var mainContent: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-                
-                // Header
-                Text("Input List Harga")
-                    .font(.title)
-                    .bold()
-                    .padding(.horizontal)
-                
-                Text("Menu / Katalog :")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-                    .padding(.horizontal)
-                
-                // Upload Area
-                if uploadedFiles.isEmpty {
-                    // Empty state - Upload prompt
-                    RoundedRectangle(cornerRadius: 12)
-                        .strokeBorder(style: StrokeStyle(lineWidth: 2, dash: [8]))
-                        .foregroundColor(.blue)
-                        .frame(height: 200)
-                        .overlay(
-                            VStack(spacing: 12) {
-                                Image(systemName: "arrow.up.doc.fill")
-                                    .font(.system(size: 50))
-                                    .foregroundColor(.blue)
-                                
-                                Text("Unggah katalog bisnis anda di sini untuk\nmenyimpan daftar produk dan harga.")
-                                    .font(.body)
-                                    .foregroundColor(.blue)
-                                    .multilineTextAlignment(.center)
-                                
-                                Text("format PDF, JPEG, dan PNG, sampai dengan 25 MB.")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                                    .multilineTextAlignment(.center)
-                            }
-                            .padding()
-                        )
-                        .padding(.horizontal)
-                        .onTapGesture {
-                            showUploadOptions = true
-                        }
-                } else {
-                    // Show uploaded files
-                    VStack(alignment: .leading, spacing: 12) {
-                        ForEach(uploadedFiles) { file in
-                            HStack(spacing: 12) {
-                                // PDF Icon
-                                ZStack {
-                                    RoundedRectangle(cornerRadius: 8)
-                                        .fill(Color.red.opacity(0.1))
-                                        .frame(width: 50, height: 50)
-                                    
-                                    Text("PDF")
-                                        .font(.caption)
-                                        .bold()
-                                        .foregroundColor(.red)
-                                }
-                                
-                                // File Info
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text(file.fileName)
-                                        .font(.body)
-                                        .lineLimit(1)
-                                    
-                                    Text(file.fileSize)
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
-                                    
-                                    // Progress bar (optional, can be dynamic)
-                                    ProgressView(value: 1.0)
-                                        .progressViewStyle(.linear)
-                                        .tint(.blue)
-                                }
-                                
-                                Spacer()
-                                
-                                // Delete button
-                                Button(action: {
-                                    uploadedFiles.removeAll { $0.id == file.id }
-                                }) {
-                                    Image(systemName: "xmark.circle.fill")
-                                        .foregroundColor(.gray)
-                                        .font(.title3)
-                                }
-                            }
-                            .padding()
-                            .background(Color(.systemGray6))
-                            .cornerRadius(12)
-                        }
-                        
-                        // Add more button
-                        Button(action: {
-                            showUploadOptions = true
-                        }) {
-                            HStack {
-                                Image(systemName: "plus.circle.fill")
-                                Text("Tambah File")
-                            }
-                            .font(.body)
-                            .foregroundColor(.blue)
-                        }
-                    }
-                    .padding(.horizontal)
-                }
-                
+                headerSection
+                uploadSection
                 Spacer().frame(height: 40)
-                
-                // Submit Button
-                Button(action: {
-                    submitFiles()
-                }) {
-                    if submitState == .loading {
-                        ProgressView()
-                            .frame(maxWidth: .infinity, minHeight: 55)
-                            .tint(.white)
-                    } else {
-                        Text("Pindai Katalog")
-                            .font(.headline)
-                            .frame(maxWidth: .infinity, minHeight: 55)
-                    }
-                }
-                .buttonStyle(.borderedProminent)
-                .disabled(uploadedFiles.isEmpty || submitState == .loading)
-                .padding(.horizontal)
-                
+                submitButton
             }
             .padding(.vertical)
         }
-        .navigationTitle("Rincian Menu / Katalog")
-        .navigationBarTitleDisplayMode(.inline)
-        
-        .task {
-            viewModel.configure(userId: session.userId)
+    }
+    
+    // ✅ MARK: - Header Section
+    private var headerSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Input List Harga")
+                .font(.title)
+                .bold()
+                .padding(.horizontal)
+            
+            Text("Menu / Katalog :")
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+                .padding(.horizontal)
         }
-
-        // File Importer
-        .fileImporter(
-            isPresented: $isFileImporterPresented,
-            allowedContentTypes: [.pdf, .image],
-            allowsMultipleSelection: true
-        ) { result in
-            handleFileImport(result)
+    }
+    
+    // ✅ MARK: - Upload Section
+    @ViewBuilder
+    private var uploadSection: some View {
+        if uploadedFiles.isEmpty {
+            emptyStateView
+        } else {
+            uploadedFilesView
         }
-        
-        // Photo Picker
-        .sheet(isPresented: $isPhotoPickerPresented) {
-            ImagePicker(sourceType: .photoLibrary) { url in
-                if let url = url {
-                    addFile(url: url)
+    }
+    
+    // ✅ MARK: - Empty State
+    private var emptyStateView: some View {
+        RoundedRectangle(cornerRadius: 12)
+            .strokeBorder(style: StrokeStyle(lineWidth: 2, dash: [8]))
+            .foregroundColor(.blue)
+            .frame(height: 200)
+            .overlay(
+                VStack(spacing: 12) {
+                    Image(systemName: "arrow.up.doc.fill")
+                        .font(.system(size: 50))
+                        .foregroundColor(.blue)
+                    
+                    Text("Unggah katalog bisnis anda di sini untuk\nmenyimpan daftar produk dan harga.")
+                        .font(.body)
+                        .foregroundColor(.blue)
+                        .multilineTextAlignment(.center)
+                    
+                    Text("format PDF, JPEG, dan PNG, sampai dengan 25 MB.")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
                 }
+                .padding()
+            )
+            .padding(.horizontal)
+            .onTapGesture {
+                showUploadOptions = true
+            }
+    }
+    
+    // ✅ MARK: - Uploaded Files View
+    private var uploadedFilesView: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            ForEach(uploadedFiles) { file in
+                fileRow(file: file)
+            }
+            
+            // Uncomment if you want to allow adding more files
+            // addMoreButton
+        }
+        .padding(.horizontal)
+    }
+    
+    // ✅ MARK: - File Row
+    private func fileRow(file: UploadedFileItem) -> some View {
+        HStack(spacing: 12) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(Color.red.opacity(0.1))
+                    .frame(width: 50, height: 50)
+                
+                Text("PDF")
+                    .font(.caption)
+                    .bold()
+                    .foregroundColor(.red)
+            }
+            
+            VStack(alignment: .leading, spacing: 4) {
+                Text(file.fileName)
+                    .font(.body)
+                    .lineLimit(1)
+                
+                Text(file.fileSize)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                
+                ProgressView(value: 1.0)
+                    .progressViewStyle(.linear)
+                    .tint(.blue)
+            }
+            
+            Spacer()
+            
+            Button(action: {
+                uploadedFiles.removeAll { $0.id == file.id }
+            }) {
+                Image(systemName: "xmark.circle.fill")
+                    .foregroundColor(.gray)
+                    .font(.title3)
             }
         }
-        
-        // Camera
-        .sheet(isPresented: $isCameraPresented) {
-            ImagePicker(sourceType: .camera) { url in
-                if let url = url {
-                    addFile(url: url)
-                }
+        .padding()
+        .background(Color(.systemGray6))
+        .cornerRadius(12)
+    }
+    
+    // ✅ MARK: - Submit Button
+    private var submitButton: some View {
+        Button(action: {
+            submitFiles()
+        }) {
+            if submitState == .loading {
+                ProgressView()
+                    .frame(maxWidth: .infinity, minHeight: 55)
+                    .tint(.white)
+            } else {
+                Text("Pindai Katalog")
+                    .font(.headline)
+                    .frame(maxWidth: .infinity, minHeight: 55)
             }
         }
-        
-        // Upload Options
-        .confirmationDialog("Pilih Sumber File", isPresented: $showUploadOptions, titleVisibility: .visible) {
-            Button("Pilih File (PDF/Image)") { isFileImporterPresented = true }
-            Button("Pilih dari Galeri") { isPhotoPickerPresented = true }
-            Button("Ambil Foto") { isCameraPresented = true }
-            Button("Batal", role: .cancel) {}
-        }
-        
-        .alert("Error", isPresented: $showErrorAlert) {
-            Button("OK", role: .cancel) { }
-        } message: {
-            Text(errorMessage)
-        }
-        
-        .navigationDestination(isPresented: $navigateToConfirm) {
-            ConfirmMenuView(scannedCategories: scannedCategories)
+        .buttonStyle(.borderedProminent)
+        .disabled(uploadedFiles.isEmpty || submitState == .loading)
+        .padding(.horizontal)
+    }
+    
+    // ✅ MARK: - Add More Button (optional)
+    private var addMoreButton: some View {
+        Button(action: {
+            showUploadOptions = true
+        }) {
+            HStack {
+                Image(systemName: "plus.circle.fill")
+                Text("Tambah File")
+            }
+            .font(.body)
+            .foregroundColor(.blue)
         }
     }
     
@@ -270,10 +288,8 @@ struct InputMenuView: View {
         Task {
             var convertedUrls: [URL] = []
             
-            // Convert PDFs to images
             for file in uploadedFiles {
                 if file.isPDF {
-                    // Convert PDF pages to images
                     let images = viewModel.pdfToImages(pdfUrl: file.url)
                     for (index, image) in images.enumerated() {
                         let tempUrl = FileManager.default.temporaryDirectory
@@ -288,7 +304,6 @@ struct InputMenuView: View {
                 }
             }
             
-            // Upload all files
             var uploadedPublicUrls: [String] = []
             
             for url in convertedUrls {
@@ -297,7 +312,6 @@ struct InputMenuView: View {
                     case .success(let publicUrl):
                         uploadedPublicUrls.append(publicUrl)
                         
-                        // If all files uploaded, proceed to scan
                         if uploadedPublicUrls.count == convertedUrls.count {
                             scanAllFiles(urls: uploadedPublicUrls)
                         }
@@ -317,7 +331,7 @@ struct InputMenuView: View {
             if let scanResult = scanResult {
                 if let jsonData = scanResult.data(using: .utf8),
                    let response = try? JSONDecoder().decode(MenuScanResponse.self, from: jsonData) {
-                    scannedCategories = response.categories 
+                    scannedCategories = response.categories
                     navigateToConfirm = true
                     submitState = .success
                 } else {
@@ -387,6 +401,8 @@ struct ImagePicker: UIViewControllerRepresentable {
     session.isSignedIn = true
     session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
     
-    return InputMenuView()
-        .environmentObject(session)
+    return NavigationStack {
+        InputMenuView()
+            .environmentObject(session)
+    }
 }
