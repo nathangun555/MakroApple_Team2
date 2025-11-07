@@ -40,12 +40,18 @@ struct InvoicePreviewView: View {
                     }
                 } else {
                     VStack(spacing: 0) {
-                        ScrollView {
                             InvoiceContentView(viewModel: viewModel)
-                                .padding(20)
-                                .background(Color.white)
-                        }
-                        .background(Color(.systemGray6))
+                            .padding(20)
+                                   .background(
+                                       RoundedRectangle(cornerRadius: 0)
+                                           .fill(Color.white)
+                                           .shadow(color: Color.black.opacity(0.25), radius: 6, x: 0, y: 3)
+//                                           .overlay(
+//                                               RoundedRectangle(cornerRadius: 8)
+//                                                   .stroke(Color.gray.opacity(0.4), lineWidth: 1)
+//                                           )
+                                   )
+                                   .padding()
                         
                         if !viewModel.isPreviewMode {
                             VStack(spacing: 0) {
@@ -193,6 +199,6 @@ struct InvoicePreviewView: View {
     session.isSignedIn = true
     session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
     
-    return InvoicePreviewView(orderId: nil)
+    return InvoicePreviewView(orderId: "82536742-DDC4-481C-B63A-87400194D0AA")
         .environmentObject(session)
 }

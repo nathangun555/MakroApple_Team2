@@ -23,6 +23,7 @@ struct NewOrderView: View {
     @State private var errorMessage: String? = nil
     
     @Binding var sharedText: String
+    @Binding var sharedImages: [UIImage]
     
     let edgeFunctionURL = URL(string: "https://iznjcwyoziqjgfjahemb.supabase.co/functions/v1/form-template")!
     
@@ -34,6 +35,8 @@ struct NewOrderView: View {
                 ScrollView{
                     VStack(alignment: .leading){
                         HStack{
+                            
+                            
                             Text("Formulir Pesanan")
                                 .font(.title3)
                                 .fontWeight(.bold)
@@ -75,11 +78,6 @@ struct NewOrderView: View {
                         )
                         
                         
-                        
-                        Text("Masukkan Foto Referensi")
-                            .font(.title3)
-                            .fontWeight(.bold)
-                            .padding(.top)
                         
                         
                         PhotoSection(
@@ -127,11 +125,22 @@ struct NewOrderView: View {
                 .disabled(viewModel.isLoading || formPesanan.isEmpty)
             }
             .onAppear {
+                // Load shared text if exists
                 if !sharedText.isEmpty && formPesanan.isEmpty {
                     formPesanan = sharedText
                     print("📥 Initial shared text loaded into formPesanan: \(sharedText)")
                 }
+
+                // Load shared images into the photo picker
+                if !sharedImages.isEmpty {
+                    for (index, image) in sharedImages.prefix(3).enumerated() {
+                        selectedImages[index] = image
+                    }
+                    sharedImages.removeAll() // optional cleanup
+                    print("📸 Auto-filled shared images into photo slots")
+                }
             }
+
             .onChange(of: sharedText) { newValue in
                 print("SHARED TEXT INSIDE THE NEW ORDER \(newValue)")
                 formPesanan = newValue
@@ -175,11 +184,11 @@ struct NewOrderView: View {
     }
 }
 
-#Preview {
-    let session = SessionManager()
-    session.isSignedIn = true
-    session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
-    
-    return NewOrderView(sharedText: .constant(""))
-        .environmentObject(session)
-}
+//#Preview {
+//    let session = SessionManager()
+//    session.isSignedIn = true
+//    session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
+//    
+//    return NewOrderView(sharedText: .constant(""), sharedImages: .constant([]))
+//        .environmentObject(session)
+//}

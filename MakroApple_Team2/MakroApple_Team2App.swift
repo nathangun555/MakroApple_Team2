@@ -11,32 +11,56 @@ import SwiftUI
 struct MakroApple_Team2App: App {
     @StateObject var session = SessionManager()
     @State private var selectedTab: Int = 1
+    
+    
     @State private var sharedText: String = ""
-    @State private var hasNewSharedText = false
+    @State private var sharedImages: [UIImage] = []
+    @State private var hasNewObject = false
     
     var body: some Scene {
         WindowGroup {
-            MainTabView(selectedTab: $selectedTab, sharedText: $sharedText, hasNewSharedText: $hasNewSharedText)
+            MainTabView(selectedTab: $selectedTab, sharedText: $sharedText,hasNewObject: $hasNewObject, sharedImages : $sharedImages)
                 .environmentObject(session)
                 .onAppear {
-                    // ✅ Load any shared text from App Group
-                    if let defaults = UserDefaults(suiteName: "group.com.please.shared"),
-                       let text = defaults.string(forKey: "sharedText") {
-                        sharedText = text
-                        hasNewSharedText = true
-                        defaults.removeObject(forKey: "sharedText")
-                        print("REMOVED OBJECT \(text)")
+                    
+                    if let defaults = UserDefaults(suiteName: "group.com.please.shared") {
+                        
+                        // Load text from another app
+                        if let text = defaults.string(forKey: "sharedText") {
+                            sharedText = text
+                            hasNewObject = true
+                            defaults.removeObject(forKey: "sharedText")
+                            print("REMOVED OBJECT \(text)")
+                        }
+                        
+                        // Load image from another app
+                        if let image = defaults.array(forKey: "sharedImagesData") as? [Data] {
+                            sharedImages = image.compactMap { UIImage(data: $0) }
+                            hasNewObject = true
+                            defaults.removeObject(forKey: "sharedImagesData")
+                            print("LOADED \(sharedImages.count) shared images")
+                            
+                            
+                        }
+                        defaults.synchronize()
                     }
                 }
                 .onOpenURL { url in
                     if url.host == "fromwhatsapp" {
-                        print("OPENED FROM WA")
-                        if let defaults = UserDefaults(suiteName: "group.com.please.shared"),
-                           let text = defaults.string(forKey: "sharedText") {
-                            print("FOUND TEXT \(text)")
-                            sharedText = text
-                            hasNewSharedText = true
-                            print("SHARED TEXT = \(sharedText)")
+                        if let defaults = UserDefaults(suiteName: "group.com.please.shared") {
+                            
+                            if let text = defaults.string(forKey: "sharedText") {
+                                sharedText = text
+                                hasNewObject = true
+                                print("SHARED TEXT : \(text)")
+                            }
+                            
+                            if let image = defaults.array(forKey: "sharedImagesData") as? [Data] {
+                                sharedImages = image.compactMap { UIImage(data: $0) }
+                                hasNewObject = true
+                                print("LOADED \(sharedImages.count) shared images")
+                            }
+                            defaults.synchronize()
                         }
                     }
                 }
