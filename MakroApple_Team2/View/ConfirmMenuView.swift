@@ -13,34 +13,35 @@ struct ConfirmMenuView: View {
     @StateObject private var vm = Set_MenuDetailsViewModel()
     @Environment(\.dismiss) private var dismiss
     @State private var showUnsavedChangesAlert = false
+    @State private var navigateToTemplateForm = false
     
     let scannedCategories: [MenuCategory] // ✅ Add this parameter
     
     var body: some View {
         ZStack {
-            NavigationStack {
-                contentView
-                    .navigationTitle("Rincian Isi Katalog")
-                    .navigationBarBackButtonHidden(true)
-                    .toolbar {
-                        ToolbarItem(placement: .navigationBarTrailing) {
-                            Button {
-                                Task {
-                                    await vm.saveAll { dismiss() }
-                                }
-                            } label: {
-                                if vm.isLoading {
-                                    ProgressView()
-                                } else {
-                                    Image(systemName: "checkmark.circle.fill")
-                                        .font(.title2)
-                                        .foregroundColor(vm.hasPendingChanges ? .blue : .gray)
+            contentView
+                .navigationTitle("Rincian Isi Katalog")
+                .navigationBarBackButtonHidden(true)
+                .toolbar {
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Button {
+                            Task {
+                                await vm.saveAll {
+                                    navigateToTemplateForm = true
                                 }
                             }
-                            .disabled(!vm.hasPendingChanges || vm.isLoading)
+                        } label: {
+                            if vm.isLoading {
+                                ProgressView()
+                            } else {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .font(.title2)
+                                    .foregroundColor(vm.hasPendingChanges ? .blue : .gray)
+                            }
                         }
+                        .disabled(!vm.hasPendingChanges || vm.isLoading)
                     }
-            }
+                }
             .disabled(showUnsavedChangesAlert)
             
             if showUnsavedChangesAlert {
@@ -72,6 +73,9 @@ struct ConfirmMenuView: View {
             } else {
                 await vm.load()
             }
+        }
+        .navigationDestination(isPresented: $navigateToTemplateForm) {
+                NewTemplateFormView()
         }
     }
     
