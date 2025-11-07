@@ -19,8 +19,9 @@ struct AllOrdersView: View {
     
     @State var activeTab: TabModel = .belumBayar
     
+    @Binding var sharedImages: [UIImage]
     @Binding var sharedText: String
-    @Binding var hasNewSharedText: Bool
+    @Binding var hasNewObject: Bool
     @State var showNewOrderView = false
     
     @AppStorage("showBelumBayarGuide") private var showBelumBayarGuide: Bool = true
@@ -60,14 +61,13 @@ struct AllOrdersView: View {
             NavigationStack{
                 VStack{
                     HStack{
-                        
                         Text("Pesanan")
                             .font(.largeTitle)
                             .fontWeight(.bold)
                         
                         Spacer()
                         
-                        NavigationLink(destination: NewOrderView(sharedText: $sharedText)) {
+                        NavigationLink(destination: NewOrderView(sharedText: $sharedText, sharedImages: $sharedImages)) {
                             Image(systemName: "plus.circle.fill")
                                 .font(.system(size: 44))
                                 .foregroundColor(.primaryButton)
@@ -140,22 +140,22 @@ struct AllOrdersView: View {
                 }
                 .onAppear {
                                 // ✅ If the shared text already exists when view appears
-                                if hasNewSharedText {
+                                if hasNewObject {
                                     print("📩 Detected shared text on appear:", sharedText)
                                     showNewOrderView = true
-                                    hasNewSharedText = false
+                                    hasNewObject = false
                                 }
                             }
-                            .onChange(of: hasNewSharedText) { newValue in
+                            .onChange(of: hasNewObject) { newValue in
                                 // ✅ If shared text changes while already in app
                                 if newValue {
                                     print("📩 Detected new shared text via onChange:", sharedText)
                                     showNewOrderView = true
-                                    hasNewSharedText = false
+                                    hasNewObject = false
                                 }
                             }
                             .navigationDestination(isPresented: $showNewOrderView) {
-                                NewOrderView(sharedText: $sharedText)
+                                NewOrderView(sharedText: $sharedText, sharedImages: $sharedImages)
                             }
             }
             .searchable(text: $searchText, prompt: "Cari Nama Pelanggan")

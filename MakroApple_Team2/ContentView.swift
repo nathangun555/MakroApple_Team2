@@ -51,12 +51,13 @@ import Supabase
 struct MainTabView: View {
     @Binding var selectedTab: Int
     @Binding var sharedText: String
-    @Binding var hasNewSharedText: Bool
+    @Binding var hasNewObject: Bool
+    @Binding var sharedImages: [UIImage]
 
     var body: some View {
         TabView(selection: $selectedTab) {
             Tab("Pesanan", systemImage: "basket.fill", value: 0) {
-                AllOrdersView(sharedText: $sharedText, hasNewSharedText: $hasNewSharedText)
+                AllOrdersView(sharedImages :$sharedImages, sharedText: $sharedText, hasNewObject: $hasNewObject)
             }
             Tab("Jadwal", systemImage: "tray.full", value: 1) {
                 ActiveOrdersView()
@@ -69,7 +70,7 @@ struct MainTabView: View {
             }
             if selectedTab == 0 || selectedTab == 4 {
                 Tab("Cari Nama atau Pesanan", systemImage: "magnifyingglass", value: 4, role: .search) {
-                    AllOrdersView(sharedText: $sharedText,  hasNewSharedText: $hasNewSharedText)
+                    AllOrdersView(sharedImages :$sharedImages, sharedText: $sharedText, hasNewObject: $hasNewObject)
                 }
             }
         }
