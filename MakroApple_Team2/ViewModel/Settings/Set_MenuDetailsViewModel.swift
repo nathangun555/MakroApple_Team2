@@ -27,6 +27,7 @@ final class Set_MenuDetailsViewModel: ObservableObject {
     @Published var errorMessage: String?
     @Published var hasPendingChanges = false
     @Published var validationErrors: Set<String> = [] // ✅ untuk tracking field error
+    @Published var isLoadedFromScan: Bool = false
 
     private(set) var userId: String?
     private var deletedProducts: [EditableProduct] = []
@@ -358,4 +359,50 @@ final class Set_MenuDetailsViewModel: ObservableObject {
             )
         }
     }
+    
+    // MARK: - Load from Scanned Data
+    func loadFromScan(categories: [MenuCategory]) async {
+        guard let userId, let uuid = UUID(uuidString: userId) else {
+            errorMessage = "User belum login atau UID tidak valid."
+            return
+        }
+
+        isLoading = true
+        errorMessage = nil
+        defer { isLoading = false }
+
+        self.sections = categories.map { category in
+            let items = category.products.map { product in
+                var editableProduct = EditableProduct(record: ProductRecord(
+                    id: UUID(),
+                    userId: uuid,
+                    name: product.name,
+                    price: Decimal(product.price),
+                    notes: product.notes,
+                    isActive: true,
+                    createdAt: nil,
+                    updatedAt: nil,
+                    productType: product.productType
+                ))
+                editableProduct.isNew = true
+                return editableProduct
+            }
+            
+            return SectionModel(
+                title: category.categoryName,
+                items: items,
+                isEditing: false,
+                originalTitle: category.categoryName
+            )
+        }
+        
+        isLoadedFromScan = true
+        hasPendingChanges = true
+        validationErrors.removeAll()
+        deletedProducts.removeAll()
+        deletedCategories.removeAll()
+        
+        print("✅ Loaded \(sections.count) categories with \(sections.flatMap { $0.items }.count) products from scan")
+    }
+
 }
