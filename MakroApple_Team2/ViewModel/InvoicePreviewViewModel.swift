@@ -56,6 +56,29 @@ class InvoicePreviewViewModel {
         self.orderId = orderId
     }
     
+    
+    func tempPDFURL() -> URL? {
+        let invoiceView = InvoiceContentView(viewModel: self)
+            .padding(20)
+            .background(Color.white)
+            .frame(width: 595, height: 841)
+        
+        guard let pdfData = exportAsPDF(view: invoiceView) else { return nil }
+        
+        let invoiceCode = invoiceNumber.isEmpty ? "Invoice" : invoiceNumber
+        let tempURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent("\(invoiceCode.replacingOccurrences(of: "/", with: "_")).pdf")
+        
+        do {
+            try pdfData.write(to: tempURL)
+            return tempURL
+        } catch {
+            print("❌ Error saving PDF: \(error)")
+            return nil
+        }
+    }
+
+    
     // MARK: - Load Data (Real or Mock)
     func loadInvoiceData() async {
         isLoading = true

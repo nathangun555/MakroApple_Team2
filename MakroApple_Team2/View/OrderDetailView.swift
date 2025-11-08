@@ -18,6 +18,7 @@ struct OrderDetailView: View {
     @State private var activeAlert: CustomAlertType?
     
     @State private var viewModel = AllOrdersViewModel()
+    @State private var invoiceViewModel = InvoicePreviewViewModel()
     @EnvironmentObject var session: SessionManager
     @State var order: OrderRecord
     let orderItem: [OrderItemRecord]
@@ -345,6 +346,7 @@ struct OrderDetailView: View {
                                         // Show PDF preview
                                         activeAlert = nil
                                         showPDFPreview(url: pdfURL)
+                                        print("kendrik ammar ")
                                     } label: {
                                         ZStack {
                                             RoundedRectangle(cornerRadius: 10)
@@ -387,13 +389,32 @@ struct OrderDetailView: View {
                                 Spacer()
                                 
                                 
-                                Label("Bagikan Invoice", systemImage: "square.and.arrow.up")
-                                    .padding(10)
-                                    .frame(maxWidth: .infinity)
-                                    .background(.primaryButton)
-                                    .foregroundColor(Color.white)
-                                    .cornerRadius(30)
-                                    .padding()
+                                Button(action: {
+                                    guard let urlString = order.invoiceUrl,
+                                          let remoteURL = URL(string: urlString) else { return }
+
+                                    Task {
+                                        do {
+                                            let (data, _) = try await URLSession.shared.data(from: remoteURL)
+                                            let tempURL = FileManager.default.temporaryDirectory
+                                                .appendingPathComponent("invoice.pdf")
+                                            try data.write(to: tempURL)
+                                            
+                                            invoiceViewModel.shareInvoice(items: [tempURL]) { success in
+                                                print(success ? "✅ PDF shared" : "❌ Failed to share")
+                                            }
+                                        } catch {
+                                            print("❌ Failed to download PDF:", error)
+                                        }
+                                    }
+                                }) {
+                                    HStack {
+                                        Image(systemName: "square.and.arrow.up")
+                                        Text("Bagikan Invoice").bold()
+                                    }
+                                }
+
+
                                 
                                 
                                 Spacer()
@@ -608,10 +629,10 @@ struct OrderDetailView: View {
 //    let session = SessionManager()
 //    session.isSignedIn = true
 //    session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
-//    
+//
 //    // Create the view
 //    let view = AllOrdersView()
-//    
+//
 //    // Inject the environment object
 //    return view.environmentObject(session)
 //}
