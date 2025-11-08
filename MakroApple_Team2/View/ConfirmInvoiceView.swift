@@ -11,7 +11,8 @@ import PhotosUI
 
 struct ConfirmInvoiceView: View {
     @State private var viewModel = ConfirmInvoiceViewModel()
-    @State private var hasDownPayment = true
+    @State private var hasDownPayment = false
+    @State private var selectedDueDate: Date?
     
     let orderId: String
     @EnvironmentObject var session: SessionManager
@@ -21,13 +22,32 @@ struct ConfirmInvoiceView: View {
     }
     
     var body: some View {
-        
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 GroupBox(label: Text("Rincian Invoice").font(.headline)) {
                     InvoiceRow(title: "No. Invoice", value: $viewModel.invoiceNumber)
                     InvoiceRow(title: "Tanggal", value: $viewModel.invoiceDate)
-                    InvoiceRow(title: "Tanggal Jatuh Tempo", value: $viewModel.invoiceDueDate)
+                    
+                    // Date Picker for Due Date
+                    HStack {
+                        Text("Tanggal Jatuh Tempo :")
+                        Spacer()
+                        DatePicker(
+                            "",
+                            selection: Binding(
+                                get: { selectedDueDate ?? Date() },
+                                set: { newDate in
+                                    selectedDueDate = newDate
+                                    let formatter = DateFormatter()
+                                    formatter.dateFormat = "dd/MM/yyyy"
+                                    viewModel.invoiceDueDate = formatter.string(from: newDate)
+                                }
+                            ),
+                            displayedComponents: .date
+                        )
+                        .labelsHidden()
+                        .frame(width: 140)
+                    }
                 }
 
                 GroupBox(label: Text("Informasi Pembayaran").font(.headline)) {
@@ -43,60 +63,54 @@ struct ConfirmInvoiceView: View {
 
                 GroupBox(label: Text("Rincian Pesanan").font(.headline)) {
                     ForEach($viewModel.products) { $item in
-                        VStack(alignment: .leading, spacing: 6) {
-                            InvoiceRow(title: "Nama Produk", value: $item.productName)
-                            InvoiceRow(title: "Jumlah Produk", value: Binding(
-                                get: { String($item.quantity.wrappedValue) },
-                                set: { newValue in
-                                    $item.quantity.wrappedValue = Int(newValue) ?? 0
+                        DisclosureGroup(
+                            isExpanded: Binding(
+                                get: { true },
+                                set: { _ in }
+                            )
+                        ) {
+                            VStack(spacing: 8) {
+                                InvoiceRow(title: "Jumlah Produk", value: Binding(
+                                    get: { String($item.quantity.wrappedValue) },
+                                    set: { newValue in
+                                        $item.quantity.wrappedValue = Int(newValue) ?? 0
+                                    }
+                                ))
+                                InvoiceRow(title: "Harga (Rp)", value: Binding(
+                                    get: { "\($item.productPrice.wrappedValue)" },
+                                    set: { newValue in
+                                        $item.productPrice.wrappedValue = Decimal(string: newValue.filter("0123456789.".contains)) ?? 0
+                                    }
+                                ))
+                                InvoiceRow(title: "Diskon (Rp)", value: Binding(
+                                    get: { "\($item.discount.wrappedValue)" },
+                                    set: { newValue in
+                                        $item.discount.wrappedValue = Decimal(string: newValue.filter("0123456789.".contains)) ?? 0
+                                    }
+                                ))
+                                HStack {
+                                    Text("Jumlah (Rp) :")
+                                    Spacer()
+                                    Text("Rp \($item.wrappedValue.subtotalAfterDiscount.formatted())")
+                                        .font(.body)
+                                        .foregroundColor(.gray)
                                 }
-                            ))
-                            InvoiceRow(title: "Harga (Rp)", value: Binding(
-                                get: { "\($item.productPrice.wrappedValue)" },
-                                set: { newValue in
-                                    $item.productPrice.wrappedValue = Decimal(string: newValue.filter("0123456789.".contains)) ?? 0
-                                }
-                            ))
-                            InvoiceRow(title: "Diskon (Rp)", value: .constant("0"))
-                            HStack {
-                                Text("Subtotal (Rp) :")
-                                Spacer()
-                                Text($item.wrappedValue.subtotal.formatted())
-                                    .font(.body)
-                                    .multilineTextAlignment(.trailing)
                             }
+                            .padding(.vertical, 8)
+                        } label: {
+                            Text($item.productName.wrappedValue)
+                                .font(.body)
                         }
-                        .padding(.vertical, 4)
-                        .background(Color(.systemGray5))
+                        .padding()
+                        .background(Color(.systemGray6))
                         .cornerRadius(8)
                     }
-
-                    // ADD ONS
-//                            GroupBox(label: Text("Adds On").font(.headline)) {
-//                                if viewModel.addOn.isEmpty {
-//                                    Text("Tidak ada add-on.")
-//                                        .foregroundColor(.secondary)
-//                                        .italic()
-//                                        .padding(.vertical, 8)
-//                                } else {
-//                                    ForEach($viewModel.addOn) { $addOn in
-//                                        VStack(alignment: .leading, spacing: 6) {
-//                                            InvoiceRow(title: "Nama Add On", value: $addOn.name)
-//                                            InvoiceRow(title: "Jumlah Add On", value: .constant("\($addOn.quantity.wrappedValue)"))
-//                                        }
-//                                        .padding(.vertical, 4)
-//                                        .background(Color(.systemGray5))
-//                                        .cornerRadius(8)
-//                                    }
-//                                }
-//                            }
                 }
 
-                
                 GroupBox(label: Text("Rincian Biaya").font(.headline)) {
-                    InvoiceRow(title: "Subtotal (Rp)", value: .constant(viewModel.totalProductSubtotal.formatted()))
-                    InvoiceRow(title: "Biaya Kirim (Rp)", value: $viewModel.shippingCostText)
-                    InvoiceRow(title: "Total (Rp)", value: .constant(viewModel.total.formatted()))
+                    InvoiceRow(title: "Subtotal", value: .constant("Rp \(viewModel.totalProductSubtotal.formatted())"))
+                    InvoiceRow(title: "Biaya Kirim", value: $viewModel.shippingCostText)
+                    InvoiceRow(title: "Total", value: .constant("Rp \(viewModel.totalAfterDiscount.formatted())"))
 
                     HStack {
                         Text("Down Payment :")
@@ -187,14 +201,11 @@ struct InvoiceRow: View {
         HStack {
             Text("\(title) :")
             Spacer()
-            HStack(spacing: 12) {
-                TextField("", text: $value)
-                    .frame(width: 140, alignment: .trailing)
-                    .font(.body)
-                    .multilineTextAlignment(.trailing)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                
-            }
+            TextField("", text: $value)
+                .frame(width: 140, alignment: .trailing)
+                .font(.body)
+                .multilineTextAlignment(.trailing)
+                .textFieldStyle(RoundedBorderTextFieldStyle())
         }
     }
 }
@@ -221,7 +232,8 @@ struct InvoiceMultiRow: View {
     session.isSignedIn = true
     session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
     
-    return ConfirmInvoiceView(orderId: "82536742-DDC4-481C-B63A-87400194D0AA")
-        .environmentObject(session)
+    return NavigationStack {
+        ConfirmInvoiceView(orderId: "82536742-DDC4-481C-B63A-87400194D0AA")
+            .environmentObject(session)
+    }
 }
-
