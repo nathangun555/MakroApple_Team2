@@ -146,7 +146,7 @@ final class Set_MenuDetailsViewModel: ObservableObject {
         let newRecord = ProductRecord(
             id: UUID(),
             userId: userUUID,
-            name: "Silakan Isi Nama Produk",
+            name: "",
             price: 0,
             notes: nil,
             isActive: true,
@@ -172,7 +172,7 @@ final class Set_MenuDetailsViewModel: ObservableObject {
                         return EditableProduct(record: ProductRecord(
                             id: UUID(),
                             userId: UUID(),
-                            name: "Silakan Isi Nama Produk",
+                            name: "",
                             price: 0,
                             notes: nil,
                             isActive: true,
@@ -184,7 +184,7 @@ final class Set_MenuDetailsViewModel: ObservableObject {
                     var newProduct = EditableProduct(record: ProductRecord(
                         id: UUID(),
                         userId: userUUID,
-                        name: "Silakan Isi Nama Produk",
+                        name: "",
                         price: 0,
                         notes: nil,
                         isActive: true,
@@ -405,4 +405,203 @@ final class Set_MenuDetailsViewModel: ObservableObject {
         print("✅ Loaded \(sections.count) categories with \(sections.flatMap { $0.items }.count) products from scan")
     }
 
+}
+
+
+// MARK: - EditableProductRow
+struct EditableProductRow: View {
+    @ObservedObject var viewModel: EditableProduct
+    var isEditing: Bool
+    var sectionIndex: Int
+    var productIndex: Int
+    var validationErrors: Set<String>
+
+    private let sentinelPlaceholders: Set<String> = [
+        "Silakan Isi Nama Produk",
+        "ZZZ"
+    ]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            // MARK: Nama Produk
+            VStack(alignment: .leading, spacing: 4) {
+                let font = Font.system(size: 16)
+                let lineHeight: CGFloat = 20
+                let vPad: CGFloat = 4
+                let oneRow: CGFloat = lineHeight + vPad * 2      // ≈ 26
+                let twoRows: CGFloat = lineHeight * 2 + vPad * 2 // ≈ 40
+
+                HStack(alignment: .top, spacing: 8) {
+                    Text("Nama Produk :")
+                        .font(.subheadline)
+                        .frame(width: 110, alignment: .leading)
+                        .padding(.top, 2)
+
+                    ZStack(alignment: .topLeading) {
+                        // Placeholder murni (bukan nilai model)
+                        if viewModel.name.isEmpty {
+                            Text("Silakan Isi Nama Produk")
+                                .font(font)
+                                .foregroundColor(.gray)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, vPad)
+                                .allowsHitTesting(false) // tap langsung fokus ke editor
+                        }
+
+                        TextEditor(text: Binding(
+                            get: { viewModel.name },   // TIDAK menulis placeholder
+                            set: { newValue in
+                                // Opsi: kompres spasi berlebih
+                                let collapsed = newValue.replacingOccurrences(
+                                    of: "\\s{3,}",
+                                    with: "  ",
+                                    options: .regularExpression
+                                )
+                                // Batasi panjang agar tidak jadi 3 baris
+                                let maxChars = 70
+                                var clipped = String(collapsed.prefix(maxChars))
+                                // Rapikan newline ganda
+                                if clipped.contains("\n\n") {
+                                    clipped = clipped.replacingOccurrences(
+                                        of: "\n\n+",
+                                        with: "\n",
+                                        options: .regularExpression
+                                    )
+                                }
+                                viewModel.name = clipped
+                            }
+                        ))
+                        .font(font)
+                        .disabled(!isEditing)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, vPad)
+                        .autocorrectionDisabled(true)
+                        .textInputAutocapitalization(.words)
+                        .scrollContentBackground(.hidden)
+                        .background(Color.clear)
+                        .frame(minHeight: oneRow, maxHeight: twoRows, alignment: .top)
+                        .onAppear {
+                            // Samakan perilaku initial load seperti yang sudah sukses di field lain
+                            UITextView.appearance().textContainerInset = .zero
+                            UITextView.appearance().textContainer.lineFragmentPadding = 0
+                            DispatchQueue.main.async { viewModel.objectWillChange.send() }
+                        }
+                    }
+                    .background(Color.white)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(Color.black, lineWidth: 1)
+                            .allowsHitTesting(false)
+                    )
+                    .cornerRadius(8)
+                    .opacity(isEditing ? 1 : 0.7)
+                }
+
+                if validationErrors.contains("\(sectionIndex)-\(productIndex)-name") {
+                    HStack(spacing: 0) {
+                        Color.clear.frame(width: 110)
+                        Text("Nama produk tidak boleh kosong")
+                            .font(.caption)
+                            .foregroundColor(.red)
+                            .padding(.leading, 8)
+                        Spacer()
+                    }
+                }
+            }
+
+
+
+
+
+
+
+            // MARK: Harga Produk
+            VStack(alignment: .leading, spacing: 4) {
+                HStack(alignment: .center) {
+                    Text("Harga Produk :")
+                        .font(.subheadline)
+                        .frame(width: 110, alignment: .leading)
+
+                    HStack(spacing: 4) {
+                        Text("Rp")
+                            .foregroundColor(.black)
+
+                        TextField(
+                            "0",
+                            text: Binding(
+                                get: {
+                                    let intValue = NSDecimalNumber(decimal: viewModel.price).intValue
+                                    return intValue == 0 ? "" : "\(intValue)"
+                                },
+                                set: { newValue in
+                                    // Hanya ambil digit
+                                    let onlyDigits = newValue.filter { $0.isNumber }
+
+                                    // Limit total digit
+                                    let maxDigits = 12 // ubah ke 13 jika mau
+                                    let limited = String(onlyDigits.prefix(maxDigits))
+
+                                    // Jika user mencoba menambah di atas limit, jangan ubah ke string lebih panjang
+                                    // Mekanisme: tetap gunakan 'limited' untuk diparse, dan biarkan TextField
+                                    // menampilkan nilai ter-limit karena get() akan memantulkan kembali value model.
+
+                                    if limited.isEmpty {
+                                        viewModel.price = 0
+                                    } else if let decimal = Decimal(string: limited) {
+                                        viewModel.price = decimal
+                                    }
+                                    // Tidak perlu else-fallback ke 0; jika parsing gagal, biarkan value lama (stabil)
+                                }
+                            )
+                        )
+                        .keyboardType(.numberPad)
+                        .disabled(!isEditing)
+                        .font(.system(size: 16))
+                        .monospacedDigit()
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                    .padding(.vertical, 6)
+                    .padding(.horizontal, 8)
+                    .background(Color.white)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(Color.black, lineWidth: 1)
+                            .allowsHitTesting(false)
+                    )
+                    .cornerRadius(8)
+                    .frame(maxWidth: .infinity)
+                    .opacity(isEditing ? 1 : 0.7)
+                }
+                
+                // ✅ Error untuk harga produk
+                if validationErrors.contains("\(sectionIndex)-\(productIndex)-price") {
+                    HStack(spacing: 0) {
+                                           Color.clear
+                                               .frame(width: 110)
+                                           Text("Harga harus lebih dari 0")
+                                               .font(.caption)
+                                               .foregroundColor(.red)
+                                               .padding(.leading, 8)
+                                           Spacer()
+                                       }
+                    
+                }
+            }
+        }
+        .padding(12)
+        .background(Color(.systemGray6))
+        .cornerRadius(14)
+        .shadow(color: Color.black.opacity(0.05), radius: 3, x: 0, y: 1)
+        .frame(maxWidth: .infinity)
+    }
+}
+
+extension NumberFormatter {
+    static func currencyFormatter() -> NumberFormatter {
+        let f = NumberFormatter()
+        f.numberStyle = .currency
+        f.currencyCode = "IDR"
+        f.maximumFractionDigits = 0
+        return f
+    }
 }
