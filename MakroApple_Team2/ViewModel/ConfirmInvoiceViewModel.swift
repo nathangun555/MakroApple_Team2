@@ -55,9 +55,19 @@ class ConfirmInvoiceViewModel {
         products.reduce(0) { $0 + $1.subtotal }
     }
 
+    var shippingCost: Decimal {
+        Decimal(string: shippingCostText) ?? 0
+    }
+
     var total: Decimal {
         totalProductSubtotal + (Decimal(string: shippingCostText) ?? 0)
     }
+    
+    var totalAfterDiscount: Decimal {
+        let subtotalAfterDiscount = products.reduce(Decimal(0)) { $0 + $1.subtotalAfterDiscount }
+        return subtotalAfterDiscount + shippingCost
+    }
+
 
     func fetchOrderAndItems(orderId: UUID) async {
         do {
@@ -107,6 +117,7 @@ class ConfirmInvoiceViewModel {
                 productPrice: item.productPrice,
                 productType: item.productType,
                 quantity: item.quantity,
+                discount: 0,
                 createdAt: item.createdAt ?? "",
                 updatedAt: item.updatedAt ?? ""
             )
@@ -142,7 +153,7 @@ class ConfirmInvoiceViewModel {
                 productPrice: p.productPrice,
                 productType: p.productType,
                 quantity: p.quantity,
-                subtotal: p.subtotal,
+                subtotal: p.subtotalAfterDiscount,
                 createdAt: p.createdAt,
                 updatedAt: ISO8601DateFormatter().string(from: Date())
             )
@@ -183,7 +194,7 @@ class ConfirmInvoiceViewModel {
             orderId: orderUUID,
             subtotal: totalProductSubtotal,
             shippingCost: shippingCost,
-            totalAmount: total
+            totalAmount: totalAfterDiscount
         )
         self.order = updatedOrder
     }
@@ -195,10 +206,15 @@ struct EditableProductItem: Identifiable {
     var productPrice: Decimal
     var productType: String
     var quantity: Int
+    var discount: Decimal = 0
     var createdAt: String
     var updatedAt: String
     
     var subtotal: Decimal {
         productPrice * Decimal(quantity)
     }
+    
+    var subtotalAfterDiscount: Decimal {
+       subtotal - discount
+   }
 }

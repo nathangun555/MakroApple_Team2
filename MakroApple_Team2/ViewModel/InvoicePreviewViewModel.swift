@@ -291,23 +291,19 @@ class InvoicePreviewViewModel {
     }
     
     // MARK: - Save and Upload Invoice
-    func saveAndUploadInvoice(image: UIImage) async throws -> String {
+    func saveAndUploadInvoice(pdfData: Data) async throws -> String {
         guard let orderIdString = orderId,
-              let orderUUID = UUID(uuidString: orderIdString),
-              let imageData = image.pngData() else {
-            throw NSError(domain: "InvoiceError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Invalid order or image data"])
+              let orderUUID = UUID(uuidString: orderIdString) else {
+            throw NSError(domain: "InvoiceError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Invalid order ID"])
         }
         
-        // Generate filename
-        let fileName = "\(invoiceNumber.replacingOccurrences(of: "/", with: "_")).png"
-        
-        // Write image to temporary file
+        let fileName = "\(invoiceNumber.replacingOccurrences(of: "/", with: "_")).pdf"
+
         let tempURL = FileManager.default.temporaryDirectory
             .appendingPathComponent(fileName)
         
-        try imageData.write(to: tempURL)
+        try pdfData.write(to: tempURL)
         
-        // Upload using existing uploadFile function
         let publicURL = try await SupabaseManager.shared.uploadFile(
             tempURL,
             folder: "invoices"
@@ -322,7 +318,7 @@ class InvoicePreviewViewModel {
         // Clean up temp file
         try? FileManager.default.removeItem(at: tempURL)
         
-        print("✅ Invoice uploaded and order updated: \(publicURL)")
+        print("✅ Invoice PDF uploaded and order updated: \(publicURL)")
         return publicURL
     }
 

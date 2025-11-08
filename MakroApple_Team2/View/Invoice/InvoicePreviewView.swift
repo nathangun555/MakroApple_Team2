@@ -21,7 +21,6 @@ struct InvoicePreviewView: View {
 
     
     var body: some View {
-        NavigationStack {
             ZStack {
                 if viewModel.isLoading {
                     ProgressView("Memuat invoice...")
@@ -101,7 +100,7 @@ struct InvoicePreviewView: View {
                                             }
                 }
             }
-        }
+        
         .task {
             viewModel.configure(userId: session.userId, orderId: orderId)
             await viewModel.loadInvoiceData()
@@ -124,13 +123,13 @@ struct InvoicePreviewView: View {
             .background(Color.white)
             .frame(width: 595)
         
-        guard let image = viewModel.exportAsImage(view: invoiceView) else {
-            viewModel.errorMessage = "Gagal membuat gambar invoice"
+        guard let pdfData = viewModel.exportAsPDF(view: invoiceView) else {
+            viewModel.errorMessage = "Gagal membuat PDF invoice"
             return
         }
         
         do {
-            let url = try await viewModel.saveAndUploadInvoice(image: image)
+            let url = try await viewModel.saveAndUploadInvoice(pdfData: pdfData)
             print("✅ Invoice saved to: \(url)")
             
             dismiss()
