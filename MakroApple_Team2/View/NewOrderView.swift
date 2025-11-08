@@ -15,7 +15,8 @@ struct NewOrderView: View {
     @State private var formPesanan = ""
     
     @State private var selectedItems: [PhotosPickerItem?] = [nil, nil, nil]
-    @State private var selectedImages: [UIImage?] = [nil, nil, nil]
+    @Binding var selectedImages: [UIImage?]
+    @Binding var parsedOrderData: [String : Any]
     @State private var savedImagePaths: [URL?] = [nil, nil, nil]
     
     @State private var isLoading = false
@@ -24,6 +25,7 @@ struct NewOrderView: View {
     
     @Binding var sharedText: String
     @Binding var sharedImages: [UIImage]
+    @Binding var path: NavigationPath
     
     let edgeFunctionURL = URL(string: "https://iznjcwyoziqjgfjahemb.supabase.co/functions/v1/form-template")!
     
@@ -156,15 +158,12 @@ struct NewOrderView: View {
         .task {
             viewModel.configure(userId: session.userId)
         }
-        .navigationDestination(isPresented: $viewModel.navigateToConfirm) {
-                        if let parsedData = viewModel.parsedOrderData {
-                            EditOrderView(
-                                parsedOrderData: parsedData,
-                                selectedImages: $selectedImages
-                            )
-                        }
-                    }
-        
+        .onChange(of: viewModel.navigateToConfirm) { newValue in
+            if newValue, let parsedData = viewModel.parsedOrderData {
+                parsedOrderData = parsedData
+                path.append(OrderDestination.editOrder)
+            }
+        }
     }
     
     private func cleanUpEmptySlots() {

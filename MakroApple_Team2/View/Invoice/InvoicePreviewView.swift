@@ -13,6 +13,7 @@ struct InvoicePreviewView: View {
     @Environment(\.dismiss) var dismiss
     
     let orderId: String?
+    @Binding var path: NavigationPath
     
     @State private var isSaving = false
     @State private var showSuccessAlert = false
@@ -132,7 +133,7 @@ struct InvoicePreviewView: View {
             let url = try await viewModel.saveAndUploadInvoice(pdfData: pdfData)
             print("✅ Invoice saved to: \(url)")
             
-            dismiss()
+            path = NavigationPath()
             
         } catch {
             viewModel.errorMessage = "Gagal menyimpan invoice: \(error.localizedDescription)"
@@ -205,11 +206,11 @@ struct InvoicePreviewView: View {
     
 }
 
-#Preview {
-    let session = SessionManager()
-    session.isSignedIn = true
-    session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
-    
-    return InvoicePreviewView(orderId: "82536742-DDC4-481C-B63A-87400194D0AA")
-        .environmentObject(session)
-}
+//#Preview {
+//    let session = SessionManager()
+//    session.isSignedIn = true
+//    session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
+//    
+//    return InvoicePreviewView(orderId: "82536742-DDC4-481C-B63A-87400194D0AA")
+//        .environmentObject(session)
+//}

@@ -15,6 +15,7 @@ struct ConfirmInvoiceView: View {
     @State private var selectedDueDate: Date?
     
     let orderId: String
+    @Binding var path: NavigationPath
     @EnvironmentObject var session: SessionManager
     
     func supabasePublicUrl(for path: String) -> String {
@@ -187,8 +188,10 @@ struct ConfirmInvoiceView: View {
                 viewModel.downPaymentText = ""
             }
         }
-        .navigationDestination(isPresented: $viewModel.didSave) {
-            InvoicePreviewView(orderId: orderId)
+        .onChange(of: viewModel.didSave) { newValue in
+            if newValue {
+                path.append(OrderDestination.invoicePreview(orderId: orderId))
+            }
         }
     }
 }
@@ -227,13 +230,13 @@ struct InvoiceMultiRow: View {
     }
 }
 
-#Preview {
-    let session = SessionManager()
-    session.isSignedIn = true
-    session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
-    
-    return NavigationStack {
-        ConfirmInvoiceView(orderId: "82536742-DDC4-481C-B63A-87400194D0AA")
-            .environmentObject(session)
-    }
-}
+//#Preview {
+//    let session = SessionManager()
+//    session.isSignedIn = true
+//    session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
+//    
+//    return NavigationStack {
+//        ConfirmInvoiceView(orderId: "82536742-DDC4-481C-B63A-87400194D0AA")
+//            .environmentObject(session)
+//    }
+//}
