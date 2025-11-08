@@ -14,9 +14,9 @@ struct NewOrderView: View {
     @EnvironmentObject var session: SessionManager
     @State private var formPesanan = ""
     
-    @State private var selectedItems: [PhotosPickerItem?] = [nil, nil, nil]
-    @State private var selectedImages: [UIImage?] = [nil, nil, nil]
-    @State private var savedImagePaths: [URL?] = [nil, nil, nil]
+    @State private var selectedItems: [PhotosPickerItem?] = [nil]
+    @State private var selectedImages: [UIImage?] = [nil]
+    @State private var savedImagePaths: [URL?] = [nil]
     
     @State private var isLoading = false
     @State private var resultJSON: String? = nil

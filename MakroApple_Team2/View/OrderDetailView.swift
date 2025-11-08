@@ -346,7 +346,6 @@ struct OrderDetailView: View {
                                         // Show PDF preview
                                         activeAlert = nil
                                         showPDFPreview(url: pdfURL)
-                                        print("kendrik ammar ")
                                     } label: {
                                         ZStack {
                                             RoundedRectangle(cornerRadius: 10)
@@ -408,10 +407,13 @@ struct OrderDetailView: View {
                                         }
                                     }
                                 }) {
-                                    HStack {
-                                        Image(systemName: "square.and.arrow.up")
-                                        Text("Bagikan Invoice").bold()
-                                    }
+                                    Label("Bagikan Invoice", systemImage: "square.and.arrow.up")
+                                        .padding(10)
+                                        .frame(maxWidth: .infinity)
+                                        .background(.primaryButton)
+                                        .foregroundColor(Color.white)
+                                        .cornerRadius(30)
+//                                        .padding()
                                 }
 
 
@@ -420,6 +422,7 @@ struct OrderDetailView: View {
                                 Spacer()
                                 
                             }
+                            .padding(.horizontal)
                             .frame(maxWidth: .infinity)
                         }
                         
@@ -462,7 +465,7 @@ struct OrderDetailView: View {
                         .frame(maxWidth: .infinity)
                         .padding()
                         .foregroundColor(.white)
-                        .glassEffect(.clear.tint(.blue), in: .rect(cornerRadius: 30))
+                        .glassEffect(.clear.tint(.primaryButton), in: .rect(cornerRadius: 30))
                         .padding(.horizontal)
                 }
             }
