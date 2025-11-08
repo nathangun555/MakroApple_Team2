@@ -13,7 +13,6 @@ struct EditOrderView: View {
     let parsedOrderData: [String: Any]
     
     @Binding var selectedImages: [UIImage?]
-    
     @State private var viewModel = EditOrderViewModel()
     @State private var selectedItems: [PhotosPickerItem?] = [nil, nil, nil]
     @State private var navigateToConfirm = false
@@ -32,18 +31,23 @@ struct EditOrderView: View {
                     VStack(spacing: 24) {
                         OrderFormSection(
                             title: "Rincian Pelanggan",
-                            fields: $viewModel.customerFields
+                            fields: $viewModel.customerFields,
+                            sectionType: "customer",  // ✅
+                            fieldErrors: viewModel.fieldErrors  // ✅
                         )
                         
                         OrderFormSection(
                             title: "Jadwal Pesanan",
-                            fields: $viewModel.scheduleFields
+                            fields: $viewModel.scheduleFields,
+                            sectionType: "schedule",  // ✅
+                            fieldErrors: viewModel.fieldErrors  // ✅
                         )
                         
                         ProductsSection(
                             products: $viewModel.products,
                             onAdd: { viewModel.addProduct() },
-                            onDelete: { index in viewModel.deleteProduct(at: index) }
+                            onDelete: { index in viewModel.deleteProduct(at: index) },
+                            fieldErrors: viewModel.fieldErrors  // ✅
                         )
                         
                         AddOnsSection(
@@ -60,25 +64,36 @@ struct EditOrderView: View {
                         
                         OrderFormSection(
                             title: "Lain - Lain",
-                            fields: $viewModel.otherFields
+                            fields: $viewModel.otherFields,
+                            sectionType: "other",  // ✅
+                            fieldErrors: viewModel.fieldErrors  // ✅
                         )
                     }
                     .padding(.vertical)
                 }
             }
         }
-        .navigationTitle("Tinjauan Pesanan")
+        .navigationTitle("")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
+            ToolbarItem(placement: .principal) {
+                    Text("Tinjauan Pesanan")
+                        .font(.title2.bold())
+                }
+            
             ToolbarItem(placement: .topBarTrailing) {
                 Button(action: {
-                    Task {
-                        let order = await viewModel.saveOrder(photos: selectedImages.compactMap { $0 })
-                        if let order = order {
-                            lastOrderId = order.id.uuidString
-                            viewModel.didSave = true
+                    // ✅ Validate dulu sebelum save
+                    if viewModel.validateAllFields() {
+                        Task {
+                            let order = await viewModel.saveOrder(photos: selectedImages.compactMap { $0 })
+                            if let order = order {
+                                lastOrderId = order.id.uuidString
+                                viewModel.didSave = true
+                            }
                         }
                     }
+                    // Kalau validation gagal, error akan muncul di UI
                 }) {
                     if viewModel.isLoading || viewModel.isUploadingPhotos {
                         ProgressView()
@@ -93,6 +108,7 @@ struct EditOrderView: View {
                 .disabled(viewModel.isLoading)
             }
         }
+
         .alert("Berhasil!", isPresented: $viewModel.didSave) {
             Button("OK") {
                 navigateToConfirm = true
@@ -115,74 +131,135 @@ struct ProductsSection: View {
     @Binding var products: [ProductItem]
     let onAdd: () -> Void
     let onDelete: (Int) -> Void
+    let fieldErrors: Set<String>
+    
+    @State private var showDeleteAlert = false
+    @State private var deleteIndex: Int? = nil
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            HStack {
-                Text("Rincian Pesanan")
-                    .font(.title3)
-                    .fontWeight(.bold)
-                
-                Spacer()
-                
-                Button(action: onAdd) {
-                    Image(systemName: "plus.circle.fill")
-                        .font(.title2)
-                        .foregroundColor(.blue)
+        ZStack {  // ✅ TAMBAH ZStack wrapper
+            // Main content
+            VStack(alignment: .leading, spacing: 16) {
+                HStack {
+                    Text("Rincian Pesanan")
+                        .font(.title3)
+                        .fontWeight(.bold)
+                    
+                    Spacer()
+                    
+                    Button(action: onAdd) {
+                        Image(systemName: "plus.circle.fill")
+                            .font(.title2)
+                            .foregroundColor(.blue)
+                    }
                 }
-            }
-            .padding(.horizontal)
-            
-            ForEach(Array(products.enumerated()), id: \.offset) { index, product in
-                VStack(alignment: .leading, spacing: 12) {
-                    HStack {
-                        Text(product.category.isEmpty ? "Kategori Produk" : product.category)
-                            .font(.headline)
-                            .foregroundColor(product.category.isEmpty ? .secondary : .primary)
+                .padding(.horizontal)
+                
+                ForEach(Array(products.enumerated()), id: \.offset) { index, product in
+                    VStack(alignment: .leading, spacing: 12) {
+                        HStack {
+                            Text(product.category.isEmpty ? "Kategori Produk" : product.category)
+                                .font(.headline)
+                                .foregroundColor(product.category.isEmpty ? .secondary : .primary)
+                            
+                            Spacer()
+                            
+                            if products.count > 1 {
+                                Button(action: {
+                                    deleteIndex = index
+                                    showDeleteAlert = true
+                                }) {
+                                    Image(systemName: "trash")
+                                        .foregroundColor(.red)
+                                }
+                            }
+                        }
                         
-                        Spacer()
+                        // ... rest of fields (nama produk, jumlah)
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Nama Produk :")
+                                .font(.subheadline)
+                                .foregroundColor(.primary)
+                            
+                            TextField("Nama Produk", text: Binding(
+                                get: { products[index].name },
+                                set: { products[index].name = $0 }
+                            ))
+                            .textFieldStyle(.roundedBorder)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 6)
+                                    .stroke(
+                                        fieldErrors.contains("product-\(index)-name") ? Color.red : Color.clear,
+                                        lineWidth: fieldErrors.contains("product-\(index)-name") ? 2 : 0
+                                    )
+                            )
+                            
+                            if fieldErrors.contains("product-\(index)-name") {
+                                Text("Nama produk wajib diisi")
+                                    .font(.caption)
+                                    .foregroundStyle(.red)
+                            }
+                        }
                         
-                        if products.count > 1 {
-                            Button(action: { onDelete(index) }) {
-                                Image(systemName: "trash")
-                                    .foregroundColor(.red)
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Jumlah Produk :")
+                                .font(.subheadline)
+                                .foregroundColor(.primary)
+                            
+                            TextField("0", text: Binding(
+                                get: { String(products[index].quantity) },
+                                set: { products[index].quantity = Int($0) ?? 0 }
+                            ))
+                            .textFieldStyle(.roundedBorder)
+                            .keyboardType(.numberPad)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 6)
+                                    .stroke(
+                                        fieldErrors.contains("product-\(index)-quantity") ? Color.red : Color.clear,
+                                        lineWidth: fieldErrors.contains("product-\(index)-quantity") ? 2 : 0
+                                    )
+                            )
+                            
+                            if fieldErrors.contains("product-\(index)-quantity") {
+                                Text("Jumlah harus lebih dari 0")
+                                    .font(.caption)
+                                    .foregroundStyle(.red)
                             }
                         }
                     }
-                    
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Nama Produk :")
-                            .font(.subheadline)
-                            .foregroundColor(.primary)
-                        
-                        TextField("Nama Produk", text: Binding(
-                            get: { products[index].name },
-                            set: { products[index].name = $0 }
-                        ))
-                        .textFieldStyle(.roundedBorder)
-                    }
-                    
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Jumlah Produk :")
-                            .font(.subheadline)
-                            .foregroundColor(.primary)
-                        
-                        TextField("0", text: Binding(
-                            get: { String(products[index].quantity) },
-                            set: { products[index].quantity = Int($0) ?? 0 }
-                        ))
-                        .textFieldStyle(.roundedBorder)
-                        .keyboardType(.numberPad)
-                    }
+                    .padding()
+                    .background(Color(.systemGray6))
+                    .cornerRadius(12)
+                    .padding(.horizontal)
                 }
-                .padding()
-                .background(Color(.systemGray6))
-                .cornerRadius(12)
-                .padding(.horizontal)
+            }
+            
+            // ✅ Custom Delete Alert - overlay di atas semua
+            if showDeleteAlert {
+                CustomDeleteAlertComponent(
+                    title: "Hapus",
+                    message: "Apakah Anda yakin ingin menghapus bagian ini?",
+                    cancelTitle: "Tidak",
+                    confirmTitle: "Ya"
+                ) {
+                    showDeleteAlert = false
+                    deleteIndex = nil
+                } onConfirm: {
+                    if let index = deleteIndex {
+                        onDelete(index)
+                    }
+                    showDeleteAlert = false
+                    deleteIndex = nil
+                }
+                .zIndex(999)
+                .transition(.opacity.combined(with: .scale))
+                .animation(.spring(response: 0.3, dampingFraction: 0.8), value: showDeleteAlert)
             }
         }
     }
 }
+
+
 
 // MARK: - Add-Ons Section
 struct AddOnsSection: View {
