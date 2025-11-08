@@ -23,6 +23,7 @@ struct AllOrdersView: View {
     @Binding var sharedText: String
     @Binding var hasNewObject: Bool
     @State var showNewOrderView = false
+    @State var showTutorial = false
     
     @AppStorage("showBelumBayarGuide") private var showBelumBayarGuide: Bool = true
     @AppStorage("showDiprosesGuide") private var showDiprosesGuide: Bool = true
@@ -67,7 +68,9 @@ struct AllOrdersView: View {
                         
                         Spacer()
                         
-                        NavigationLink(destination: NewOrderView(sharedText: $sharedText, sharedImages: $sharedImages)) {
+                        Button {
+                            handleAddNewOrder()
+                        } label: {
                             Image(systemName: "plus.circle.fill")
                                 .font(.system(size: 44))
                                 .foregroundColor(.primaryButton)
@@ -134,6 +137,7 @@ struct AllOrdersView: View {
                 .task {
                     guard let userIdString = session.userId, let userId = UUID(uuidString: userIdString) else { return }
                     print("🪪 Fetching data for user:", userId)
+                    await viewModel.checkIfUserHasTemplates(for: userId)
                     await viewModel.fetchBusinessName(for: userId)
                     await viewModel.fetchOrders(for: userId)
                     await viewModel.fetchOrderItems(for: userId)
@@ -157,10 +161,20 @@ struct AllOrdersView: View {
                             .navigationDestination(isPresented: $showNewOrderView) {
                                 NewOrderView(sharedText: $sharedText, sharedImages: $sharedImages)
                             }
+                            .navigationDestination(isPresented: $showTutorial) {
+                                InputBusinessDetailsView()
+                            }
             }
             .searchable(text: $searchText, prompt: "Cari Nama Pelanggan")
         
     }
+    private func handleAddNewOrder() {
+            if viewModel.hasTemplates {
+                showNewOrderView = true
+            } else {
+                showTutorial = true
+            }
+        }
     
 }
     
