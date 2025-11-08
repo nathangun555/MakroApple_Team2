@@ -19,6 +19,9 @@ struct MakroApple_Team2App: App {
     
     var body: some Scene {
         WindowGroup {
+//            InvoicePreviewView(orderId: "82536742-DDC4-481C-B63A-87400194D0AA")
+//                .environmentObject(session)
+            
             MainTabView(selectedTab: $selectedTab, sharedText: $sharedText,hasNewObject: $hasNewObject, sharedImages : $sharedImages)
                 .environmentObject(session)
                 .onAppear {

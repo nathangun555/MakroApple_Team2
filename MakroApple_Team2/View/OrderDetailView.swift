@@ -26,6 +26,9 @@ struct OrderDetailView: View {
     @State private var showSuccessToast = false
     @Environment(\.dismiss) private var dismiss
     
+    @State private var selectedPDFURL: URL?
+    @State private var showPDFViewer = false
+    
     let source: OrderSource
     
     
@@ -142,7 +145,7 @@ struct OrderDetailView: View {
                                 
                                 
                                 Text("Tanggal Pesanan :")
-                                Text(DateFormatterHelper.formattedDate(order.orderDdayDate!))
+                                Text(DateFormatterHelper.formattedDate(order.orderDdayDate ?? "g"))
                                     .padding(.vertical, 3)
                                     .frame(maxWidth: .infinity)
                                     .background(
@@ -152,7 +155,7 @@ struct OrderDetailView: View {
                                     )
                                 
                                 Text("Jam Kirim :")
-                                Text("\(DateFormatterHelper.formattedTime(order.orderDdayDate!)) WIB")
+                                Text("\(DateFormatterHelper.formattedTime(order.orderDdayDate ?? "g")) WIB")
                                     .padding(.vertical, 3)
                                     .frame(maxWidth: .infinity)
                                     .background(
@@ -336,24 +339,62 @@ struct OrderDetailView: View {
                         
                         LazyVGrid(columns: columns, spacing: 10) {
                             
-                            RoundedRectangle(cornerRadius: 10)
-                                .stroke(Color.gray, lineWidth: 0.5)
-                                .frame(height: 200)
-                                .shadow(radius: 30)
-                            VStack {
-                                Text("INV/2025/00001 Nadia Prameswari")
-                                
+                            if let urlString = order.invoiceUrl,
+                                   let pdfURL = URL(string: urlString) {
+                                    Button {
+                                        // Show PDF preview
+                                        activeAlert = nil
+                                        showPDFPreview(url: pdfURL)
+                                    } label: {
+                                        ZStack {
+                                            RoundedRectangle(cornerRadius: 10)
+                                                .stroke(Color.gray, lineWidth: 0.5)
+                                                .frame(height: 200)
+                                                .shadow(radius: 30)
+                                            
+                                            VStack {
+                                                Image(systemName: "doc.richtext.fill")
+                                                    .font(.system(size: 40))
+                                                    .foregroundColor(.blue)
+                                                Text("Tap to Preview Invoice")
+                                                    .font(.footnote)
+                                                    .foregroundColor(.secondary)
+                                            }
+                                        }
+                                    }
+                                } else {
+                                    ZStack {
+                                        RoundedRectangle(cornerRadius: 10)
+                                            .stroke(Color.gray, lineWidth: 0.5)
+                                            .frame(height: 200)
+                                            .shadow(radius: 30)
+                                        VStack {
+                                            Image(systemName: "doc.text.fill.badge.exclamationmark")
+                                                .font(.system(size: 40))
+                                                .foregroundColor(.gray)
+                                            Text("No Invoice Uploaded")
+                                                .font(.footnote)
+                                                .foregroundColor(.secondary)
+                                        }
+                                    }
+                                }
+                            
+                            
+                            VStack (alignment: .leading) {
+                                Text("INV/2025/00001")
+                                Text(order.customerOrderName)
                                 
                                 Spacer()
                                 
                                 
                                 Label("Bagikan Invoice", systemImage: "square.and.arrow.up")
-                                    .padding()
+                                    .padding(10)
                                     .frame(maxWidth: .infinity)
-                                    .background(Color.blue)
+                                    .background(.primaryButton)
                                     .foregroundColor(Color.white)
                                     .cornerRadius(30)
-                                    .padding(.horizontal)
+                                    .padding()
+                                
                                 
                                 Spacer()
                                 
@@ -467,7 +508,48 @@ struct OrderDetailView: View {
             default: break
             }
         }
+        .sheet(isPresented: $showPDFViewer) {
+            if let pdfURL = selectedPDFURL {
+                PDFKitView(url: pdfURL)
+                    .ignoresSafeArea()
+            }
+        }
     }
+    private func showPDFPreview(url: URL) {
+        if url.isFileURL {
+            selectedPDFURL = url
+            showPDFViewer = true
+            return
+        }
+
+        // Detect image files (png/jpg)
+        if url.pathExtension.lowercased() == "png" || url.pathExtension.lowercased() == "jpg" {
+            print("🖼️ This is an image, not a PDF. Use an Image viewer instead.")
+            // Example: show a SwiftUI Image view or custom viewer
+            return
+        }
+
+        // Otherwise download and preview as PDF
+        Task {
+            do {
+                let (data, _) = try await URLSession.shared.data(from: url)
+                let tempURL = FileManager.default.temporaryDirectory
+                    .appendingPathComponent("invoice_preview.pdf")
+                try data.write(to: tempURL)
+
+                await MainActor.run {
+                    selectedPDFURL = tempURL
+                    showPDFViewer = true
+                }
+            } catch {
+                print("❌ Failed to download PDF:", error)
+            }
+        }
+    }
+
+
+
+
     
     private func handleStatusUpdate(to newStatus: String? = nil) async {
         guard let userIdString = session.userId,

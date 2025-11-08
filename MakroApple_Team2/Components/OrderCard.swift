@@ -37,7 +37,7 @@ struct OrderCard: View {
                     Spacer()
                     
                     // Tanggal Pesan
-                    Text(DateFormatterHelper.formattedDate(order.orderDdayDate!, showTime: true))
+                    Text(DateFormatterHelper.formattedDate(order.orderDdayDate ?? "g", showTime: true))
                     
                     
                     Image(systemName: "chevron.right")

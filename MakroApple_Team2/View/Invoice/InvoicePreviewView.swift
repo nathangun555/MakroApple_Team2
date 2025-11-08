@@ -17,6 +17,9 @@ struct InvoicePreviewView: View {
     @State private var isSaving = false
     @State private var showSuccessAlert = false
     
+    @State private var exportedPDFURL: URL?
+
+    
     var body: some View {
         NavigationStack {
             ZStack {
@@ -39,24 +42,23 @@ struct InvoicePreviewView: View {
                         .buttonStyle(.bordered)
                     }
                 } else {
-                    VStack(spacing: 0) {
-                            InvoiceContentView(viewModel: viewModel)
-                            .padding(20)
-                                   .background(
-                                       RoundedRectangle(cornerRadius: 0)
-                                           .fill(Color.white)
-                                           .shadow(color: Color.black.opacity(0.25), radius: 6, x: 0, y: 3)
-//                                           .overlay(
-//                                               RoundedRectangle(cornerRadius: 8)
-//                                                   .stroke(Color.gray.opacity(0.4), lineWidth: 1)
-//                                           )
-                                   )
-                                   .padding()
-                        
+                    ZStack(alignment: .bottom) {
+                        if let pdfURL = exportedPDFURL {
+                            // ✅ Show the exported PDF
+                            PDFKitView(url: pdfURL)
+                                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        } else {
+                            // 🔄 While PDF not generated yet, show loading or placeholder
+                            ProgressView("Membuat preview invoice...")
+//                                .onAppear {
+//                                    if exportedPDFURL == nil {
+//                                        exportedPDFURL = exportAsPDF()
+//                                    }
+//                                }
+                        }
+
                         if !viewModel.isPreviewMode {
                             VStack(spacing: 0) {
-                                Divider()
-                                
                                 Button {
                                     Task {
                                         await saveInvoiceAndDismiss()
@@ -65,56 +67,51 @@ struct InvoicePreviewView: View {
                                     if isSaving {
                                         HStack {
                                             ProgressView()
-                                                .progressViewStyle(CircularProgressViewStyle())
                                             Text("Menyimpan...")
                                         }
                                         .frame(maxWidth: .infinity)
                                         .padding()
                                     } else {
-                                        Text("Simpan Invoice")
-                                            .font(.headline)
+                                        Text("Selesai")
                                             .frame(maxWidth: .infinity)
+                                            .bold()
                                             .padding()
+                                            .foregroundColor(.white)
+                                            .glassEffect(.clear.tint(.primaryButton), in: .rect(cornerRadius: 30))
+                                            .padding(.horizontal)
+                                            .padding(.bottom)
                                     }
                                 }
                                 .disabled(isSaving)
-                                .background(isSaving ? Color.gray : Color.blue)
-                                .foregroundColor(.white)
                             }
-                            .background(Color(.systemBackground))
                         }
                     }
+
                 }
             }
             .navigationTitle(viewModel.isPreviewMode ? "Preview Invoice" : "Invoice")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Menu {
-                        Button(action: {
-                            viewModel.exportFormat = .pdf
-                            exportAndShare()
-                        }) {
-                            Label("Export as PDF", systemImage: "doc.fill")
-                        }
-                        
-                        Button(action: {
-                            viewModel.exportFormat = .image
-                            exportAndShare()
-                        }) {
-                            Label("Export as Image", systemImage: "photo.fill")
-                        }
-                    } label: {
-                        Image(systemName: "square.and.arrow.up")
-                            .foregroundColor(.primary)
-                    }
+                                            Button(action: {
+                                                viewModel.exportFormat = .pdf
+                                                sharePDF()
+                                            }) {
+                                                Image(systemName: "square.and.arrow.up")
+                                            }
                 }
             }
         }
         .task {
             viewModel.configure(userId: session.userId, orderId: orderId)
             await viewModel.loadInvoiceData()
+            
+            // ✅ Only generate the PDF after data is ready
+            if !viewModel.isLoading && exportedPDFURL == nil {
+                exportedPDFURL = exportAsPDF()
+            }
         }
+
     }
     
     // MARK: - Save Invoice and Dismiss
@@ -145,53 +142,68 @@ struct InvoicePreviewView: View {
     }
     
     // MARK: - Export Functions
-    func exportAndShare() {
-        switch viewModel.exportFormat {
-        case .pdf:
-            exportAsPDF()
-        case .image:
-            exportAsImage()
-        }
-    }
+//    func exportAndShare() {
+//        switch viewModel.exportFormat {
+//        case .pdf:
+//            exportAsPDF()
+////        case .image:
+////            exportAsImage()
+//        }
+//    }
     
-    func exportAsPDF() {
+    
+    
+    func exportAsPDF() -> URL? {
         let invoiceView = InvoiceContentView(viewModel: viewModel)
             .padding(20)
             .background(Color.white)
-            .frame(width: 595)
+            .frame(width: 595, height: 841)
         
-        if let pdfData = viewModel.exportAsPDF(view: invoiceView) {
-            let invoiceCode = viewModel.invoiceNumber.isEmpty ? "Invoice" : viewModel.invoiceNumber
-            let tempURL = FileManager.default.temporaryDirectory
-                .appendingPathComponent("\(invoiceCode.replacingOccurrences(of: "/", with: "_")).pdf")
-            
-            do {
-                try pdfData.write(to: tempURL)
-                viewModel.shareInvoice(items: [tempURL]) { success in
-                    if success {
-                        print("✅ PDF shared successfully")
-                    }
-                }
-            } catch {
-                print("❌ Error saving PDF: \(error)")
-            }
+        guard let pdfData = viewModel.exportAsPDF(view: invoiceView) else {
+            return nil
+        }
+        
+        let invoiceCode = viewModel.invoiceNumber.isEmpty ? "Invoice" : viewModel.invoiceNumber
+        let tempURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent("\(invoiceCode.replacingOccurrences(of: "/", with: "_")).pdf")
+        
+        do {
+            try pdfData.write(to: tempURL)
+            return tempURL
+        } catch {
+            print("❌ Error saving PDF: \(error)")
+            return nil
         }
     }
 
-    func exportAsImage() {
-        let invoiceView = InvoiceContentView(viewModel: viewModel)
-            .padding(20)
-            .background(Color.white)
-            .frame(width: 595)
-        
-        if let image = viewModel.exportAsImage(view: invoiceView) {
-            viewModel.shareInvoice(items: [image]) { success in
-                if success {
-                    print("✅ Image shared successfully")
+    
+    func sharePDF() {
+        if let pdfURL = exportAsPDF() {
+                    viewModel.shareInvoice(items: [pdfURL]) { success in
+                        if success {
+                            print("✅ PDF shared successfully")
+                        }
+                    }
+                } else {
+                    print("❌ Failed to generate PDF for sharing")
                 }
-            }
-        }
     }
+
+//    func exportAsImage() {
+//        let invoiceView = InvoiceContentView(viewModel: viewModel)
+//            .padding(20)
+//            .background(Color.white)
+//            .frame(width: 595)
+//        
+//        if let image = viewModel.exportAsImage(view: invoiceView) {
+//            viewModel.shareInvoice(items: [image]) { success in
+//                if success {
+//                    print("✅ Image shared successfully")
+//                }
+//            }
+//        }
+//    }
+    
 }
 
 #Preview {
