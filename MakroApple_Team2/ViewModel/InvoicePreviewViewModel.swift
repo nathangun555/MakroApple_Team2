@@ -223,31 +223,43 @@ class InvoicePreviewViewModel {
     }
     
     // MARK: - Export as PDF
+    
     @MainActor
     func exportAsPDF(view: some View) -> Data? {
-        let renderer = ImageRenderer(content: view)
-        
-        let pageSize = CGSize(width: 595, height: 842) // A4
-        renderer.proposedSize = .init(pageSize)
-        
-        var pdfData = Data()
-        
-        guard let consumer = CGDataConsumer(data: pdfData as! CFMutableData),
-              let context = CGContext(consumer: consumer, mediaBox: nil, nil) else {
-            return nil
+        // Define A4 size in points (72 DPI)
+        let a4Size = CGSize(width: 595.2, height: 841.8) // A4 in points
+
+        // 1) Create the SwiftUI view sized to A4
+        let renderer = ImageRenderer(
+            content: view
+                .frame(width: a4Size.width, height: a4Size.height, alignment: .top)
+        )
+
+        // 2) Improve quality
+        renderer.scale = UIScreen.main.scale
+
+        // 3) Render to UIImage
+        guard let uiImage = renderer.uiImage else { return nil }
+
+        // 4) Create PDF context with A4 box
+        let pdfData = NSMutableData()
+        var mediaBox = CGRect(origin: .zero, size: a4Size)
+        guard
+            let consumer = CGDataConsumer(data: pdfData as CFMutableData),
+            let context = CGContext(consumer: consumer, mediaBox: &mediaBox, nil)
+        else { return nil }
+
+        context.beginPDFPage(nil)
+
+        // 5) Draw the SwiftUI-rendered image into A4
+        if let cgImage = uiImage.cgImage {
+            context.draw(cgImage, in: mediaBox)
         }
-        
-        renderer.render { size, renderer in
-            var mediaBox = CGRect(origin: .zero, size: pageSize)
-            
-            context.beginPage(mediaBox: &mediaBox)
-            renderer(context)
-            context.endPage()
-        }
-        
+
+        context.endPDFPage()
         context.closePDF()
-        
-        return pdfData
+
+        return pdfData as Data
     }
     
     // MARK: - Share Invoice

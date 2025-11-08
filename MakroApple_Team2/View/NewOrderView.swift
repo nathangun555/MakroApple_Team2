@@ -28,7 +28,7 @@ struct NewOrderView: View {
     let edgeFunctionURL = URL(string: "https://iznjcwyoziqjgfjahemb.supabase.co/functions/v1/form-template")!
     
     var body: some View {
-        
+        // flag to show that this is the latest iwak's code
         ZStack{
             
             ZStack(alignment: .bottom){
