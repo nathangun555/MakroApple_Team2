@@ -40,6 +40,7 @@ class EditOrderViewModel {
     var isLoading = false
     var didSave = false
     var errorMessage: String?
+    var fieldErrors: Set<String> = []
     
     private(set) var userId: String?
     private var originalParsedData: [String: Any] = [:]
@@ -278,5 +279,44 @@ class EditOrderViewModel {
         if let arr = raw as? [Any], let dictArr = arr as? [[String: Any]] { return dictArr }
         return []
     }
-
+    
+    func validateAllFields() -> Bool {
+            fieldErrors.removeAll()
+            
+            // 1. Validate customer fields
+            for (index, field) in customerFields.enumerated() {
+                if field.value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    fieldErrors.insert("customer-\(index)")
+                }
+            }
+            
+            // 2. Validate schedule fields
+            for (index, field) in scheduleFields.enumerated() {
+                if field.value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    fieldErrors.insert("schedule-\(index)")
+                }
+            }
+            
+            // 3. Validate products
+            for (index, product) in products.enumerated() {
+                if product.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    fieldErrors.insert("product-\(index)-name")
+                }
+                if product.quantity <= 0 {
+                    fieldErrors.insert("product-\(index)-quantity")
+                }
+            }
+            
+            // 4. Validate add-ons (optional - bisa diisi atau tidak)
+            // Skip validation untuk add-ons jika mau optional
+            
+            // 5. Validate other fields
+            for (index, field) in otherFields.enumerated() {
+                if field.value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    fieldErrors.insert("other-\(index)")
+                }
+            }
+            
+            return fieldErrors.isEmpty
+        }
 }
