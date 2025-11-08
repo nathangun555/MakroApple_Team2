@@ -21,8 +21,8 @@ struct InvoiceContentView: View {
                 Spacer()
                 paymentInfoSection
             }
+            .padding(.top)
             
-            Divider()
             
             HStack(alignment: .top, spacing: 20) {
                 recipientSection
@@ -31,18 +31,37 @@ struct InvoiceContentView: View {
             }
             
             Divider()
-
+            
             orderItemsTable
             
-            Spacer(minLength: 30)
+            Spacer()
             
-            totalsSection
             
-            Spacer(minLength: 40)
+            HStack(alignment: .bottom) {
+                deliveryDetailsSection
+                
+                totalsSection
+            }
             
-            deliveryDetailsSection
+            
+            Spacer()
+            
+            
         }
+        .padding(40)
+        .frame(width: 595, height: 842)
+        .background(
+            // White paper with border
+            RoundedRectangle(cornerRadius: 0)
+                .fill(Color.white)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 0)
+                        .stroke(Color.gray.opacity(0.4), lineWidth: 1)
+                )
+                .shadow(radius: 3) // optional shadow
+        )
     }
+    
 
     // MARK: - Header Section
     private var headerSection: some View {
@@ -58,7 +77,8 @@ struct InvoiceContentView: View {
             
             VStack(alignment: .leading, spacing: 2) {
                 Text(viewModel.userRecord?.businessName ?? "TaskFlow Bakery")
-                    .font(.system(size: 14, weight: .bold))
+                    .font(.system(size: 25))
+                    .fontWeight(.bold)
                 
                 if let address = viewModel.userRecord?.businessAddress, !address.isEmpty {
                     Text(address)
@@ -95,8 +115,10 @@ struct InvoiceContentView: View {
     private var billedToSection: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text("Ditagihkan Ke")
-                .font(.system(size: 11, weight: .bold))
-                .underline()
+                .font(.system(size: 15, weight: .bold))
+            
+                Divider()
+                .frame(maxWidth: 150)
             
             Text(viewModel.customerName)
                 .font(.system(size: 10))
@@ -113,8 +135,9 @@ struct InvoiceContentView: View {
     private var paymentInfoSection: some View {
         VStack(alignment: .trailing, spacing: 4) {
             Text("Informasi Pembayaran")
-                .font(.system(size: 11, weight: .bold))
-                .underline()
+                .font(.system(size: 15, weight: .bold))
+            Divider()
+            .frame(maxWidth: 210)
             
             Text(viewModel.accountName)
                 .font(.system(size: 10))
@@ -131,8 +154,10 @@ struct InvoiceContentView: View {
     private var recipientSection: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text("Informasi Penerima")
-                .font(.system(size: 11, weight: .bold))
-                .underline()
+                .font(.system(size: 15, weight: .bold))
+            
+            Divider()
+            .frame(maxWidth: 150)
             
             Text(viewModel.recipientName)
                 .font(.system(size: 10))
@@ -153,8 +178,10 @@ struct InvoiceContentView: View {
     private var dateInfoSection: some View {
         VStack(alignment: .trailing, spacing: 4) {
             Text("Informasi Tanggal")
-                .font(.system(size: 11, weight: .bold))
-                .underline()
+                .font(.system(size: 15, weight: .bold))
+            
+            Divider()
+            .frame(maxWidth: 210)
             
             VStack(alignment: .trailing, spacing: 2) {
                 Text("Tanggal Invoice : \(viewModel.invoiceDate)")
@@ -274,6 +301,7 @@ struct InvoiceContentView: View {
     // MARK: - Delivery Details Section
     private var deliveryDetailsSection: some View {
         VStack(alignment: .leading, spacing: 6) {
+            Spacer()
             HStack {
                 Text("Tanggal Kirim :")
                     .font(.system(size: 10))
@@ -292,4 +320,9 @@ struct InvoiceContentView: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
+}
+
+#Preview {
+    InvoiceContentView(viewModel: InvoicePreviewViewModel())
+        .scaleEffect(0.6)
 }
