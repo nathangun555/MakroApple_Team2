@@ -22,9 +22,6 @@ struct InvoicePreviewView: View {
     
     
     var body: some View {
-        NavigationStack{
-            
-            
             ZStack {
                 if viewModel.isLoading {
                     ProgressView("Memuat invoice...")
@@ -115,7 +112,7 @@ struct InvoicePreviewView: View {
                 
                 exportedPDFURL = viewModel.tempPDFURL()
             }
-        }
+        
         
     }
     
