@@ -6,13 +6,20 @@
 //
 
 import SwiftUI
+import Combine
 
 struct Set_MenuDetailsView: View {
     
     @EnvironmentObject var session: SessionManager
     @StateObject private var vm = Set_MenuDetailsViewModel()
     @Environment(\.dismiss) private var dismiss
+    
+    // ✅ TAMBAH STATE UNTUK DELETE ALERT
     @State private var showUnsavedChangesAlert = false
+    @State private var showDeleteAlert = false
+    @State private var itemToDelete: (type: DeleteType, sIndex: Int, pIndex: Int?)? = nil
+    
+    enum DeleteType { case category, product }
     
     var body: some View {
         ZStack {
@@ -55,7 +62,8 @@ struct Set_MenuDetailsView: View {
                         }
                     }
             }
-            .disabled(showUnsavedChangesAlert)
+            // ✅ DISABLE saat ada alert
+            .disabled(showUnsavedChangesAlert || showDeleteAlert)
             
             if showUnsavedChangesAlert {
                 Color.black
@@ -76,10 +84,36 @@ struct Set_MenuDetailsView: View {
                 .transition(.scale.combined(with: .opacity))
                 .animation(.spring(response: 0.3, dampingFraction: 0.8), value: showUnsavedChangesAlert)
             }
+            
+            // ✅ DELETE CONFIRMATION ALERT
+            if showDeleteAlert {
+                CustomDeleteAlertComponent(
+                    title: "Hapus",
+                    message: "Apakah Anda yakin ingin menghapus bagian ini?",
+                    cancelTitle: "Tidak",
+                    confirmTitle: "Ya",
+                    onCancel: { withAnimation { showDeleteAlert = false } },
+                    onConfirm: {
+                        if let item = itemToDelete {
+                            withAnimation {
+                                if item.type == .category {
+                                    vm.deleteTemporaryCategory(at: item.sIndex)
+                                } else if let pIndex = item.pIndex {
+                                    vm.deleteTemporaryProduct(from: item.sIndex, at: pIndex)
+                                }
+                            }
+                        }
+                        withAnimation { showDeleteAlert = false }
+                    }
+                )
+                .zIndex(12)
+                .transition(.scale.combined(with: .opacity))
+            }
         }
         .task {
             vm.configure(userId: session.userId)
             await vm.load()
+            
         }
     }
     
@@ -124,20 +158,27 @@ struct Set_MenuDetailsView: View {
                                         .cornerRadius(10)
                                         .textInputAutocapitalization(.words)
                                         .autocorrectionDisabled(true)
+                                    
                                     } else {
                                         Text(section.title)
                                             .font(.headline)
                                             .padding(.horizontal, 10)
                                             .padding(.vertical, 6)
+                                            .overlay(
+                                                RoundedRectangle(cornerRadius: 10)
+                                                    .stroke(Color(.systemGray4), lineWidth: 1)
+                                                    .allowsHitTesting(false)
+                                            )
+                                            .cornerRadius(10)
                                     }
                                     
                                     Spacer()
                                     
                                     if section.isEditing {
                                         Button {
-                                            withAnimation {
-                                                vm.deleteTemporaryCategory(at: sIndex)
-                                            }
+                                            // ✅ TRIGGER DELETE CATEGORY ALERT
+                                            itemToDelete = (.category, sIndex, nil)
+                                            withAnimation { showDeleteAlert = true }
                                         } label: {
                                             Image(systemName: "trash")
                                                 .foregroundColor(.red)
@@ -199,9 +240,9 @@ struct Set_MenuDetailsView: View {
                                         )
                                         if section.isEditing {
                                             Button {
-                                                withAnimation {
-                                                    vm.deleteTemporaryProduct(from: sIndex, at: pIndex)
-                                                }
+                                                // ✅ TRIGGER DELETE PRODUCT ALERT
+                                                itemToDelete = (.product, sIndex, pIndex)
+                                                withAnimation { showDeleteAlert = true }
                                             } label: {
                                                 Image(systemName: "trash")
                                                     .foregroundColor(.red)
@@ -242,9 +283,12 @@ struct Set_MenuDetailsView: View {
                 .shadow(color: Color.black.opacity(0.25), radius: 6, x: 0, y: 3)
             }
             .padding(.bottom, 0)
+            
         }
     }
+    
 }
+    
 
 // MARK: - Custom Alert
 struct CustomUnsavedAlert: View {
@@ -316,151 +360,7 @@ struct CustomUnsavedAlert: View {
     }
 }
 
-// MARK: - EditableProductRow
-struct EditableProductRow: View {
-    @ObservedObject var viewModel: EditableProduct
-    var isEditing: Bool
-    var sectionIndex: Int
-    var productIndex: Int
-    var validationErrors: Set<String>
 
-    private let sentinelPlaceholders: Set<String> = [
-        "Silakan Isi Nama Produk",
-        "ZZZ"
-    ]
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            // MARK: Nama Produk
-            VStack(alignment: .leading, spacing: 4) {
-                HStack(alignment: .center) {
-                    Text("Nama Produk :")
-                        .font(.subheadline)
-                        .frame(width: 110, alignment: .leading)
-
-                    TextField(
-                        "Silakan Isi Nama Produk",
-                        text: Binding(
-                            get: {
-                                let raw = viewModel.name.trimmingCharacters(in: .whitespacesAndNewlines)
-                                if raw.isEmpty { return "" }
-                                if sentinelPlaceholders.contains(raw) { return "" }
-                                return raw
-                            },
-                            set: { newValue in
-                                viewModel.name = newValue
-                            }
-                        )
-                    )
-                    .disabled(!isEditing)
-                    .padding(.vertical, 6)
-                    .padding(.horizontal, 8)
-                    .background(Color.white)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 8)
-                            .stroke(Color.black, lineWidth: 1)
-                            .allowsHitTesting(false)
-                    )
-                    .cornerRadius(8)
-                    .frame(maxWidth: .infinity)
-                    .opacity(isEditing ? 1 : 0.7)
-                    .autocorrectionDisabled(true)
-                    .textInputAutocapitalization(.words)
-                }
-                
-                // ✅ Error untuk nama produk
-                if validationErrors.contains("\(sectionIndex)-\(productIndex)-name") {
-                    HStack(spacing: 0) {
-                                           Color.clear
-                                               .frame(width: 110) // spacer sama lebar dengan label
-                                           Text("Nama produk tidak boleh kosong")
-                                               .font(.caption)
-                                               .foregroundColor(.red)
-                                               .padding(.leading, 8)
-                                           Spacer()
-                                       }
-                }
-            }
-
-            // MARK: Harga Produk
-            VStack(alignment: .leading, spacing: 4) {
-                HStack(alignment: .center) {
-                    Text("Harga Produk :")
-                        .font(.subheadline)
-                        .frame(width: 110, alignment: .leading)
-
-                    HStack(spacing: 4) {
-                        Text("Rp")
-                            .foregroundColor(.black)
-
-                        TextField(
-                            "0",
-                            text: Binding(
-                                get: {
-                                    let value = NSDecimalNumber(decimal: viewModel.price).intValue
-                                    return value == 0 ? "" : "\(value)"
-                                },
-                                set: { newValue in
-                                    let filtered = newValue.filter { $0.isNumber }
-                                    if let intVal = Int(filtered) {
-                                        viewModel.price = Decimal(intVal)
-                                    } else {
-                                        viewModel.price = 0
-                                    }
-                                }
-                            )
-                        )
-                        .keyboardType(.numberPad)
-                        .disabled(!isEditing)
-                        .font(.system(size: 16))
-                        .monospacedDigit()
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                    }
-                    .padding(.vertical, 6)
-                    .padding(.horizontal, 8)
-                    .background(Color.white)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 8)
-                            .stroke(Color.black, lineWidth: 1)
-                            .allowsHitTesting(false)
-                    )
-                    .cornerRadius(8)
-                    .frame(maxWidth: .infinity)
-                    .opacity(isEditing ? 1 : 0.7)
-                }
-                
-                // ✅ Error untuk harga produk
-                if validationErrors.contains("\(sectionIndex)-\(productIndex)-price") {
-                    HStack(spacing: 0) {
-                                           Color.clear
-                                               .frame(width: 110)
-                                           Text("Harga harus lebih dari 0")
-                                               .font(.caption)
-                                               .foregroundColor(.red)
-                                               .padding(.leading, 8)
-                                           Spacer()
-                                       }
-                    
-                }
-            }
-        }
-        .padding(12)
-        .background(Color(.systemGray6))
-        .cornerRadius(14)
-        .shadow(color: Color.black.opacity(0.05), radius: 3, x: 0, y: 1)
-        .frame(maxWidth: .infinity)
-    }
-}
-
-extension NumberFormatter {
-    static func currencyFormatter() -> NumberFormatter {
-        let f = NumberFormatter()
-        f.numberStyle = .currency
-        f.currencyCode = "IDR"
-        f.maximumFractionDigits = 0
-        return f
-    }
-}
 
 #Preview {
     let session = SessionManager()

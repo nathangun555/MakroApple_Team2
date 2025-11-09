@@ -117,9 +117,9 @@ struct EditTemplateFormView: View {
                 .disabled(viewModel.isSaving)
             }
         }
-        .navigationDestination(isPresented: $viewModel.didSave) {
-            InvoicePreviewView(orderId: nil)
-        }
+//        .navigationDestination(isPresented: $viewModel.didSave) {
+//            InvoicePreviewView(orderId: nil)
+//        }
         .task {
             viewModel.configure(userId: session.userId)
             await viewModel.loadTemplate()

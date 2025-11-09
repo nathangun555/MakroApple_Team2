@@ -12,35 +12,67 @@ struct SettingsView: View {
                 // Group 1
                 Section {
                     NavigationLink(destination: Set_BusinessDetailsView()) {
-                        Label("Rincian Bisnis", systemImage: "building.2")
+                        HStack {
+                            Image(systemName: "building.2")
+                                .foregroundStyle(.primaryButton)
+                                .imageScale(.large)
+                            Text("Rincian Bisnis")
+                        }
                     }
 
                     NavigationLink(destination: Set_MenuDetailsView()) {
-                        Label("Rincian Menu / Katalog", systemImage: "list.bullet.rectangle.portrait")
+                        HStack {
+                            Image(systemName: "list.bullet.rectangle.portrait")
+                                .foregroundStyle(.primaryButton)
+                                .imageScale(.large)
+                            Text("Rincian Menu / Katalog")
+                        }
                     }
 
                     NavigationLink(destination: Set_TemplateFormView()) {
-                        Label("Template Formulir Bisnis", systemImage: "square.and.pencil")
+                        HStack {
+                            Image(systemName: "square.and.pencil")
+                                .foregroundStyle(.primaryButton)
+                                .imageScale(.large)
+                            Text("Template Formulir Bisnis")
+                        }
                     }
 
                     NavigationLink(destination: Set_LanguageSettingsView()) {
-                        Label("Pilih Bahasa", systemImage: "globe")
+                        HStack {
+                            Image(systemName: "globe")
+                                .symbolRenderingMode(.palette)
+                                .foregroundStyle(.primaryButton)
+                                .imageScale(.large)
+                            Text("Pilih Bahasa")
+                        }
                     }
                 }
+
 
                 // Hapus akun
                 Section {
                     NavigationLink(destination: Set_DeleteAccountView()) {
-                        Label("Hapus Akun Saya", systemImage: "trash")
-                            .foregroundStyle(.red)
+                        HStack {
+                            Image(systemName: "trash")
+                                .foregroundStyle(.red)
+                                .imageScale(.large)
+                            Text("Hapus Akun Saya")
+                                .foregroundStyle(.red)
+                        }
                     }
                 }
 
                 // Logout
                 Section {
                     NavigationLink(destination: EmptyView()) {
-                        Label("Logout", systemImage: "rectangle.portrait.and.arrow.right")
-                            .foregroundStyle(.blue)
+                        HStack {
+                            Image(systemName: "rectangle.portrait.and.arrow.right")
+                                .foregroundStyle(.primaryButton)
+                                .imageScale(.medium)
+                            Text("Logout")
+                        }
+                       
                     }
                     .simultaneousGesture(TapGesture().onEnded {
                         showLogoutDialog = true

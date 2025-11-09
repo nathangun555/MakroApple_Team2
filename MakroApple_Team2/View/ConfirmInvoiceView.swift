@@ -13,25 +13,30 @@ struct ConfirmInvoiceView: View {
     @State private var viewModel = ConfirmInvoiceViewModel()
     @State private var hasDownPayment = false
     @State private var selectedDueDate: Date?
+    @State private var expandedProducts = Set<UUID>()
     
     let orderId: String
+    @Binding var path: NavigationPath
     @EnvironmentObject var session: SessionManager
-    
-    func supabasePublicUrl(for path: String) -> String {
-        "https://<your-project-ref>.supabase.co/storage/v1/object/public/\(path)"
-    }
     
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
-                GroupBox(label: Text("Rincian Invoice").font(.headline)) {
-                    InvoiceRow(title: "No. Invoice", value: $viewModel.invoiceNumber)
-                    InvoiceRow(title: "Tanggal", value: $viewModel.invoiceDate)
+            VStack(spacing: 24) {
+                // MARK: - Rincian Invoice
+                InvoiceSectionHeader(title: "Rincian Invoice")
+                
+                VStack(alignment: .leading, spacing: 12) {
+                    InvoiceRowField(label: "No. Invoice", value: $viewModel.invoiceNumber)
+                    InvoiceRowField(label: "Tanggal", value: $viewModel.invoiceDate)
                     
                     // Date Picker for Due Date
                     HStack {
                         Text("Tanggal Jatuh Tempo :")
+                            .font(.subheadline)
+                            .foregroundColor(.primary)
+                        
                         Spacer()
+                        
                         DatePicker(
                             "",
                             selection: Binding(
@@ -46,117 +51,200 @@ struct ConfirmInvoiceView: View {
                             displayedComponents: .date
                         )
                         .labelsHidden()
-                        .frame(width: 140)
+                        .datePickerStyle(.compact)
                     }
                 }
+                .padding()
 
-                GroupBox(label: Text("Informasi Pembayaran").font(.headline)) {
-                    InvoiceRow(title: "Nama Akun", value: $viewModel.accountName)
-                    InvoiceRow(title: "Nomor Rekening", value: $viewModel.accountNumber)
-                    InvoiceRow(title: "Nama Bank", value: $viewModel.bankName)
+                // MARK: - Informasi Pembayaran
+                InvoiceSectionHeader(title: "Informasi Pembayaran")
+                
+                VStack(alignment: .leading, spacing: 12) {
+                    InvoiceRowField(label: "Nama Akun", value: $viewModel.accountName)
+                    InvoiceRowField(label: "Nomor Rekening", value: $viewModel.accountNumber)
+                    InvoiceRowField(label: "Nama Bank", value: $viewModel.bankName)
                 }
+                .padding()
 
-                GroupBox(label: Text("Tagihan Untuk").font(.headline)) {
-                    InvoiceRow(title: "Nama Pemesan", value: $viewModel.customerName)
-                    InvoiceRow(title: "No Telp Pemesan", value: $viewModel.customerPhone)
+                // MARK: - Tagihan Untuk
+                InvoiceSectionHeader(title: "Tagihan Untuk")
+                
+                VStack(alignment: .leading, spacing: 12) {
+                    InvoiceRowField(label: "Nama Pemesan", value: $viewModel.customerName)
+                    InvoiceRowField(label: "No Telp Pemesan", value: $viewModel.customerPhone)
                 }
+                .padding()
 
-                GroupBox(label: Text("Rincian Pesanan").font(.headline)) {
+                // MARK: - Rincian Pesanan
+                InvoiceSectionHeader(title: "Rincian Pesanan")
+                
+                VStack(alignment: .leading, spacing: 12) {
                     ForEach($viewModel.products) { $item in
-                        DisclosureGroup(
-                            isExpanded: Binding(
-                                get: { true },
-                                set: { _ in }
-                            )
-                        ) {
-                            VStack(spacing: 8) {
-                                InvoiceRow(title: "Jumlah Produk", value: Binding(
-                                    get: { String($item.quantity.wrappedValue) },
-                                    set: { newValue in
-                                        $item.quantity.wrappedValue = Int(newValue) ?? 0
+                        VStack(alignment: .leading, spacing: 0) {
+                            // Collapsible Header
+                            Button(action: {
+                                withAnimation {
+                                    if expandedProducts.contains(item.id) {
+                                        expandedProducts.remove(item.id)
+                                    } else {
+                                        expandedProducts.insert(item.id)
                                     }
-                                ))
-                                InvoiceRow(title: "Harga (Rp)", value: Binding(
-                                    get: { "\($item.productPrice.wrappedValue)" },
-                                    set: { newValue in
-                                        $item.productPrice.wrappedValue = Decimal(string: newValue.filter("0123456789.".contains)) ?? 0
-                                    }
-                                ))
-                                InvoiceRow(title: "Diskon (Rp)", value: Binding(
-                                    get: { "\($item.discount.wrappedValue)" },
-                                    set: { newValue in
-                                        $item.discount.wrappedValue = Decimal(string: newValue.filter("0123456789.".contains)) ?? 0
-                                    }
-                                ))
+                                }
+                            }) {
                                 HStack {
-                                    Text("Jumlah (Rp) :")
-                                    Spacer()
-                                    Text("Rp \($item.wrappedValue.subtotalAfterDiscount.formatted())")
+                                    Text($item.productName.wrappedValue)
                                         .font(.body)
+                                        .fontWeight(.medium)
+                                        .foregroundColor(.primary)
+                                    
+                                    Spacer()
+                                    
+                                    Image(systemName: expandedProducts.contains(item.id) ? "chevron.up" : "chevron.down")
                                         .foregroundColor(.gray)
                                 }
+                                .padding()
+                                .background(Color(.systemGray6))
                             }
-                            .padding(.vertical, 8)
-                        } label: {
-                            Text($item.productName.wrappedValue)
-                                .font(.body)
+                            
+                            // Expanded Content
+                            if expandedProducts.contains(item.id) {
+                                VStack(alignment: .leading, spacing: 12) {
+                                    InvoiceRowField(label: "Jumlah Produk", value: Binding(
+                                        get: { String($item.quantity.wrappedValue) },
+                                        set: { newValue in
+                                            $item.quantity.wrappedValue = Int(newValue) ?? 0
+                                        }
+                                    ), keyboardType: .numberPad)
+                                    
+                                    InvoiceRowField(label: "Harga (Rp)", value: Binding(
+                                        get: { "\($item.productPrice.wrappedValue)" },
+                                        set: { newValue in
+                                            $item.productPrice.wrappedValue = Decimal(string: newValue.filter("0123456789.".contains)) ?? 0
+                                        }
+                                    ), keyboardType: .decimalPad)
+                                    
+                                    InvoiceRowField(label: "Diskon (Rp)", value: Binding(
+                                        get: { "\($item.discount.wrappedValue)" },
+                                        set: { newValue in
+                                            $item.discount.wrappedValue = Decimal(string: newValue.filter("0123456789.".contains)) ?? 0
+                                        }
+                                    ), keyboardType: .decimalPad)
+                                    
+                                    HStack {
+                                        Text("Jumlah (Rp) :")
+                                            .font(.subheadline)
+                                            .foregroundColor(.primary)
+                                        Spacer()
+                                        Text("Rp \($item.wrappedValue.subtotalAfterDiscount.formatted())")
+                                            .font(.body)
+                                            .fontWeight(.medium)
+                                            .foregroundColor(.primary)
+                                    }
+                                }
+                                .padding()
+                                .background(Color(.systemGray5))
+                            }
                         }
-                        .padding()
                         .background(Color(.systemGray6))
-                        .cornerRadius(8)
+                        .cornerRadius(12)
                     }
                 }
+                .padding()
+                .background(Color(.systemGray6))
+                .cornerRadius(12)
+                .padding(.horizontal)
 
-                GroupBox(label: Text("Rincian Biaya").font(.headline)) {
-                    InvoiceRow(title: "Subtotal", value: .constant("Rp \(viewModel.totalProductSubtotal.formatted())"))
-                    InvoiceRow(title: "Biaya Kirim", value: $viewModel.shippingCostText)
-                    InvoiceRow(title: "Total", value: .constant("Rp \(viewModel.totalAfterDiscount.formatted())"))
-
+                // MARK: - Rincian Biaya
+                InvoiceSectionHeader(title: "Rincian Biaya")
+                
+                VStack(alignment: .leading, spacing: 12) {
+                    HStack {
+                        Text("Subtotal :")
+                            .font(.subheadline)
+                        Spacer()
+                        Text("Rp \(viewModel.totalProductSubtotal.formatted())")
+                            .font(.body)
+                            .fontWeight(.medium)
+                    }
+                    
+                    InvoiceRowField(label: "Biaya Kirim", value: $viewModel.shippingCostText, keyboardType: .decimalPad)
+                    
+                    Divider()
+                    
+                    HStack {
+                        Text("Total :")
+                            .font(.headline)
+                        Spacer()
+                        Text("Rp \(viewModel.totalAfterDiscount.formatted())")
+                            .font(.headline)
+                            .fontWeight(.bold)
+                            .foregroundColor(.blue)
+                    }
+                    
                     HStack {
                         Text("Down Payment :")
+                            .font(.subheadline)
                         Spacer()
                         TextField("Rp 0,00", text: $viewModel.downPaymentText)
                             .disabled(!hasDownPayment)
                             .frame(width: 120)
                             .textFieldStyle(.roundedBorder)
+                            .keyboardType(.decimalPad)
                         Toggle("", isOn: $hasDownPayment)
                             .labelsHidden()
                     }
                 }
+                .padding()
 
-                GroupBox(label: Text("Rincian Tambahan").font(.headline)) {
-                    InvoiceRow(title: "Nama Penerima", value: $viewModel.receiverName)
-                    InvoiceRow(title: "No Telp Penerima", value: $viewModel.receiverPhone)
-                    InvoiceRow(title: "Alamat Kirim", value: $viewModel.shippingAddress)
+                // MARK: - Rincian Tambahan
+                InvoiceSectionHeader(title: "Rincian Tambahan")
+                
+                VStack(alignment: .leading, spacing: 12) {
+                    InvoiceRowField(label: "Nama Penerima", value: $viewModel.receiverName)
+                    InvoiceRowField(label: "No Telp Penerima", value: $viewModel.receiverPhone)
+                    InvoiceRowField(label: "Alamat Kirim", value: $viewModel.shippingAddress)
                 }
+                .padding()
 
-                GroupBox(label: Text("Jadwal Pesanan").font(.headline)) {
-                    InvoiceRow(title: "Tanggal Pesanan", value: $viewModel.orderDate)
-                    InvoiceRow(title: "Jam Kirim", value: $viewModel.deliveryTime)
+                // MARK: - Jadwal Pesanan
+                InvoiceSectionHeader(title: "Jadwal Pesanan")
+                
+                VStack(alignment: .leading, spacing: 12) {
+                    InvoiceRowField(label: "Tanggal Pesanan", value: $viewModel.orderDate)
+                    InvoiceRowField(label: "Jam Kirim", value: $viewModel.deliveryTime)
                 }
+                .padding()
 
-                GroupBox(label: Text("Lain - Lain").font(.headline)) {
-                    InvoiceRow(title: "Add-on", value: $viewModel.addOn)
-                    InvoiceRow(title: "Pengiriman", value: $viewModel.shippingOption)
-                    InvoiceRow(title: "Notes", value: $viewModel.notes)
+                // MARK: - Lain - Lain
+                InvoiceSectionHeader(title: "Lain - Lain")
+                
+                VStack(alignment: .leading, spacing: 12) {
+                    InvoiceRowField(label: "Add-on", value: $viewModel.addOn)
+                    InvoiceRowField(label: "Pengiriman", value: $viewModel.shippingOption)
+                    InvoiceRowField(label: "Notes", value: $viewModel.notes)
                 }
+                .padding()
 
+                // MARK: - Referensi Foto
                 if !viewModel.photoUrl1.isEmpty {
-                    VStack(alignment: .leading) {
-                        Text("Referensi Foto")
-                        AsyncImage(url: URL(string: supabasePublicUrl(for: viewModel.photoUrl1))) { image in
-                            image.resizable().aspectRatio(contentMode: .fill)
-                        } placeholder: {
-                            Color.gray.opacity(0.2)
-                        }
-                        .frame(height: 120)
-                        .cornerRadius(10)
+                    InvoiceSectionHeader(title: "Referensi Foto")
+                    
+                    AsyncImage(url: URL(string: viewModel.photoUrl1)) { image in
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                    } placeholder: {
+                        Color.gray.opacity(0.2)
                     }
+                    .frame(height: 200)
+                    .cornerRadius(12)
+                    .padding(.horizontal)
                 }
             }
-            .padding(.horizontal)
+            .padding(.vertical)
         }
         .navigationTitle("Rincian Invoice")
+        .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
@@ -169,9 +257,9 @@ struct ConfirmInvoiceView: View {
                     }
                 } label: {
                     Image(systemName: "arrow.right")
+                        .foregroundColor(.white)
                         .padding(8)
                         .background(Color.blue)
-                        .foregroundColor(.white)
                         .clipShape(Circle())
                 }
             }
@@ -187,53 +275,83 @@ struct ConfirmInvoiceView: View {
                 viewModel.downPaymentText = ""
             }
         }
-        .navigationDestination(isPresented: $viewModel.didSave) {
-            InvoicePreviewView(orderId: orderId)
-        }
-    }
-}
-
-// MARK: - UI Rows
-struct InvoiceRow: View {
-    let title: String
-    @Binding var value: String
-    var body: some View {
-        HStack {
-            Text("\(title) :")
-            Spacer()
-            TextField("", text: $value)
-                .frame(width: 140, alignment: .trailing)
-                .font(.body)
-                .multilineTextAlignment(.trailing)
-                .textFieldStyle(RoundedBorderTextFieldStyle())
-        }
-    }
-}
-
-struct InvoiceMultiRow: View {
-    let title: String
-    let value: String
-    var body: some View {
-        VStack(alignment: .leading) {
-            Text("\(title) :")
-            if !value.isEmpty {
-                Text(value)
-                    .font(.callout)
-                    .foregroundColor(.primary)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .padding(.top, 2)
+        .onChange(of: viewModel.didSave) { newValue in
+            if newValue {
+                path.append(OrderDestination.invoicePreview(orderId: orderId))
             }
         }
     }
 }
 
-#Preview {
-    let session = SessionManager()
-    session.isSignedIn = true
-    session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
+struct InvoiceSectionHeader: View {
+    let title: String
     
-    return NavigationStack {
-        ConfirmInvoiceView(orderId: "82536742-DDC4-481C-B63A-87400194D0AA")
-            .environmentObject(session)
+    var body: some View {
+        HStack {
+            Text(title)
+                .font(.title3)
+                .fontWeight(.bold)
+            Spacer()
+        }
+        .padding(.horizontal)
     }
 }
+
+struct InvoiceRowField: View {
+    let label: String
+    @Binding var value: String
+    var keyboardType: UIKeyboardType = .default
+    var hasError: Bool = false
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack(spacing: 12) {
+                Text("\(label) :")
+                    .frame(width: 140, alignment: .trailing)
+                    .font(.body)
+                    .foregroundColor(.primary)
+                
+                TextField("Silakan isi kolom", text: $value)
+                    .font(.body)
+                    .multilineTextAlignment(.leading)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .background(Color(.white))
+                    .cornerRadius(8)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(
+                                hasError ? Color.red : Color(.systemGray4),
+                                lineWidth: hasError ? 2 : 1
+                            )
+                    )
+                    .keyboardType(keyboardType)
+            }
+            
+            if hasError {
+                HStack {
+                    Spacer().frame(width: 140)
+                    Text("Field ini wajib diisi")
+                        .font(.caption)
+                        .foregroundStyle(.red)
+                        .padding(.leading, 12)
+                    Spacer()
+                }
+            }
+        }
+        .padding(.horizontal)
+    }
+}
+
+
+
+//#Preview {
+//    let session = SessionManager()
+//    session.isSignedIn = true
+//    session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
+//    
+//    return NavigationStack {
+//        ConfirmInvoiceView(orderId: "82536742-DDC4-481C-B63A-87400194D0AA")
+//            .environmentObject(session)
+//    }
+//}
