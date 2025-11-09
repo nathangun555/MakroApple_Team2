@@ -10,12 +10,14 @@ import PhotosUI
 import Foundation
 
 struct EditOrderView: View {
-    let parsedOrderData: [String: Any]
-
+    
+    @Binding var parsedOrderData: [String: Any]
+    
     @Binding var selectedImages: [UIImage?]
+    @Binding var path: NavigationPath
     @State private var viewModel = EditOrderViewModel()
     @State private var selectedItems: [PhotosPickerItem?] = [nil, nil, nil]
-    @State private var navigateToConfirm = false
+    
     @State private var lastOrderId: String = ""
 
     // Fokus untuk memindahkan caret ke field error
@@ -138,16 +140,15 @@ struct EditOrderView: View {
             }
         }
         .alert("Berhasil!", isPresented: $viewModel.didSave) {
-            Button("OK") { navigateToConfirm = true }
+            Button("OK") {
+                path.append(OrderDestination.confirmInvoice(orderId: lastOrderId))
+            }
         } message: {
             Text("Pesanan berhasil disimpan!")
         }
         .task {
             let unwrappedImages = selectedImages.compactMap { $0 }
             viewModel.configure(userId: session.userId, parsedOrderData: parsedOrderData, selectedPhotos: unwrappedImages)
-        }
-        .navigationDestination(isPresented: $navigateToConfirm) {
-            ConfirmInvoiceView(orderId: lastOrderId)
         }
     }
 
@@ -338,37 +339,37 @@ struct AddOnsSection: View {
     }
 }
 
-#Preview {
-    let session = SessionManager()
-    session.isSignedIn = true
-    session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
-    
-    let sampleData: [String: Any] = [
-        "Nama Pemesan": "Nadia Prameswari",
-        "No. Telp Pemesan": "0812-5566-2233",
-        "Nama Penerima": "Rafi Setiawan",
-        "No. Telp Penerima": "0813-7788-9922",
-        "Tanggal Pesanan": "20 Oktober 2025",
-        "Jam Kirim": "15.30 WIB",
-        "Alamat Kirim": "Jl. Dharmahusada Indah Barat No. 27",
-        "Pesanan": [
-            "[[{\"item\": \"Strawberry Fresh Cream Cake – ukuran 18 cm\", \"quantity\": 1}]]"
-        ],
-        "Adds-on": [
-            "[[{\"item\": \"Lilin angka \\\"30\\\"\", \"quantity\": 1}, {\"item\": \"pita dekorasi merah\", \"quantity\": 1}]]"
-        ],
-        "Notes": "Mohon kue dikirim dalam kondisi dingin"
-    ]
-    
-    let samplePhoto = UIImage(systemName: "photo.fill")!
-    @State var previewImages: [UIImage?] = [samplePhoto, samplePhoto, nil]
-
-    return NavigationStack {
-        EditOrderView(
-            parsedOrderData: sampleData,
-            selectedImages: $previewImages
-        )
-        .environmentObject(session)
-    }
-}
+//#Preview {
+//    let session = SessionManager()
+//    session.isSignedIn = true
+//    session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
+//    
+//    let sampleData: [String: Any] = [
+//        "Nama Pemesan": "Nadia Prameswari",
+//        "No. Telp Pemesan": "0812-5566-2233",
+//        "Nama Penerima": "Rafi Setiawan",
+//        "No. Telp Penerima": "0813-7788-9922",
+//        "Tanggal Pesanan": "20 Oktober 2025",
+//        "Jam Kirim": "15.30 WIB",
+//        "Alamat Kirim": "Jl. Dharmahusada Indah Barat No. 27",
+//        "Pesanan": [
+//            "[[{\"item\": \"Strawberry Fresh Cream Cake – ukuran 18 cm\", \"quantity\": 1}]]"
+//        ],
+//        "Adds-on": [
+//            "[[{\"item\": \"Lilin angka \\\"30\\\"\", \"quantity\": 1}, {\"item\": \"pita dekorasi merah\", \"quantity\": 1}]]"
+//        ],
+//        "Notes": "Mohon kue dikirim dalam kondisi dingin"
+//    ]
+//    
+//    let samplePhoto = UIImage(systemName: "photo.fill")!
+//    @State var previewImages: [UIImage?] = [samplePhoto, samplePhoto, nil]
+//
+//    return NavigationStack {
+//        EditOrderView(
+//            parsedOrderData: sampleData,
+//            selectedImages: $previewImages
+//        )
+//        .environmentObject(session)
+//    }
+//}
 

@@ -18,6 +18,7 @@ struct OrderDetailView: View {
     @State private var activeAlert: CustomAlertType?
     
     @State private var viewModel = AllOrdersViewModel()
+    @State private var invoiceViewModel = InvoicePreviewViewModel()
     @EnvironmentObject var session: SessionManager
     @State var order: OrderRecord
     let orderItem: [OrderItemRecord]
@@ -179,7 +180,6 @@ struct OrderDetailView: View {
                             
                             ForEach(orderItem) { item in
                                 
-                                // CHANGE THIS LATER WITH PRODUCT CATEGORY
                                 Text(item.productType)
                                     .bold()
                                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -230,24 +230,23 @@ struct OrderDetailView: View {
                                     Text("Nama Produk :")
                                     Text(order.addOn!)
                                         .frame(maxWidth: .infinity, alignment: .center)
-                                        .padding(4)
+                                        .padding(5)
                                         .lineLimit(10)
                                         .background(
                                             RoundedRectangle(cornerRadius: 10)
-                                                .stroke(Color.gray, lineWidth: 0.5) // stroke
+                                                .stroke(Color.gray, lineWidth: 0.5) 
                                                 .background(RoundedRectangle(cornerRadius: 30).fill(.secondary.opacity(0.1))) // fill
                                         )
                                     
                                     Text("Jumlah Produk :")
-                                    
                                     // CHANGE THIS WITH ADD ON AMOUNT
-                                    Text("3")
+                                    Text("1")
                                         .padding(.vertical, 3)
                                         .frame(maxWidth: .infinity)
                                         .background(
                                             RoundedRectangle(cornerRadius: 10)
-                                                .stroke(Color.gray, lineWidth: 0.5) // stroke
-                                                .background(RoundedRectangle(cornerRadius: 30).fill(.secondary.opacity(0.1))) // fill
+                                                .stroke(Color.gray, lineWidth: 0.5)
+                                                .background(RoundedRectangle(cornerRadius: 30).fill(.secondary.opacity(0.1)))
                                         )
                                     
                                 }
@@ -264,10 +263,33 @@ struct OrderDetailView: View {
                             .font(.title3)
                         
                         let photoURLs = [order.photoUrl1, order.photoUrl2, order.photoUrl3]
+                            .compactMap { $0 }
+                            .filter { !$0.isEmpty }
+                        
                         
                         HStack(spacing: 12) {
-                            ForEach(Array(photoURLs.enumerated()), id: \.offset) { index, url in
-                                if let url = url, !url.isEmpty {
+                            if photoURLs.isEmpty {
+                                // Show placeholder when there are no photos at all
+                                VStack {
+                                    Image(systemName: "photo.badge.exclamationmark.fill")
+                                        .font(.title)
+                                        .foregroundColor(.gray)
+                                    Text("No photos")
+                                        .font(.caption2)
+                                        .foregroundColor(.secondary)
+                                }
+                                .frame(width: 115, height: 115)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 10)
+                                        .strokeBorder(style: StrokeStyle(lineWidth: 0.5))
+                                        .foregroundStyle(Color.primary)
+                                        .background(.gray.opacity(0.1))
+                                        .cornerRadius(10)
+                                )
+                                
+                                
+                            } else {
+                                ForEach(photoURLs, id: \.self) { url in
                                     AsyncImage(url: URL(string: url)) { image in
                                         image
                                             .resizable()
@@ -279,23 +301,10 @@ struct OrderDetailView: View {
                                         ProgressView()
                                             .frame(width: 115, height: 115)
                                     }
-                                } else {
-                                    VStack {
-                                        Image(systemName: "photo.badge.exclamationmark.fill")
-                                            .font(.title)
-                                            .foregroundColor(.gray)
-                                    }
-                                    .frame(width: 115, height: 115)
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 10)
-                                            .strokeBorder(style: StrokeStyle(lineWidth: 0.5))
-                                            .foregroundStyle(Color.primary)
-                                            .background(.gray.opacity(0.1))
-                                            .cornerRadius(10)
-                                    )
                                 }
                             }
-                            
+
+                            Spacer()
                         }
                         
                         Text("Lain - Lain")
@@ -319,7 +328,7 @@ struct OrderDetailView: View {
                             Text("Notes :")
                             Text(order.notes!)
                                 .lineLimit(5)
-                                .padding(.vertical, 3)
+                                .padding(5)
                             
                                 .lineLimit(10)
                                 .frame(maxWidth: .infinity)
@@ -387,18 +396,41 @@ struct OrderDetailView: View {
                                 Spacer()
                                 
                                 
-                                Label("Bagikan Invoice", systemImage: "square.and.arrow.up")
-                                    .padding(10)
-                                    .frame(maxWidth: .infinity)
-                                    .background(.primaryButton)
-                                    .foregroundColor(Color.white)
-                                    .cornerRadius(30)
-                                    .padding()
+                                Button(action: {
+                                    guard let urlString = order.invoiceUrl,
+                                          let remoteURL = URL(string: urlString) else { return }
+
+                                    Task {
+                                        do {
+                                            let (data, _) = try await URLSession.shared.data(from: remoteURL)
+                                            let tempURL = FileManager.default.temporaryDirectory
+                                                .appendingPathComponent("invoice.pdf")
+                                            try data.write(to: tempURL)
+                                            
+                                            invoiceViewModel.shareInvoice(items: [tempURL]) { success in
+                                                print(success ? "✅ PDF shared" : "❌ Failed to share")
+                                            }
+                                        } catch {
+                                            print("❌ Failed to download PDF:", error)
+                                        }
+                                    }
+                                }) {
+                                    Label("Bagikan Invoice", systemImage: "square.and.arrow.up")
+                                        .padding(10)
+                                        .frame(maxWidth: .infinity)
+                                        .background(.primaryButton)
+                                        .foregroundColor(Color.white)
+                                        .cornerRadius(30)
+//                                        .padding()
+                                }
+
+
                                 
                                 
                                 Spacer()
                                 
                             }
+                            .padding(.horizontal)
                             .frame(maxWidth: .infinity)
                         }
                         
@@ -441,7 +473,7 @@ struct OrderDetailView: View {
                         .frame(maxWidth: .infinity)
                         .padding()
                         .foregroundColor(.white)
-                        .glassEffect(.clear.tint(.blue), in: .rect(cornerRadius: 30))
+                        .glassEffect(.clear.tint(.primaryButton), in: .rect(cornerRadius: 30))
                         .padding(.horizontal)
                 }
             }
@@ -608,10 +640,10 @@ struct OrderDetailView: View {
 //    let session = SessionManager()
 //    session.isSignedIn = true
 //    session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
-//    
+//
 //    // Create the view
 //    let view = AllOrdersView()
-//    
+//
 //    // Inject the environment object
 //    return view.environmentObject(session)
 //}

@@ -13,14 +13,18 @@ struct InvoicePreviewView: View {
     @Environment(\.dismiss) var dismiss
     
     let orderId: String?
+    @Binding var path: NavigationPath
     
     @State private var isSaving = false
     @State private var showSuccessAlert = false
     
     @State private var exportedPDFURL: URL?
-
+    
     
     var body: some View {
+        NavigationStack{
+            
+            
             ZStack {
                 if viewModel.isLoading {
                     ProgressView("Memuat invoice...")
@@ -49,13 +53,13 @@ struct InvoicePreviewView: View {
                         } else {
                             // 🔄 While PDF not generated yet, show loading or placeholder
                             ProgressView("Membuat preview invoice...")
-//                                .onAppear {
-//                                    if exportedPDFURL == nil {
-//                                        exportedPDFURL = exportAsPDF()
-//                                    }
-//                                }
+                            //                                .onAppear {
+                            //                                    if exportedPDFURL == nil {
+                            //                                        exportedPDFURL = exportAsPDF()
+                            //                                    }
+                            //                                }
                         }
-
+                        
                         if !viewModel.isPreviewMode {
                             VStack(spacing: 0) {
                                 Button {
@@ -85,32 +89,34 @@ struct InvoicePreviewView: View {
                             }
                         }
                     }
-
+                    
                 }
             }
             .navigationTitle(viewModel.isPreviewMode ? "Preview Invoice" : "Invoice")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                                            Button(action: {
-                                                viewModel.exportFormat = .pdf
-                                                sharePDF()
-                                            }) {
-                                                Image(systemName: "square.and.arrow.up")
-                                            }
+                    Button(action: {
+                        viewModel.exportFormat = .pdf
+                        if let pdfURL = exportedPDFURL {
+                            viewModel.shareInvoice(items: [pdfURL]) { success in
+                                print("✅ PDF shared")
+                            }
+                        }
+                    }) {
+                        Image(systemName: "square.and.arrow.up")
+                    }
                 }
             }
-        
-        .task {
-            viewModel.configure(userId: session.userId, orderId: orderId)
-            await viewModel.loadInvoiceData()
             
-            // ✅ Only generate the PDF after data is ready
-            if !viewModel.isLoading && exportedPDFURL == nil {
-                exportedPDFURL = exportAsPDF()
+            .task {
+                viewModel.configure(userId: session.userId, orderId: orderId)
+                await viewModel.loadInvoiceData()
+                
+                exportedPDFURL = viewModel.tempPDFURL()
             }
         }
-
+        
     }
     
     // MARK: - Save Invoice and Dismiss
@@ -132,7 +138,7 @@ struct InvoicePreviewView: View {
             let url = try await viewModel.saveAndUploadInvoice(pdfData: pdfData)
             print("✅ Invoice saved to: \(url)")
             
-            dismiss()
+            path = NavigationPath()
             
         } catch {
             viewModel.errorMessage = "Gagal menyimpan invoice: \(error.localizedDescription)"
@@ -140,76 +146,50 @@ struct InvoicePreviewView: View {
         }
     }
     
-    // MARK: - Export Functions
-//    func exportAndShare() {
-//        switch viewModel.exportFormat {
-//        case .pdf:
-//            exportAsPDF()
-////        case .image:
-////            exportAsImage()
-//        }
-//    }
     
-    
-    
-    func exportAsPDF() -> URL? {
-        let invoiceView = InvoiceContentView(viewModel: viewModel)
-            .padding(20)
-            .background(Color.white)
-            .frame(width: 595, height: 841)
-        
-        guard let pdfData = viewModel.exportAsPDF(view: invoiceView) else {
-            return nil
-        }
-        
-        let invoiceCode = viewModel.invoiceNumber.isEmpty ? "Invoice" : viewModel.invoiceNumber
-        let tempURL = FileManager.default.temporaryDirectory
-            .appendingPathComponent("\(invoiceCode.replacingOccurrences(of: "/", with: "_")).pdf")
-        
-        do {
-            try pdfData.write(to: tempURL)
-            return tempURL
-        } catch {
-            print("❌ Error saving PDF: \(error)")
-            return nil
-        }
-    }
-
-    
-    func sharePDF() {
-        if let pdfURL = exportAsPDF() {
-                    viewModel.shareInvoice(items: [pdfURL]) { success in
-                        if success {
-                            print("✅ PDF shared successfully")
-                        }
-                    }
-                } else {
-                    print("❌ Failed to generate PDF for sharing")
-                }
-    }
-
-//    func exportAsImage() {
+//    func exportAsPDF() -> URL? {
 //        let invoiceView = InvoiceContentView(viewModel: viewModel)
 //            .padding(20)
 //            .background(Color.white)
-//            .frame(width: 595)
+//            .frame(width: 595, height: 841)
 //        
-//        if let image = viewModel.exportAsImage(view: invoiceView) {
-//            viewModel.shareInvoice(items: [image]) { success in
+//        guard let pdfData = viewModel.exportAsPDF(view: invoiceView) else {
+//            return nil
+//        }
+//        
+//        let invoiceCode = viewModel.invoiceNumber.isEmpty ? "Invoice" : viewModel.invoiceNumber
+//        let tempURL = FileManager.default.temporaryDirectory
+//            .appendingPathComponent("\(invoiceCode.replacingOccurrences(of: "/", with: "_")).pdf")
+//        
+//        do {
+//            try pdfData.write(to: tempURL)
+//            return tempURL
+//        } catch {
+//            print("❌ Error saving PDF: \(error)")
+//            return nil
+//        }
+//    }
+    
+    
+//    func sharePDF() {
+//        if let pdfURL = exportAsPDF() {
+//            viewModel.shareInvoice(items: [pdfURL]) { success in
 //                if success {
-//                    print("✅ Image shared successfully")
+//                    print("✅ PDF shared successfully")
 //                }
 //            }
+//        } else {
+//            print("❌ Failed to generate PDF for sharing")
 //        }
 //    }
     
 }
 
-#Preview {
-    let session = SessionManager()
-    session.isSignedIn = true
-    session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
-    
-    return InvoicePreviewView(orderId: "82536742-DDC4-481C-B63A-87400194D0AA")
-        .environmentObject(session)
-}
+//#Preview {
+//    let session = SessionManager()
+//    session.isSignedIn = true
+//    session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
+//    
+//    return InvoicePreviewView(orderId: "82536742-DDC4-481C-B63A-87400194D0AA")
+//        .environmentObject(session)
+//}

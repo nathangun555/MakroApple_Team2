@@ -74,7 +74,9 @@ struct OrderCard: View {
             }
             .padding()
         }
-        
+        .onAppear{
+            
+        }
         .background(
             LinearGradient(
                 gradient: Gradient(colors: [Color.white.opacity(0.15),  (statusColors[order.status] ?? .gray).opacity(0.15)]),
