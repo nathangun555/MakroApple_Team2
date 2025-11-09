@@ -6,8 +6,8 @@
 //
 
 import SwiftUI
-import Foundation
 import PhotosUI
+import Foundation
 
 struct EditOrderView: View {
     
@@ -19,58 +19,89 @@ struct EditOrderView: View {
     @State private var selectedItems: [PhotosPickerItem?] = [nil, nil, nil]
     
     @State private var lastOrderId: String = ""
-    
+
+    // Fokus untuk memindahkan caret ke field error
+    @FocusState private var focusedField: String?
+    // Simpan id error pertama untuk trigger scroll
+    @State private var firstErrorId: String?
+
     @EnvironmentObject var session: SessionManager
+    @EnvironmentObject var deleteBus: DeleteOverlayBus
     @Environment(\.dismiss) var dismiss
-    
+
     var body: some View {
         ZStack {
             if viewModel.isLoading {
                 ProgressView("Menyimpan pesanan...")
             } else {
-                ScrollView {
-                    VStack(spacing: 24) {
-                        OrderFormSection(
-                            title: "Rincian Pelanggan",
-                            fields: $viewModel.customerFields,
-                            sectionType: "customer",  // ✅
-                            fieldErrors: viewModel.fieldErrors  // ✅
-                        )
-                        
-                        OrderFormSection(
-                            title: "Jadwal Pesanan",
-                            fields: $viewModel.scheduleFields,
-                            sectionType: "schedule",  // ✅
-                            fieldErrors: viewModel.fieldErrors  // ✅
-                        )
-                        
-                        ProductsSection(
-                            products: $viewModel.products,
-                            onAdd: { viewModel.addProduct() },
-                            onDelete: { index in viewModel.deleteProduct(at: index) },
-                            fieldErrors: viewModel.fieldErrors  // ✅
-                        )
-                        
-                        AddOnsSection(
-                            addOns: $viewModel.addOns,
-                            onAdd: { viewModel.addAddOn() },
-                            onDelete: { index in viewModel.deleteAddOn(at: index) }
-                        )
-                        
-                        PhotoSection(
-                            selectedItems: $selectedItems,
-                            selectedImages: $selectedImages
-                        )
-                        .padding(.horizontal)
-                        
-                        OrderFormSection(
-                            title: "Lain - Lain",
-                            fields: $viewModel.otherFields,
-                            sectionType: "other",  // ✅
-                            fieldErrors: viewModel.fieldErrors  // ✅
-                        )
+                ScrollViewReader { proxy in
+                    ScrollView {
+                        VStack(spacing: 24) {
+                            // Rincian Pelanggan
+                            OrderFormSection(
+                                title: "Rincian Pelanggan",
+                                fields: $viewModel.customerFields,
+                                sectionType: "customer",
+                                fieldErrors: viewModel.fieldErrors
+                            )
+                            // Jadwal
+                            OrderFormSection(
+                                title: "Jadwal Pesanan",
+                                fields: $viewModel.scheduleFields,
+                                sectionType: "schedule",
+                                fieldErrors: viewModel.fieldErrors
+                            )
+                            // Produk
+                            ProductsSection(
+                                products: $viewModel.products,
+                                onAdd: { viewModel.addProduct() },
+                                onDelete: { index in
+                                    deleteBus.request { viewModel.deleteProduct(at: index) }
+                                },
+                                fieldErrors: viewModel.fieldErrors
+                            )
+                            // Adds On
+                            AddOnsSection(
+                                addOns: $viewModel.addOns,
+                                onAdd: { viewModel.addAddOn() },
+                                onDelete: { index in
+                                    deleteBus.request { viewModel.deleteAddOn(at: index) }
+                                }
+                            )
+                            // Foto
+                            PhotoSection(
+                                selectedItems: $selectedItems,
+                                selectedImages: $selectedImages
+                            )
+                            .padding(.horizontal)
+                            // Lain-lain
+                            OrderFormSection(
+                                title: "Lain - Lain",
+                                fields: $viewModel.otherFields,
+                                sectionType: "other",
+                                fieldErrors: viewModel.fieldErrors
+                            )
+                        }
+                        .padding(.vertical)
                     }
-                    .padding(.vertical)
+                    // Ketika set error berubah, scroll ke error pertama dan fokuskan
+                    .onChange(of: viewModel.fieldErrors) { _, newErrors in
+                        if let first = firstErrorKey(from: newErrors) {
+                            withAnimation(.easeInOut) {
+                                proxy.scrollTo(first, anchor: .center)
+                                focusedField = first
+                            }
+                        }
+                    }
+                    // Jika firstErrorId di-set manual saat tap Next, lakukan scroll
+                    .onChange(of: firstErrorId) { _, newVal in
+                        if let id = newVal {
+                            withAnimation(.easeInOut) {
+                                proxy.scrollTo(id, anchor: .center)
+                                focusedField = id
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -78,13 +109,10 @@ struct EditOrderView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .principal) {
-                    Text("Tinjauan Pesanan")
-                        .font(.title2.bold())
-                }
-            
+                Text("Tinjauan Pesanan").font(.title2.bold())
+            }
             ToolbarItem(placement: .topBarTrailing) {
-                Button(action: {
-                    // ✅ Validate dulu sebelum save
+                Button {
                     if viewModel.validateAllFields() {
                         Task {
                             let order = await viewModel.saveOrder(photos: selectedImages.compactMap { $0 })
@@ -93,9 +121,11 @@ struct EditOrderView: View {
                                 viewModel.didSave = true
                             }
                         }
+                    } else {
+                        // set id error pertama untuk memicu scroll
+                        firstErrorId = firstErrorKey(from: viewModel.fieldErrors)
                     }
-                    // Kalau validation gagal, error akan muncul di UI
-                }) {
+                } label: {
                     if viewModel.isLoading || viewModel.isUploadingPhotos {
                         ProgressView()
                     } else {
@@ -109,7 +139,6 @@ struct EditOrderView: View {
                 .disabled(viewModel.isLoading)
             }
         }
-
         .alert("Berhasil!", isPresented: $viewModel.didSave) {
             Button("OK") {
                 path.append(OrderDestination.confirmInvoice(orderId: lastOrderId))
@@ -122,7 +151,19 @@ struct EditOrderView: View {
             viewModel.configure(userId: session.userId, parsedOrderData: parsedOrderData, selectedPhotos: unwrappedImages)
         }
     }
+
+    // Urutkan prioritas: customer -> schedule -> product -> other
+    private func firstErrorKey(from errors: Set<String>) -> String? {
+        let sections = ["customer", "schedule", "product", "other"]
+        for section in sections {
+            if let match = errors.sorted().first(where: { $0.hasPrefix(section + "-") }) {
+                return match
+            }
+        }
+        return errors.sorted().first
+    }
 }
+
 
 // MARK: - Products Section
 struct ProductsSection: View {
@@ -130,150 +171,16 @@ struct ProductsSection: View {
     let onAdd: () -> Void
     let onDelete: (Int) -> Void
     let fieldErrors: Set<String>
-    
-    @State private var showDeleteAlert = false
-    @State private var deleteIndex: Int? = nil
-    
-    var body: some View {
-        ZStack {  // ✅ TAMBAH ZStack wrapper
-            // Main content
-            VStack(alignment: .leading, spacing: 16) {
-                HStack {
-                    Text("Rincian Pesanan")
-                        .font(.title3)
-                        .fontWeight(.bold)
-                    
-                    Spacer()
-                    
-                    Button(action: onAdd) {
-                        Image(systemName: "plus.circle.fill")
-                            .font(.title2)
-                            .foregroundColor(.blue)
-                    }
-                }
-                .padding(.horizontal)
-                
-                ForEach(Array(products.enumerated()), id: \.offset) { index, product in
-                    VStack(alignment: .leading, spacing: 12) {
-                        HStack {
-                            Text(product.category.isEmpty ? "Kategori Produk" : product.category)
-                                .font(.headline)
-                                .foregroundColor(product.category.isEmpty ? .secondary : .primary)
-                            
-                            Spacer()
-                            
-                            if products.count > 1 {
-                                Button(action: {
-                                    deleteIndex = index
-                                    showDeleteAlert = true
-                                }) {
-                                    Image(systemName: "trash")
-                                        .foregroundColor(.red)
-                                }
-                            }
-                        }
-                        
-                        // ... rest of fields (nama produk, jumlah)
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("Nama Produk :")
-                                .font(.subheadline)
-                                .foregroundColor(.primary)
-                            
-                            TextField("Nama Produk", text: Binding(
-                                get: { products[index].name },
-                                set: { products[index].name = $0 }
-                            ))
-                            .textFieldStyle(.roundedBorder)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 6)
-                                    .stroke(
-                                        fieldErrors.contains("product-\(index)-name") ? Color.red : Color.clear,
-                                        lineWidth: fieldErrors.contains("product-\(index)-name") ? 2 : 0
-                                    )
-                            )
-                            
-                            if fieldErrors.contains("product-\(index)-name") {
-                                Text("Nama produk wajib diisi")
-                                    .font(.caption)
-                                    .foregroundStyle(.red)
-                            }
-                        }
-                        
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("Jumlah Produk :")
-                                .font(.subheadline)
-                                .foregroundColor(.primary)
-                            
-                            TextField("0", text: Binding(
-                                get: { String(products[index].quantity) },
-                                set: { products[index].quantity = Int($0) ?? 0 }
-                            ))
-                            .textFieldStyle(.roundedBorder)
-                            .keyboardType(.numberPad)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 6)
-                                    .stroke(
-                                        fieldErrors.contains("product-\(index)-quantity") ? Color.red : Color.clear,
-                                        lineWidth: fieldErrors.contains("product-\(index)-quantity") ? 2 : 0
-                                    )
-                            )
-                            
-                            if fieldErrors.contains("product-\(index)-quantity") {
-                                Text("Jumlah harus lebih dari 0")
-                                    .font(.caption)
-                                    .foregroundStyle(.red)
-                            }
-                        }
-                    }
-                    .padding()
-                    .background(Color(.systemGray6))
-                    .cornerRadius(12)
-                    .padding(.horizontal)
-                }
-            }
-            
-            // ✅ Custom Delete Alert - overlay di atas semua
-            if showDeleteAlert {
-                CustomDeleteAlertComponent(
-                    title: "Hapus",
-                    message: "Apakah Anda yakin ingin menghapus bagian ini?",
-                    cancelTitle: "Tidak",
-                    confirmTitle: "Ya"
-                ) {
-                    showDeleteAlert = false
-                    deleteIndex = nil
-                } onConfirm: {
-                    if let index = deleteIndex {
-                        onDelete(index)
-                    }
-                    showDeleteAlert = false
-                    deleteIndex = nil
-                }
-                .zIndex(999)
-                .transition(.opacity.combined(with: .scale))
-                .animation(.spring(response: 0.3, dampingFraction: 0.8), value: showDeleteAlert)
-            }
-        }
-    }
-}
 
+    @FocusState private var focusedField: String?
 
-
-// MARK: - Add-Ons Section
-struct AddOnsSection: View {
-    @Binding var addOns: [AddOnItem]
-    let onAdd: () -> Void
-    let onDelete: (Int) -> Void
-    
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
-                Text("Adds On")
+                Text("Rincian Pesanan")
                     .font(.title3)
                     .fontWeight(.bold)
-                
                 Spacer()
-                
                 Button(action: onAdd) {
                     Image(systemName: "plus.circle.fill")
                         .font(.title2)
@@ -281,40 +188,140 @@ struct AddOnsSection: View {
                 }
             }
             .padding(.horizontal)
-            
+
+            ForEach(Array(products.enumerated()), id: \.offset) { index, product in
+                VStack(alignment: .leading, spacing: 12) {
+                    HStack {
+                        Text(product.category.isEmpty ? "Kategori Produk" : product.category)
+                            .font(.headline)
+                            .foregroundColor(product.category.isEmpty ? .secondary : .primary)
+                        Spacer()
+                        if products.count > 1 {
+                            Button { onDelete(index) } label: {
+                                Image(systemName: "trash").foregroundColor(.red)
+                            }
+                        }
+                    }
+
+                    let nameKey = "product-\(index)-name"
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Nama Produk :")
+                            .font(.subheadline)
+                            .foregroundColor(.primary)
+
+                        TextField("Nama Produk", text: Binding(
+                            get: { products[index].name },
+                            set: { products[index].name = $0 }
+                        ))
+                        .focused($focusedField, equals: nameKey)
+                        .textFieldStyle(.roundedBorder)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 6)
+                                .stroke(
+                                    fieldErrors.contains(nameKey) ? Color.red : Color.clear,
+                                    lineWidth: fieldErrors.contains(nameKey) ? 2 : 0
+                                )
+                        )
+
+                        if fieldErrors.contains(nameKey) {
+                            Text("Nama produk wajib diisi")
+                                .font(.caption)
+                                .foregroundStyle(.red)
+                        }
+                    }
+                    .id(nameKey)
+
+                    let qtyKey = "product-\(index)-quantity"
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Jumlah Produk :")
+                            .font(.subheadline)
+                            .foregroundColor(.primary)
+
+                        TextField("0", text: Binding(
+                            get: { String(products[index].quantity) },
+                            set: { products[index].quantity = Int($0) ?? 0 }
+                        ))
+                        .focused($focusedField, equals: qtyKey)
+                        .textFieldStyle(.roundedBorder)
+                        .keyboardType(.numberPad)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 6)
+                                .stroke(
+                                    fieldErrors.contains(qtyKey) ? Color.red : Color.clear,
+                                    lineWidth: fieldErrors.contains(qtyKey) ? 2 : 0
+                                )
+                        )
+
+                        if fieldErrors.contains(qtyKey) {
+                            Text("Jumlah harus lebih dari 0")
+                                .font(.caption)
+                                .foregroundStyle(.red)
+                        }
+                    }
+                    .id(qtyKey)
+                }
+                .padding()
+                .background(Color(.systemGray6))
+                .cornerRadius(12)
+                .padding(.horizontal)
+            }
+        }
+    }
+}
+
+
+// MARK: - Add-Ons Section
+struct AddOnsSection: View {
+    @Binding var addOns: [AddOnItem]
+    let onAdd: () -> Void
+    let onDelete: (Int) -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack {
+                Text("Adds On")
+                    .font(.title3)
+                    .fontWeight(.bold)
+                Spacer()
+                Button(action: onAdd) {
+                    Image(systemName: "plus.circle.fill")
+                        .font(.title2)
+                        .foregroundColor(.blue)
+                }
+            }
+            .padding(.horizontal)
+
             ForEach(Array(addOns.enumerated()), id: \.offset) { index, addOn in
                 VStack(alignment: .leading, spacing: 12) {
                     HStack {
                         Text("Adds On")
                             .font(.headline)
-                        
                         Spacer()
-                        
                         if addOns.count > 1 {
-                            Button(action: { onDelete(index) }) {
+                            Button { onDelete(index) } label: {
                                 Image(systemName: "trash")
                                     .foregroundColor(.red)
                             }
                         }
                     }
-                    
+
                     VStack(alignment: .leading, spacing: 4) {
                         Text("Nama Produk :")
                             .font(.subheadline)
                             .foregroundColor(.primary)
-                        
+
                         TextField("Nama Produk", text: Binding(
                             get: { addOns[index].name },
                             set: { addOns[index].name = $0 }
                         ))
                         .textFieldStyle(.roundedBorder)
                     }
-                    
+
                     VStack(alignment: .leading, spacing: 4) {
                         Text("Jumlah Produk :")
                             .font(.subheadline)
                             .foregroundColor(.primary)
-                        
+
                         TextField("0", text: Binding(
                             get: { String(addOns[index].quantity) },
                             set: { addOns[index].quantity = Int($0) ?? 0 }
