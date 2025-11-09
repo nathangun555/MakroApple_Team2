@@ -47,34 +47,59 @@ import Supabase
 //        }
 //    }
 //}
-
 struct MainTabView: View {
     @Binding var selectedTab: Int
     @Binding var sharedText: String
     @Binding var hasNewObject: Bool
     @Binding var sharedImages: [UIImage]
 
+    @EnvironmentObject var deleteBus: DeleteOverlayBus
+
     var body: some View {
-        TabView(selection: $selectedTab) {
-            Tab("Pesanan", systemImage: "basket.fill", value: 0) {
-                AllOrdersView(sharedImages :$sharedImages, sharedText: $sharedText, hasNewObject: $hasNewObject)
-            }
-            Tab("Jadwal", systemImage: "tray.full", value: 1) {
-                ActiveOrdersView()
-            }
-            Tab("Analitik", systemImage: "chart.bar", value: 2) {
-                AnalyticsView()
-            }
-            Tab("Pengaturan", systemImage: "gearshape", value: 3) {
-                SettingsView()
-            }
-            if selectedTab == 0 || selectedTab == 4 {
-                Tab("Cari Nama atau Pesanan", systemImage: "magnifyingglass", value: 4, role: .search) {
-                    AllOrdersView(sharedImages :$sharedImages, sharedText: $sharedText, hasNewObject: $hasNewObject)
+        ZStack {
+            TabView(selection: $selectedTab) {
+                Tab("Pesanan", systemImage: "basket.fill", value: 0) {
+                    AllOrdersView(sharedImages: $sharedImages,
+                                  sharedText: $sharedText,
+                                  hasNewObject: $hasNewObject)
+                }
+                Tab("Jadwal", systemImage: "tray.full", value: 1) {
+                    ActiveOrdersView()
+                }
+                Tab("Analitik", systemImage: "chart.bar", value: 2) {
+                    AnalyticsView()
+                }
+                Tab("Pengaturan", systemImage: "gearshape", value: 3) {
+                    SettingsView()
+                }
+                if selectedTab == 0 || selectedTab == 4 {
+                    Tab("Cari Nama atau Pesanan", systemImage: "magnifyingglass", value: 4, role: .search) {
+                        AllOrdersView(sharedImages: $sharedImages,
+                                      sharedText: $sharedText,
+                                      hasNewObject: $hasNewObject)
+                    }
                 }
             }
+            .disabled(deleteBus.show)
+
+            if deleteBus.show {
+                CustomDeleteAlertComponent(
+                    title: "Hapus",
+                    message: deleteBus.message,
+                    cancelTitle: "Tidak",
+                    confirmTitle: "Ya",
+                    onCancel: { deleteBus.closeConfirm(false) },
+                    onConfirm: { deleteBus.closeConfirm(true) }
+                )
+                .transition(.scale.combined(with: .opacity))
+                .zIndex(999)
+                .ignoresSafeArea()
+            }
         }
-        
+    }
+}
+
+
         
         
 //        NavigationStack {
@@ -120,8 +145,8 @@ struct MainTabView: View {
 ////                    .navigationBarBackButtonHidden(false)
 ////            }
 //        }
-    }
-}
+//    }
+//}
 //
 //#Preview {
 //    ContentView()

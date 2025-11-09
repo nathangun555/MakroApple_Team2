@@ -6,13 +6,13 @@
 //
 
 import SwiftUI
+import Combine
 
 @main
 struct MakroApple_Team2App: App {
     @StateObject var session = SessionManager()
+    @StateObject var deleteBus = DeleteOverlayBus()
     @State private var selectedTab: Int = 1
-    
-    
     @State private var sharedText: String = ""
     @State private var sharedImages: [UIImage] = []
     @State private var hasNewObject = false
@@ -24,6 +24,7 @@ struct MakroApple_Team2App: App {
             
             MainTabView(selectedTab: $selectedTab, sharedText: $sharedText,hasNewObject: $hasNewObject, sharedImages : $sharedImages)
                 .environmentObject(session)
+                .environmentObject(deleteBus)
                 .onAppear {
                     
                     if let defaults = UserDefaults(suiteName: "group.com.please.shared") {

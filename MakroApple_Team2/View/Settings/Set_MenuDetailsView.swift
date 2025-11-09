@@ -20,7 +20,6 @@ struct Set_MenuDetailsView: View {
     @State private var itemToDelete: (type: DeleteType, sIndex: Int, pIndex: Int?)? = nil
     
     enum DeleteType { case category, product }
-    
     var body: some View {
         ZStack {
             NavigationStack {
