@@ -15,9 +15,9 @@ struct NewOrderView: View {
     @State private var formPesanan = ""
     
     @State private var selectedItems: [PhotosPickerItem?] = [nil]
-    @State private var selectedImages: [UIImage?] = [nil]
+    @Binding var selectedImages: [UIImage?]
+    @Binding var parsedOrderData: [String : Any]
     @State private var savedImagePaths: [URL?] = [nil]
-    
     @State private var isLoading = false
     @State private var resultJSON: String? = nil
     @State private var errorMessage: String? = nil
@@ -186,7 +186,7 @@ struct NewOrderView: View {
 //    let session = SessionManager()
 //    session.isSignedIn = true
 //    session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
-//    
+//
 //    return NewOrderView(sharedText: .constant(""), sharedImages: .constant([]))
 //        .environmentObject(session)
 //}

@@ -19,7 +19,7 @@ struct AllOrdersView: View {
     @State var showTutorial = false
     
     @State private var parsedOrderData: [String: Any] = [:]
-    @State private var selectedImages: [UIImage?] = [nil, nil, nil]
+    @State private var selectedImages: [UIImage?] = [nil]
     
     // 🧠 These caches temporarily store data per navigation ID
     @State private var orderDataCache: [UUID: [String: Any]] = [:]
@@ -203,10 +203,10 @@ enum OrderDestination: Hashable {
 //    let session = SessionManager()
 //    session.isSignedIn = true
 //    session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
-//    
+//
 //    // Create the view
 //    let view = AllOrdersView(sharedText: .constant(""))
-//    
+//
 //    // Inject the environment object
 //    view.environmentObject(session)
 //}

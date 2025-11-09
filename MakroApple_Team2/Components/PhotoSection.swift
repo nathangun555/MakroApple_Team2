@@ -11,7 +11,6 @@ import PhotosUI
 struct PhotoSection: View {
     @Binding var selectedItems: [PhotosPickerItem?]
     @Binding var selectedImages: [UIImage?]
-    
     private let maxPhotos = 3
     
     var body: some View {
@@ -45,14 +44,19 @@ struct PhotoSection: View {
                         } else {
                             PhotosPicker(
                                 selection: Binding(
-                                    get: { selectedItems[index] },
+                                    get: { index < selectedItems.count ? selectedItems[index] : nil },
                                     set: { newValue in
-                                        selectedItems[index] = newValue
+                                        if index < selectedItems.count {
+                                            selectedItems[index] = newValue
+                                        } else {
+                                            selectedItems.append(newValue)
+                                        }
                                         Task { await loadImage(for: index) }
                                     }
                                 ),
                                 matching: .images
-                            ) {
+                            )
+                            {
                                 VStack {
                                     Image(systemName: "photo.badge.plus")
                                         .font(.title)
@@ -98,26 +102,22 @@ struct PhotoSection: View {
         let realItems = selectedItems.enumerated().compactMap { index, item in
             selectedImages[index] != nil ? item : nil
         }
-
+        
         // Convert back to optional arrays
         selectedImages = realPhotos
         selectedItems = realItems
-
+        
         // Ensure there is exactly one empty slot at the end if max not reached
         if selectedImages.count < maxPhotos {
             selectedImages.append(nil)
             selectedItems.append(nil)
         }
-
+        
         // If all deleted, ensure only one slot remains
         if selectedImages.isEmpty {
             selectedImages = [nil]
             selectedItems = [nil]
         }
     }
-
-
-
-
-
 }
+

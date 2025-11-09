@@ -66,9 +66,9 @@ struct MainTabView: View {
                 Tab("Jadwal", systemImage: "tray.full", value: 1) {
                     ActiveOrdersView()
                 }
-                Tab("Analitik", systemImage: "chart.bar", value: 2) {
-                    AnalyticsView()
-                }
+//                Tab("Analitik", systemImage: "chart.bar", value: 2) {
+//                    AnalyticsView()
+//                }
                 Tab("Pengaturan", systemImage: "gearshape", value: 3) {
                     SettingsView()
                 }
