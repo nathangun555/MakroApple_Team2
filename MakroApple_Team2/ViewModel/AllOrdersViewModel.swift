@@ -170,8 +170,8 @@ class AllOrdersViewModel {
         defer { isCheckingTemplates = false }
         
         do {
-            let template = try await SupabaseManager.shared.fetchFormTemplate(by: userId)
-            hasTemplates = template != nil
+            let template = try await SupabaseManager.shared.fetchUser(by: userId)
+            hasTemplates = (template?.templateFormat != nil)
             print(hasTemplates ? "✅ User has templates" : "⚠️ User has no templates")
         } catch {
             print("❌ Error checking templates: \(error)")

@@ -12,7 +12,7 @@ import Combine
 struct MakroApple_Team2App: App {
     @StateObject var session = SessionManager()
     @StateObject var deleteBus = DeleteOverlayBus()
-    @State private var selectedTab: Int = 1
+    @State private var selectedTab: Int = 0
     @State private var sharedText: String = ""
     @State private var sharedImages: [UIImage] = []
     @State private var hasNewObject = false

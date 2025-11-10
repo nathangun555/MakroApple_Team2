@@ -309,14 +309,6 @@ struct InvoiceContentView: View {
                     .font(.system(size: 10))
                     .underline()
             }
-            
-            HStack {
-                Text("Jam Kirim :")
-                    .font(.system(size: 10))
-                Text(viewModel.deliveryTime.isEmpty ? "" : viewModel.deliveryTime)
-                    .font(.system(size: 10))
-                    .underline()
-            }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }

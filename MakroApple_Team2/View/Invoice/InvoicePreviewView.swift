@@ -22,9 +22,6 @@ struct InvoicePreviewView: View {
     
     
     var body: some View {
-        NavigationStack{
-            
-            
             ZStack {
                 if viewModel.isLoading {
                     ProgressView("Memuat invoice...")
@@ -87,6 +84,21 @@ struct InvoicePreviewView: View {
                                 }
                                 .disabled(isSaving)
                             }
+                        } else {
+                            VStack(spacing: 0) {
+                                Button {
+                                    path = NavigationPath()
+                                } label: {
+                                    Text("Konfirmasi")
+                                        .frame(maxWidth: .infinity)
+                                        .bold()
+                                        .padding()
+                                        .foregroundColor(.white)
+                                        .glassEffect(.clear.tint(.primaryButton), in: .rect(cornerRadius: 30))
+                                        .padding(.horizontal)
+                                        .padding(.bottom)
+                                }
+                            }
                         }
                     }
                     
@@ -115,7 +127,7 @@ struct InvoicePreviewView: View {
                 
                 exportedPDFURL = viewModel.tempPDFURL()
             }
-        }
+        
         
     }
     
