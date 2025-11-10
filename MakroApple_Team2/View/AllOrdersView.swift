@@ -11,6 +11,7 @@ struct AllOrdersView: View {
     @State private var searchText = ""
     @State private var path = NavigationPath()
     @State var activeTab: TabModel = .belumBayar
+    @State private var showSearchBar = false
     
     @Binding var sharedImages: [UIImage]
     @Binding var sharedText: String
@@ -53,7 +54,7 @@ struct AllOrdersView: View {
     }
 
     var body: some View {
-//        NavigationStack(path: $path) {
+        NavigationStack(path: $path) {
             VStack {
                 // 🏷️ Header
                 HStack {
@@ -171,7 +172,7 @@ struct AllOrdersView: View {
                     InputBusinessDetailsView(path: $path)
                 }
             }
-//        }
+        }
         .searchable(text: $searchText, prompt: "Cari Nama Pelanggan")
     }
     

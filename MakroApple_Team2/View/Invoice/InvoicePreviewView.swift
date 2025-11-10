@@ -121,13 +121,11 @@ struct InvoicePreviewView: View {
                             }
                         }) {
                             Image(systemName: "square.and.arrow.up")
+                                .font(.title3)
+                                .foregroundColor(.white)
                         }
-                    }) {
-                        Image(systemName: "square.and.arrow.up")
-                            .font(.title3)
-                            .foregroundColor(.white)
+                        .buttonStyle(.glassProminent)
                     }
-                    .buttonStyle(.glassProminent)
                 }
             }
             

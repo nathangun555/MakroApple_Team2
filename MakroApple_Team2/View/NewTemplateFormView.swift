@@ -7,7 +7,7 @@ struct NewTemplateFormView: View {
     @State private var viewModel = NewTemplateViewModel()
     @EnvironmentObject var session: SessionManager
     @Binding var path: NavigationPath
-    @State private var keyboardVisible = false
+    @FocusState private var isTextEditorFocused: Bool
     
     var body: some View {
         GeometryReader { geometry in
@@ -38,6 +38,7 @@ struct NewTemplateFormView: View {
                         TextEditor(text: $formPesanan)
                             .padding(3)
                             .frame(height: geometry.size.height / 3)
+                            .focused($isTextEditorFocused)
                             .cornerRadius(10)
                             .overlay(
                                 RoundedRectangle(cornerRadius: 10)
@@ -45,7 +46,7 @@ struct NewTemplateFormView: View {
                             )
                             .overlay(
                                 Group {
-                                    if formPesanan.isEmpty && !keyboardVisible {
+                                    if formPesanan.isEmpty && !isTextEditorFocused {
                                         Text("""
                                     Paste or write your Form Order here ✨(e.g. for your F&B or custom order form)
 
@@ -131,12 +132,6 @@ struct NewTemplateFormView: View {
         }
         .task {
             viewModel.configure(userId: session.userId)
-        }
-        .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { _ in
-            withAnimation(.easeOut(duration: 0.12)) { keyboardVisible = true }
-        }
-        .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)) { _ in
-            withAnimation(.easeOut(duration: 0.12)) { keyboardVisible = false }
         }
     }
 }
