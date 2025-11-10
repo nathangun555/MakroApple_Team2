@@ -26,7 +26,8 @@ final class Set_MenuDetailsViewModel: ObservableObject {
     @Published var isLoading = false
     @Published var errorMessage: String?
     @Published var hasPendingChanges = false
-    @Published var validationErrors: Set<String> = [] // ✅ untuk tracking field error
+    // UUID-based keys, e.g. "<productID>-name", "<productID>-price", "<sectionID>-cat"
+    @Published var validationErrors: Set<String> = []
     @Published var isLoadedFromScan: Bool = false
 
     private(set) var userId: String?
@@ -74,35 +75,34 @@ final class Set_MenuDetailsViewModel: ObservableObject {
         }
     }
 
-    // MARK: - Validasi
-    func validate() -> [(sectionIndex: Int, productIndex: Int?, field: String)] {
-        var errors: [(Int, Int?, String)] = []
-        
+    // MARK: - Validasi (UUID-based keys)
+    func validate() -> [String] {
+        var keys: [String] = []
+
         for sIndex in sections.indices {
             let sec = sections[sIndex]
-            
-            // Validasi nama kategori
+
+            // Kategori
             let catName = sec.title.trimmingCharacters(in: .whitespacesAndNewlines)
             if catName.isEmpty || ["Nama Kategori", "ZZZ", "Silakan isi nama kategori"].contains(catName) {
-                errors.append((sIndex, nil, "category"))
+                keys.append("\(sec.id.uuidString)-cat")
             }
-            
-            // Validasi tiap produk
+
+            // Produk
             for pIndex in sec.items.indices {
                 let item = sec.items[pIndex]
                 let prodName = item.name.trimmingCharacters(in: .whitespacesAndNewlines)
-                
+
                 if prodName.isEmpty || ["Silakan Isi Nama Produk", "ZZZ"].contains(prodName) {
-                    errors.append((sIndex, pIndex, "name"))
+                    keys.append("\(item.id.uuidString)-name")
                 }
-                
                 if item.price <= 0 {
-                    errors.append((sIndex, pIndex, "price"))
+                    keys.append("\(item.id.uuidString)-price")
                 }
             }
         }
-        
-        return errors
+
+        return keys
     }
 
     // MARK: - Deteksi Perubahan
@@ -204,22 +204,36 @@ final class Set_MenuDetailsViewModel: ObservableObject {
         hasPendingChanges = true
     }
 
-    // MARK: - Hapus Produk Sementara
+    // MARK: - Hapus Produk Sementara (bersihkan error by UUID)
     func deleteTemporaryProduct(from sectionIndex: Int, at productIndex: Int) {
         guard sectionIndex < sections.count,
               productIndex < sections[sectionIndex].items.count else { return }
 
         let product = sections[sectionIndex].items[productIndex]
+
+        // Bersihkan error untuk produk ini
+        let pid = product.id
+        validationErrors = validationErrors.filter { !$0.hasPrefix(pid.uuidString) }
+
         deletedProducts.append(product)
         sections[sectionIndex].items.remove(at: productIndex)
         hasPendingChanges = true
     }
 
-    // MARK: - Hapus Kategori Sementara
+    // MARK: - Hapus Kategori Sementara (bersihkan error by UUID)
     func deleteTemporaryCategory(at index: Int) {
         guard index < sections.count else { return }
 
         let category = sections[index]
+
+        // Bersihkan error kategori + semua produk di dalamnya
+        let sid = category.id
+        var filtered = validationErrors.filter { !$0.hasPrefix(sid.uuidString) }
+        for item in category.items {
+            filtered = filtered.filter { !$0.hasPrefix(item.id.uuidString) }
+        }
+        validationErrors = filtered
+
         deletedCategories.append(category)
         sections.remove(at: index)
         hasPendingChanges = true
@@ -227,21 +241,15 @@ final class Set_MenuDetailsViewModel: ObservableObject {
 
     // MARK: - Simpan Semua Perubahan
     func saveAll(dismiss: @escaping () -> Void) async {
-        // ✅ Validasi dulu
-        let errors = validate()
-        if !errors.isEmpty {
-            validationErrors = Set(errors.map { err in
-                if let pIndex = err.productIndex {
-                    return "\(err.sectionIndex)-\(pIndex)-\(err.field)"
-                } else {
-                    return "\(err.sectionIndex)-cat"
-                }
-            })
-            return // Jangan lanjut simpan
+        // Validasi (UUID-based keys)
+        let errorKeys = validate()
+        if !errorKeys.isEmpty {
+            validationErrors = Set(errorKeys)
+            return
         }
-        
-        validationErrors.removeAll() // Clear kalau valid
-        
+
+        validationErrors.removeAll()
+
         isLoading = true
         errorMessage = nil
         defer { isLoading = false }
@@ -251,7 +259,7 @@ final class Set_MenuDetailsViewModel: ObservableObject {
             return
         }
 
-        // 🔹 1) Simpan perubahan kategori yg berubah title
+        // 1) Deteksi kategori yang berubah title
         var sectionTitleChanged: Set<UUID> = []
         for sIndex in sections.indices {
             let sec = sections[sIndex]
@@ -260,7 +268,7 @@ final class Set_MenuDetailsViewModel: ObservableObject {
             }
         }
 
-        // 🔹 2) Kumpulkan data insert / update
+        // 2) Kumpulkan insert / update
         var toInsert: [(EditableProduct, Int)] = []
         var toUpdate: [(EditableProduct, Int)] = []
 
@@ -282,7 +290,7 @@ final class Set_MenuDetailsViewModel: ObservableObject {
 
         do {
             try await withThrowingTaskGroup(of: Void.self) { group in
-                // 🔹 Delete kategori
+                // Delete kategori
                 for category in deletedCategories {
                     for item in category.items where !item.isNew {
                         group.addTask {
@@ -291,14 +299,14 @@ final class Set_MenuDetailsViewModel: ObservableObject {
                     }
                 }
 
-                // 🔹 Delete produk
+                // Delete produk
                 for item in deletedProducts where !item.isNew {
                     group.addTask {
                         try await SupabaseManager.shared.deleteProduct(id: item.id)
                     }
                 }
 
-                // 🔹 Update
+                // Update
                 for (ep, _) in toUpdate {
                     group.addTask {
                         var payload = await ep.changedFieldsPayload()
@@ -309,7 +317,7 @@ final class Set_MenuDetailsViewModel: ObservableObject {
                     }
                 }
 
-                // 🔹 Insert
+                // Insert
                 for (ep, _) in toInsert {
                     group.addTask {
                         _ = try await SupabaseManager.shared.insertProduct(
@@ -324,16 +332,14 @@ final class Set_MenuDetailsViewModel: ObservableObject {
                 try await group.waitForAll()
             }
 
-            // 🔹 3) Reset
+            // 3) Reset
             deletedProducts.removeAll()
             deletedCategories.removeAll()
             await reorganizeSections()
             for i in sections.indices { sections[i].isEditing = false }
 
-            // 🔹 4) Setelah semua sukses → kembali ke SettingsView
-            await MainActor.run {
-                dismiss()
-            }
+            // 4) Kembali
+            await MainActor.run { dismiss() }
 
         } catch {
             print("❌ Error saving:", error)
@@ -359,7 +365,7 @@ final class Set_MenuDetailsViewModel: ObservableObject {
             )
         }
     }
-    
+
     // MARK: - Load from Scanned Data
     func loadFromScan(categories: [MenuCategory]) async {
         guard let userId, let uuid = UUID(uuidString: userId) else {
@@ -387,7 +393,7 @@ final class Set_MenuDetailsViewModel: ObservableObject {
                 editableProduct.isNew = true
                 return editableProduct
             }
-            
+
             return SectionModel(
                 title: category.categoryName,
                 items: items,
@@ -395,18 +401,16 @@ final class Set_MenuDetailsViewModel: ObservableObject {
                 originalTitle: category.categoryName
             )
         }
-        
+
         isLoadedFromScan = true
         hasPendingChanges = true
         validationErrors.removeAll()
         deletedProducts.removeAll()
         deletedCategories.removeAll()
-        
+
         print("✅ Loaded \(sections.count) categories with \(sections.flatMap { $0.items }.count) products from scan")
     }
-
 }
-
 
 // MARK: - EditableProductRow
 struct EditableProductRow: View {
@@ -428,8 +432,8 @@ struct EditableProductRow: View {
                 let font = Font.system(size: 16)
                 let lineHeight: CGFloat = 20
                 let vPad: CGFloat = 4
-                let oneRow: CGFloat = lineHeight + vPad * 2      // ≈ 26
-                let twoRows: CGFloat = lineHeight * 2 + vPad * 2 // ≈ 40
+                let oneRow: CGFloat = lineHeight + vPad * 2
+                let twoRows: CGFloat = lineHeight * 2 + vPad * 2
 
                 HStack(alignment: .top, spacing: 8) {
                     Text("Nama Produk :")
@@ -438,29 +442,25 @@ struct EditableProductRow: View {
                         .padding(.top, 2)
 
                     ZStack(alignment: .topLeading) {
-                        // Placeholder murni (bukan nilai model)
                         if viewModel.name.isEmpty {
                             Text("Silakan Isi Nama Produk")
                                 .font(font)
                                 .foregroundColor(.gray)
                                 .padding(.horizontal, 8)
                                 .padding(.vertical, vPad)
-                                .allowsHitTesting(false) // tap langsung fokus ke editor
+                                .allowsHitTesting(false)
                         }
 
                         TextEditor(text: Binding(
-                            get: { viewModel.name },   // TIDAK menulis placeholder
+                            get: { viewModel.name },
                             set: { newValue in
-                                // Opsi: kompres spasi berlebih
                                 let collapsed = newValue.replacingOccurrences(
                                     of: "\\s{3,}",
                                     with: "  ",
                                     options: .regularExpression
                                 )
-                                // Batasi panjang agar tidak jadi 3 baris
                                 let maxChars = 70
                                 var clipped = String(collapsed.prefix(maxChars))
-                                // Rapikan newline ganda
                                 if clipped.contains("\n\n") {
                                     clipped = clipped.replacingOccurrences(
                                         of: "\n\n+",
@@ -481,7 +481,6 @@ struct EditableProductRow: View {
                         .background(Color.clear)
                         .frame(minHeight: oneRow, maxHeight: twoRows, alignment: .top)
                         .onAppear {
-                            // Samakan perilaku initial load seperti yang sudah sukses di field lain
                             UITextView.appearance().textContainerInset = .zero
                             UITextView.appearance().textContainer.lineFragmentPadding = 0
                             DispatchQueue.main.async { viewModel.objectWillChange.send() }
@@ -497,7 +496,8 @@ struct EditableProductRow: View {
                     .opacity(isEditing ? 1 : 0.7)
                 }
 
-                if validationErrors.contains("\(sectionIndex)-\(productIndex)-name") {
+                // UUID-based error
+                if validationErrors.contains("\(viewModel.id.uuidString)-name") {
                     HStack(spacing: 0) {
                         Color.clear.frame(width: 110)
                         Text("Nama produk tidak boleh kosong")
@@ -508,12 +508,6 @@ struct EditableProductRow: View {
                     }
                 }
             }
-
-
-
-
-
-
 
             // MARK: Harga Produk
             VStack(alignment: .leading, spacing: 4) {
@@ -534,23 +528,14 @@ struct EditableProductRow: View {
                                     return intValue == 0 ? "" : "\(intValue)"
                                 },
                                 set: { newValue in
-                                    // Hanya ambil digit
                                     let onlyDigits = newValue.filter { $0.isNumber }
-
-                                    // Limit total digit
-                                    let maxDigits = 12 // ubah ke 13 jika mau
+                                    let maxDigits = 12
                                     let limited = String(onlyDigits.prefix(maxDigits))
-
-                                    // Jika user mencoba menambah di atas limit, jangan ubah ke string lebih panjang
-                                    // Mekanisme: tetap gunakan 'limited' untuk diparse, dan biarkan TextField
-                                    // menampilkan nilai ter-limit karena get() akan memantulkan kembali value model.
-
                                     if limited.isEmpty {
                                         viewModel.price = 0
                                     } else if let decimal = Decimal(string: limited) {
                                         viewModel.price = decimal
                                     }
-                                    // Tidak perlu else-fallback ke 0; jika parsing gagal, biarkan value lama (stabil)
                                 }
                             )
                         )
@@ -572,19 +557,18 @@ struct EditableProductRow: View {
                     .frame(maxWidth: .infinity)
                     .opacity(isEditing ? 1 : 0.7)
                 }
-                
-                // ✅ Error untuk harga produk
-                if validationErrors.contains("\(sectionIndex)-\(productIndex)-price") {
+
+                // UUID-based error
+                if validationErrors.contains("\(viewModel.id.uuidString)-price") {
                     HStack(spacing: 0) {
-                                           Color.clear
-                                               .frame(width: 110)
-                                           Text("Harga harus lebih dari 0")
-                                               .font(.caption)
-                                               .foregroundColor(.red)
-                                               .padding(.leading, 8)
-                                           Spacer()
-                                       }
-                    
+                        Color.clear
+                            .frame(width: 110)
+                        Text("Harga harus lebih dari 0")
+                            .font(.caption)
+                            .foregroundColor(.red)
+                            .padding(.leading, 8)
+                        Spacer()
+                    }
                 }
             }
         }

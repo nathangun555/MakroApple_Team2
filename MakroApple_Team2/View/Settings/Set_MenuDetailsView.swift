@@ -29,8 +29,8 @@ struct Set_MenuDetailsView: View {
                     .navigationBarBackButtonHidden(true)
                     .toolbar {
                         ToolbarItem(placement: .principal) {
-                              Text("Rincian Isi Catalog")
-                                  .font(.title2.bold())
+                            Text("Rincian Isi Catalog")
+                                .font(.title2.bold())
                         }
                         ToolbarItem(placement: .navigationBarLeading) {
                             Button {
@@ -59,13 +59,14 @@ struct Set_MenuDetailsView: View {
                                 if vm.isLoading {
                                     ProgressView()
                                 } else {
-                                    Image(systemName: "checkmark.circle.fill")
+                                    Image(systemName: "checkmark")
                                         .font(.title2)
                                         .foregroundColor(vm.hasPendingChanges ? .blue : .gray)
                                 }
                             }
                             .disabled(!vm.hasPendingChanges || vm.isLoading)
                         }
+                        
                     }
             }
         }
@@ -85,7 +86,8 @@ struct Set_MenuDetailsView: View {
                             .padding(.horizontal)
                     }
                     
-                    ForEach(vm.sections.indices, id: \.self) { sIndex in let section = vm.sections[sIndex]
+                    ForEach(vm.sections.indices, id: \.self) { sIndex in
+                        let section = vm.sections[sIndex]
                         
                         VStack(alignment: .leading, spacing: 12) {
                             // Header kategori
@@ -133,9 +135,7 @@ struct Set_MenuDetailsView: View {
                                     
                                     if section.isEditing {
                                         Button {
-                                    
                                             handleDeleteCategory(sIndex: sIndex)
-                            
                                         } label: {
                                             Image(systemName: "trash")
                                                 .foregroundColor(.red)
@@ -154,8 +154,8 @@ struct Set_MenuDetailsView: View {
                                     }
                                 }
                                 
-                                // Error nama kategori
-                                if vm.validationErrors.contains("\(sIndex)-cat") {
+                                // Error nama kategori (UUID-based)
+                                if vm.validationErrors.contains("\(section.id.uuidString)-cat") {
                                     HStack(spacing: 0) {
                                         Text("Nama kategori tidak boleh kosong")
                                             .font(.caption)
@@ -185,7 +185,8 @@ struct Set_MenuDetailsView: View {
                             }
                             
                             VStack(spacing: 14) {
-                                ForEach(section.items.indices, id: \.self) { pIndex in let item = section.items[pIndex]
+                                ForEach(section.items.indices, id: \.self) { pIndex in
+                                    let item = section.items[pIndex]
                                     HStack(alignment: .top) {
                                         EditableProductRow(
                                             viewModel: item,
@@ -248,10 +249,8 @@ struct Set_MenuDetailsView: View {
                item.type == .product,
                let pIndex = item.pIndex {
                 withAnimation {
+                    // ViewModel akan membersihkan validationErrors by UUID
                     vm.deleteTemporaryProduct(from: item.sIndex, at: pIndex)
-                    var valArray = Array(vm.validationErrors)
-                    valArray.remove(at: pIndex)
-                    vm.validationErrors = Set(valArray)
                 }
             }
             itemToDelete = nil
@@ -264,10 +263,8 @@ struct Set_MenuDetailsView: View {
         deleteBus.request(message: "Apakah Anda yakin ingin menghapus kategori ini?") {
             if let item = itemToDelete, item.type == .category {
                 withAnimation {
+                    // ViewModel akan membersihkan validationErrors by UUID
                     vm.deleteTemporaryCategory(at: item.sIndex)
-                    var valArray = Array(vm.validationErrors)
-                    valArray.remove(at: sIndex)
-                    vm.validationErrors = Set(valArray)
                 }
             }
             itemToDelete = nil
@@ -275,20 +272,6 @@ struct Set_MenuDetailsView: View {
         
     }
 }
-
-//#Preview {
-//    let session = SessionManager()
-//    session.isSignedIn = true
-//    session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
-//    
-//    return NavigationStack {
-//        Set_MenuDetailsView()
-//            .environmentObject(session)
-//            .environmentObject(DeleteOverlayBus())
-//            .environmentObject(UnsavedOverlayBus())
-//    }
-//}
-
 
 // MARK: - Custom Alert (unsaved)
 struct CustomUnsavedAlert: View {
@@ -355,7 +338,7 @@ struct CustomUnsavedAlert: View {
             .padding(.horizontal, 40)
             .shadow(color: Color.black.opacity(0.15), radius: 10, x: 0, y: 4)
         }
-        .transition(.opacity.combined(with: .scale))
+        .transition(.opacity .combined(with: .scale))
         .animation(.spring(response: 0.3, dampingFraction: 0.8), value: UUID())
     }
 }
