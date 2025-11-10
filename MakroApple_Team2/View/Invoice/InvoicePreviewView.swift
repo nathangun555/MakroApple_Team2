@@ -111,12 +111,16 @@ struct InvoicePreviewView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button(action: {
-                        viewModel.exportFormat = .pdf
-                        if let pdfURL = exportedPDFURL {
-                            viewModel.shareInvoice(items: [pdfURL]) { success in
-                                print("✅ PDF shared")
+                    if !viewModel.isPreviewMode {
+                        Button(action: {
+                            viewModel.exportFormat = .pdf
+                            if let pdfURL = exportedPDFURL {
+                                viewModel.shareInvoice(items: [pdfURL]) { success in
+                                    print("✅ PDF shared")
+                                }
                             }
+                        }) {
+                            Image(systemName: "square.and.arrow.up")
                         }
                     }) {
                         Image(systemName: "square.and.arrow.up")

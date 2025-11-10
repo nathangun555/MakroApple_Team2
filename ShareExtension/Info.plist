@@ -9,12 +9,12 @@
 			<key>NSExtensionActivationRule</key>
 			<string>TRUEPREDICATE</string>
 		</dict>
-		<key>NSExtensionUsageDescription</key>
-		<string>Open the main MacroA2 app from WhatsApp share sheet</string>
-		<key>NSExtensionPrincipalClass</key>
-		<string>$(PRODUCT_MODULE_NAME).ShareViewController</string>
 		<key>NSExtensionPointIdentifier</key>
 		<string>com.apple.share-services</string>
+		<key>NSExtensionPrincipalClass</key>
+		<string>$(PRODUCT_MODULE_NAME).ShareViewController</string>
+		<key>NSExtensionUsageDescription</key>
+		<string>Open the main MacroA2 app from WhatsApp share sheet</string>
 	</dict>
 </dict>
 </plist>

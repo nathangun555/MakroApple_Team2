@@ -340,7 +340,7 @@ struct InputBusinessDetailsView: View {
                 .frame(width: 32, height: 32)
                 .background(Circle().fill(Color.blue))
             } else {
-              Image(systemName: "checkmark")
+              Image(systemName: "chevron.right")
                 .font(.system(size: 16, weight: .bold))
                 .foregroundStyle(.white)
                 .frame(width: 32, height: 32)
