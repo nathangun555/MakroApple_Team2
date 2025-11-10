@@ -22,6 +22,9 @@ struct InvoicePreviewView: View {
     
     
     var body: some View {
+        NavigationStack{
+            
+            
             ZStack {
                 if viewModel.isLoading {
                     ProgressView("Memuat invoice...")
@@ -119,9 +122,15 @@ struct InvoicePreviewView: View {
                         }) {
                             Image(systemName: "square.and.arrow.up")
                         }
+                    }) {
+                        Image(systemName: "square.and.arrow.up")
+                            .font(.title3)
+                            .foregroundColor(.white)
                     }
+                    .buttonStyle(.glassProminent)
                 }
             }
+            
             
             .task {
                 viewModel.configure(userId: session.userId, orderId: orderId)
@@ -129,7 +138,7 @@ struct InvoicePreviewView: View {
                 
                 exportedPDFURL = viewModel.tempPDFURL()
             }
-        
+        }
         
     }
     
