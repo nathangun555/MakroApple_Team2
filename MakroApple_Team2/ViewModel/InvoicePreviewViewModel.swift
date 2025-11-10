@@ -287,32 +287,51 @@ class InvoicePreviewViewModel {
     }
     
     // MARK: - Share Invoice
+
     func shareInvoice(items: [Any], completion: @escaping (Bool) -> Void) {
-        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-              let window = windowScene.windows.first,
-              let rootViewController = window.rootViewController else {
+        print("📤 shareInvoice() called with items: \(items)")
+
+        // 1️⃣ Find the topmost UIViewController — even inside SwiftUI sheet
+        guard let rootVC = topMostViewController() else {
+            print("❌ No root view controller found")
             completion(false)
             return
         }
-        
-        let activityVC = UIActivityViewController(
-            activityItems: items,
-            applicationActivities: nil
-        )
-        
-        // For iPad
+
+        // 2️⃣ Create activity VC
+        let activityVC = UIActivityViewController(activityItems: items, applicationActivities: nil)
+
+        // 3️⃣ iPad popover setup
         if let popover = activityVC.popoverPresentationController {
-            popover.sourceView = rootViewController.view
-            popover.sourceRect = CGRect(x: rootViewController.view.bounds.midX,
-                                       y: rootViewController.view.bounds.midY,
-                                       width: 0, height: 0)
+            popover.sourceView = rootVC.view
+            popover.sourceRect = CGRect(x: rootVC.view.bounds.midX, y: rootVC.view.bounds.midY, width: 0, height: 0)
             popover.permittedArrowDirections = []
         }
-        
-        rootViewController.present(activityVC, animated: true) {
+
+        // 4️⃣ Present
+        rootVC.present(activityVC, animated: true) {
+            print("🚀 Presented share sheet from \(rootVC)")
             completion(true)
         }
     }
+
+    // Helper to find the current visible UIViewController in SwiftUI
+    private func topMostViewController(base: UIViewController? = nil) -> UIViewController? {
+        let baseVC = base ?? UIApplication.shared.connectedScenes
+            .compactMap { ($0 as? UIWindowScene)?.keyWindow }
+            .first?.rootViewController
+
+        if let nav = baseVC as? UINavigationController {
+            return topMostViewController(base: nav.visibleViewController)
+        } else if let tab = baseVC as? UITabBarController {
+            return topMostViewController(base: tab.selectedViewController)
+        } else if let presented = baseVC?.presentedViewController {
+            return topMostViewController(base: presented)
+        }
+        return baseVC
+    }
+
+
     
     // MARK: - Save and Upload Invoice
     func saveAndUploadInvoice(pdfData: Data) async throws -> String {

@@ -234,7 +234,7 @@ struct OrderDetailView: View {
                                         .lineLimit(10)
                                         .background(
                                             RoundedRectangle(cornerRadius: 10)
-                                                .stroke(Color.gray, lineWidth: 0.5) 
+                                                .stroke(Color.gray, lineWidth: 0.5)
                                                 .background(RoundedRectangle(cornerRadius: 30).fill(.secondary.opacity(0.1))) // fill
                                         )
                                     
@@ -529,6 +529,7 @@ struct OrderDetailView: View {
             } else {
                 print("❌ Passed session.userId invalid or nil")
             }
+            
         }
         .onDisappear {
             switch order.status.lowercased() {
@@ -541,11 +542,30 @@ struct OrderDetailView: View {
             }
         }
         .sheet(isPresented: $showPDFViewer) {
-            if let pdfURL = selectedPDFURL {
-                PDFKitView(url: pdfURL)
-                    .ignoresSafeArea()
+            NavigationStack {
+                if let url = selectedPDFURL {
+                    PDFKitView(url: url)
+                        .navigationTitle("Invoice Preview")
+                        .toolbar {
+                            ToolbarItem(placement: .navigationBarTrailing) {
+                                Button {
+                                    if let url = selectedPDFURL {
+                                        invoiceViewModel.shareInvoice(items: [url]) { success in
+                                            print(success ? "✅ Shared" : "❌ Failed")
+                                        }
+                                    }
+                                } label: {
+                                    Image(systemName: "square.and.arrow.up")
+                                }
+                            }
+
+
+                        }
+                }
             }
+        
         }
+
     }
     private func showPDFPreview(url: URL) {
         if url.isFileURL {

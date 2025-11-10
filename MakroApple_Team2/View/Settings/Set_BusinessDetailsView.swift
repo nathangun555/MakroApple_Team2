@@ -337,13 +337,13 @@ struct Set_BusinessDetailsView: View {
                 .frame(width: 32, height: 32)
                 .background(Circle().fill(Color.blue))
             } else {
-              Image(systemName: "checkmark")
-                .font(.system(size: 16, weight: .bold))
-                .foregroundStyle(.white)
-                .frame(width: 32, height: 32)
-                .background(
-                  Circle().fill(vm.hasChanges ? Color.blue : Color.gray)
-                )
+              Image(systemName: "chevron.right")
+                    .font(.system(size: 20, weight: .semibold))
+                    .foregroundColor(.blue)
+//                .frame(width: 32, height: 32)
+//                .background(
+//                  Circle().fill(vm.hasChanges ? Color.blue : Color.gray)
+//                )
             }
           }
           .disabled(vm.isSaving || vm.isLoading || !vm.hasChanges)
