@@ -11,28 +11,35 @@ import Combine
 struct Set_MenuDetailsView: View {
     
     @EnvironmentObject var session: SessionManager
+    @EnvironmentObject var deleteBus: DeleteOverlayBus       // Global delete
+    @EnvironmentObject var unsavedBus: UnsavedOverlayBus     // Global unsaved
     @StateObject private var vm = Set_MenuDetailsViewModel()
     @Environment(\.dismiss) private var dismiss
     
-    // ✅ TAMBAH STATE UNTUK DELETE ALERT
-    @State private var showUnsavedChangesAlert = false
-    @State private var showDeleteAlert = false
+    // ✅ Hanya untuk menyimpan konteks item yang dihapus (eksekusi via bus)
     @State private var itemToDelete: (type: DeleteType, sIndex: Int, pIndex: Int?)? = nil
     
     enum DeleteType { case category, product }
+    
     var body: some View {
         ZStack {
             NavigationStack {
                 contentView
-                    .navigationTitle("Rincian Isi Katalog")
+                    .navigationBarTitleDisplayMode(.inline)
                     .navigationBarBackButtonHidden(true)
                     .toolbar {
+                        ToolbarItem(placement: .principal) {
+                              Text("Rincian Isi Catalog")
+                                  .font(.title2.bold())
+                        }
                         ToolbarItem(placement: .navigationBarLeading) {
                             Button {
                                 if vm.hasPendingChanges {
-                                    withAnimation(.easeInOut(duration: 0.25)) {
-                                        showUnsavedChangesAlert = true
-                                    }
+                                    // ✅ Panggil overlay global UnsavedOverlayBus
+                                    unsavedBus.request(
+                                        onCancel: { /* tutup saja */ },
+                                        onConfirm: { dismiss() }
+                                    )
                                 } else {
                                     dismiss()
                                 }
@@ -42,7 +49,7 @@ struct Set_MenuDetailsView: View {
                                     .foregroundColor(.blue)
                             }
                         }
-
+                        
                         ToolbarItem(placement: .navigationBarTrailing) {
                             Button {
                                 Task {
@@ -61,58 +68,10 @@ struct Set_MenuDetailsView: View {
                         }
                     }
             }
-            // ✅ DISABLE saat ada alert
-            .disabled(showUnsavedChangesAlert || showDeleteAlert)
-            
-            if showUnsavedChangesAlert {
-                Color.black
-                    .opacity(showUnsavedChangesAlert ? 0.45 : 0)
-                    .ignoresSafeArea()
-                    .animation(.easeInOut(duration: 0.25), value: showUnsavedChangesAlert)
-                    .zIndex(10)
-                
-                CustomUnsavedAlert(
-                    title: "Perubahan Belum Disimpan",
-                    message: "Apakah Anda yakin ingin membatalkan perubahan yang telah dibuat?",
-                    cancelTitle: "Tidak",
-                    confirmTitle: "Ya",
-                    onCancel: { withAnimation { showUnsavedChangesAlert = false } },
-                    onConfirm: { withAnimation { dismiss() } }
-                )
-                .zIndex(11)
-                .transition(.scale.combined(with: .opacity))
-                .animation(.spring(response: 0.3, dampingFraction: 0.8), value: showUnsavedChangesAlert)
-            }
-            
-            // ✅ DELETE CONFIRMATION ALERT
-            if showDeleteAlert {
-                CustomDeleteAlertComponent(
-                    title: "Hapus",
-                    message: "Apakah Anda yakin ingin menghapus bagian ini?",
-                    cancelTitle: "Tidak",
-                    confirmTitle: "Ya",
-                    onCancel: { withAnimation { showDeleteAlert = false } },
-                    onConfirm: {
-                        if let item = itemToDelete {
-                            withAnimation {
-                                if item.type == .category {
-                                    vm.deleteTemporaryCategory(at: item.sIndex)
-                                } else if let pIndex = item.pIndex {
-                                    vm.deleteTemporaryProduct(from: item.sIndex, at: pIndex)
-                                }
-                            }
-                        }
-                        withAnimation { showDeleteAlert = false }
-                    }
-                )
-                .zIndex(12)
-                .transition(.scale.combined(with: .opacity))
-            }
         }
         .task {
             vm.configure(userId: session.userId)
             await vm.load()
-            
         }
     }
     
@@ -126,8 +85,7 @@ struct Set_MenuDetailsView: View {
                             .padding(.horizontal)
                     }
                     
-                    ForEach(vm.sections.indices, id: \.self) { sIndex in
-                        let section = vm.sections[sIndex]
+                    ForEach(vm.sections.indices, id: \.self) { sIndex in let section = vm.sections[sIndex]
                         
                         VStack(alignment: .leading, spacing: 12) {
                             // Header kategori
@@ -157,7 +115,7 @@ struct Set_MenuDetailsView: View {
                                         .cornerRadius(10)
                                         .textInputAutocapitalization(.words)
                                         .autocorrectionDisabled(true)
-                                    
+                                        
                                     } else {
                                         Text(section.title)
                                             .font(.headline)
@@ -175,9 +133,9 @@ struct Set_MenuDetailsView: View {
                                     
                                     if section.isEditing {
                                         Button {
-                                            // ✅ TRIGGER DELETE CATEGORY ALERT
-                                            itemToDelete = (.category, sIndex, nil)
-                                            withAnimation { showDeleteAlert = true }
+                                    
+                                            handleDeleteCategory(sIndex: sIndex)
+                            
                                         } label: {
                                             Image(systemName: "trash")
                                                 .foregroundColor(.red)
@@ -196,15 +154,15 @@ struct Set_MenuDetailsView: View {
                                     }
                                 }
                                 
-                                // ✅ Error untuk nama kategori
+                                // Error nama kategori
                                 if vm.validationErrors.contains("\(sIndex)-cat") {
                                     HStack(spacing: 0) {
-                                           Text("Nama kategori tidak boleh kosong")
-                                               .font(.caption)
-                                               .foregroundColor(.red)
-                                               .padding(.leading, 3)
-                                           Spacer()
-                                       }
+                                        Text("Nama kategori tidak boleh kosong")
+                                            .font(.caption)
+                                            .foregroundColor(.red)
+                                            .padding(.leading, 3)
+                                        Spacer()
+                                    }
                                 }
                             }
                             
@@ -227,8 +185,7 @@ struct Set_MenuDetailsView: View {
                             }
                             
                             VStack(spacing: 14) {
-                                ForEach(section.items.indices, id: \.self) { pIndex in
-                                    let item = section.items[pIndex]
+                                ForEach(section.items.indices, id: \.self) { pIndex in let item = section.items[pIndex]
                                     HStack(alignment: .top) {
                                         EditableProductRow(
                                             viewModel: item,
@@ -239,9 +196,7 @@ struct Set_MenuDetailsView: View {
                                         )
                                         if section.isEditing {
                                             Button {
-                                                // ✅ TRIGGER DELETE PRODUCT ALERT
-                                                itemToDelete = (.product, sIndex, pIndex)
-                                                withAnimation { showDeleteAlert = true }
+                                                handleDeleteProduct(sIndex: sIndex, pIndex: pIndex)
                                             } label: {
                                                 Image(systemName: "trash")
                                                     .foregroundColor(.red)
@@ -281,15 +236,61 @@ struct Set_MenuDetailsView: View {
                 .clipShape(Capsule())
                 .shadow(color: Color.black.opacity(0.25), radius: 6, x: 0, y: 3)
             }
-            .padding(.bottom, 0)
-            
+            .padding(.bottom, 20)
         }
     }
     
-}
+    func handleDeleteProduct(sIndex: Int, pIndex: Int) {
+        // ✅ Trigger delete produk via bus global
+        itemToDelete = (.product, sIndex, pIndex)
+        deleteBus.request(message: "Apakah Anda yakin ingin menghapus produk ini?") {
+            if let item = itemToDelete,
+               item.type == .product,
+               let pIndex = item.pIndex {
+                withAnimation {
+                    vm.deleteTemporaryProduct(from: item.sIndex, at: pIndex)
+                    var valArray = Array(vm.validationErrors)
+                    valArray.remove(at: pIndex)
+                    vm.validationErrors = Set(valArray)
+                }
+            }
+            itemToDelete = nil
+        }
+    }
     
+    func handleDeleteCategory(sIndex: Int) {
+        // ✅ Trigger delete kategori via bus global
+        itemToDelete = (.category, sIndex, nil)
+        deleteBus.request(message: "Apakah Anda yakin ingin menghapus kategori ini?") {
+            if let item = itemToDelete, item.type == .category {
+                withAnimation {
+                    vm.deleteTemporaryCategory(at: item.sIndex)
+                    var valArray = Array(vm.validationErrors)
+                    valArray.remove(at: sIndex)
+                    vm.validationErrors = Set(valArray)
+                }
+            }
+            itemToDelete = nil
+        }
+        
+    }
+}
 
-// MARK: - Custom Alert
+//#Preview {
+//    let session = SessionManager()
+//    session.isSignedIn = true
+//    session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
+//    
+//    return NavigationStack {
+//        Set_MenuDetailsView()
+//            .environmentObject(session)
+//            .environmentObject(DeleteOverlayBus())
+//            .environmentObject(UnsavedOverlayBus())
+//    }
+//}
+
+
+// MARK: - Custom Alert (unsaved)
 struct CustomUnsavedAlert: View {
     var title: String
     var message: String
@@ -359,8 +360,6 @@ struct CustomUnsavedAlert: View {
     }
 }
 
-
-
 #Preview {
     let session = SessionManager()
     session.isSignedIn = true
@@ -369,5 +368,6 @@ struct CustomUnsavedAlert: View {
     return NavigationStack {
         Set_MenuDetailsView()
             .environmentObject(session)
+            .environmentObject(DeleteOverlayBus())
     }
 }
