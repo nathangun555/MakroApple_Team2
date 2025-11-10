@@ -16,6 +16,9 @@ struct MakroApple_Team2App: App {
     @State private var sharedText: String = ""
     @State private var sharedImages: [UIImage] = []
     @State private var hasNewObject = false
+    @StateObject var unsavedBus = UnsavedOverlayBus()
+
+    
     @State private var path : NavigationPath = .init()
     var body: some Scene {
         WindowGroup {
@@ -25,6 +28,7 @@ struct MakroApple_Team2App: App {
             MainTabView(selectedTab: $selectedTab, sharedText: $sharedText,hasNewObject: $hasNewObject, sharedImages : $sharedImages)
                 .environmentObject(session)
                 .environmentObject(deleteBus)
+                .environmentObject(unsavedBus)
                 .onAppear {
                     
                     if let defaults = UserDefaults(suiteName: "group.com.please.shared") {

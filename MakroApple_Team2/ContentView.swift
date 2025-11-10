@@ -52,6 +52,7 @@ struct MainTabView: View {
     @Binding var sharedText: String
     @Binding var hasNewObject: Bool
     @Binding var sharedImages: [UIImage]
+    @EnvironmentObject var unsavedBus: UnsavedOverlayBus
 
     @EnvironmentObject var deleteBus: DeleteOverlayBus
 
@@ -80,8 +81,22 @@ struct MainTabView: View {
                     }
                 }
             }
-            .disabled(deleteBus.show)
+            .disabled(deleteBus.show || unsavedBus.show)
+            
+            if unsavedBus.show {
+                Color.black.opacity(0.45).ignoresSafeArea().transition(.opacity).zIndex(996)
 
+                CustomUnsavedAlert(
+                  title: unsavedBus.title,
+                  message: unsavedBus.message,
+                  cancelTitle: unsavedBus.cancelTitle,
+                  confirmTitle: unsavedBus.confirmTitle,
+                  onCancel: { unsavedBus.close(false) },
+                  onConfirm: { unsavedBus.close(true) }
+                )
+                .transition(.scale.combined(with: .opacity))
+                .zIndex(997)
+              }
             if deleteBus.show {
                 CustomDeleteAlertComponent(
                     title: "Hapus",

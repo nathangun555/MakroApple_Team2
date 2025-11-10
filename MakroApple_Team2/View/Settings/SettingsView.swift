@@ -1,3 +1,9 @@
+//
+//  SettingsView.swift
+//  MakroApple_Team2
+//
+//  Created by Nathan Gunawan on 17/10/25.
+//
 import SwiftUI
 
 struct SettingsView: View {
@@ -5,6 +11,14 @@ struct SettingsView: View {
 
     @State private var showLogoutDialog = false
     @State private var isLoggingOut = false
+
+    // Navigasi dinamis
+    @State private var navigateToNewTemplate = false
+    @State private var navigateToEditTemplate = false
+
+    // State loading & error saat cek template_format
+    @State private var isCheckingTemplate = false
+    @State private var checkError: String?
 
     var body: some View {
         NavigationStack {
@@ -29,13 +43,33 @@ struct SettingsView: View {
                         }
                     }
 
-                    NavigationLink(destination: Set_TemplateFormView()) {
+                    // Template Formulir Bisnis (cek Supabase dulu)
+                    Button {
+                        Task { await checkTemplateAndNavigate() }
+                    } label: {
                         HStack {
                             Image(systemName: "square.and.pencil")
                                 .foregroundStyle(.primaryButton)
                                 .imageScale(.large)
                             Text("Template Formulir Bisnis")
+                            Spacer()
+                            if isCheckingTemplate {
+                                ProgressView().scaleEffect(0.8)
+                            } else {
+                                Image(systemName: "chevron.right")
+                                    .foregroundColor(Color(.systemGray2))
+                                    .imageScale(.small)
+                            }
                         }
+                    }
+
+                    .disabled(isCheckingTemplate)
+
+                    if let err = checkError {
+                        Text(err)
+                            .font(.caption)
+                            .foregroundColor(.red)
+                            .lineLimit(2)
                     }
 
                     NavigationLink(destination: Set_LanguageSettingsView()) {
@@ -48,7 +82,6 @@ struct SettingsView: View {
                         }
                     }
                 }
-
 
                 // Hapus akun
                 Section {
@@ -72,7 +105,6 @@ struct SettingsView: View {
                                 .imageScale(.medium)
                             Text("Logout")
                         }
-                       
                     }
                     .simultaneousGesture(TapGesture().onEnded {
                         showLogoutDialog = true
@@ -80,7 +112,7 @@ struct SettingsView: View {
                 }
             }
             .listStyle(.plain)
-            .scrollContentBackground(.hidden) // biar background putih polos
+            .scrollContentBackground(.hidden)
             .background(Color.white)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -106,14 +138,52 @@ struct SettingsView: View {
             } message: {
                 Text("Anda bisa masuk kembali kapan saja.")
             }
+
+            // Destinasi dinamis
+            .navigationDestination(isPresented: $navigateToNewTemplate) {
+                Set_NewTemplateFormView(onAfterSave: {
+                    // Setelah autosave, pengguna bisa kembali ke Settings.
+                    // Cek ulang saat masuk lagi → akan diarahkan ke Edit.
+                    navigateToNewTemplate = false
+                })
+                .environmentObject(session)
+            }
+            .navigationDestination(isPresented: $navigateToEditTemplate) {
+                Set_EditTemplateFormView()
+                    .environmentObject(session)
+            }
+        }
+    }
+
+    // MARK: - Logic cek template_format dan navigasi
+    private func checkTemplateAndNavigate() async {
+        guard let userId = session.userId, let uuid = UUID(uuidString: userId) else {
+            checkError = "User belum login atau UID tidak valid."
+            return
+        }
+        isCheckingTemplate = true
+        checkError = nil
+        defer { isCheckingTemplate = false }
+
+        do {
+            let user = try await SupabaseManager.shared.fetchUser(by: uuid)
+            // Dengan UserRecord: templateFormat: [String: AnyCodable]? → null berarti belum ada template
+            let isNull = (user?.templateFormat == nil)
+            if isNull {
+                navigateToNewTemplate = true
+            } else {
+                navigateToEditTemplate = true
+            }
+        } catch {
+            checkError = "Gagal memeriksa template: $$error.localizedDescription)"
         }
     }
 }
 
 #Preview {
-    let session = SessionManager()
-    session.isSignedIn = true
-    session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
-    return NavigationStack { SettingsView() }
-        .environmentObject(session)
+let session = SessionManager()
+session.isSignedIn = true
+session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
+return NavigationStack { SettingsView() }
+.environmentObject(session)
 }
