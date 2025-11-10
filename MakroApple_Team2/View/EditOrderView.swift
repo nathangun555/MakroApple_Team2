@@ -60,14 +60,14 @@ struct EditOrderView: View {
                                 },
                                 fieldErrors: viewModel.fieldErrors
                             )
-                            // Adds On
-                            AddOnsSection(
-                                addOns: $viewModel.addOns,
-                                onAdd: { viewModel.addAddOn() },
-                                onDelete: { index in
-                                    deleteBus.request { viewModel.deleteAddOn(at: index) }
-                                }
-                            )
+//                            // Adds On
+//                            AddOnsSection(
+//                                addOns: $viewModel.addOns,
+//                                onAdd: { viewModel.addAddOn() },
+//                                onDelete: { index in
+//                                    deleteBus.request { viewModel.deleteAddOn(at: index) }
+//                                }
+//                            )
                             // Foto
                             PhotoSection(
                                 selectedItems: $selectedItems,
@@ -129,13 +129,12 @@ struct EditOrderView: View {
                     if viewModel.isLoading || viewModel.isUploadingPhotos {
                         ProgressView()
                     } else {
-                        Image(systemName: "arrow.right")
+                        Image(systemName: "chevron.right")
+                            .font(.title3)
                             .foregroundColor(.white)
-                            .padding(8)
-                            .background(Color.blue)
-                            .clipShape(Circle())
                     }
                 }
+                .buttonStyle(.glassProminent)
                 .disabled(viewModel.isLoading)
             }
         }
@@ -338,38 +337,48 @@ struct AddOnsSection: View {
         }
     }
 }
+#Preview {
+    // Mock session
+    let session = SessionManager()
+    session.isSignedIn = true
+    session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
 
-//#Preview {
-//    let session = SessionManager()
-//    session.isSignedIn = true
-//    session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
-//    
-//    let sampleData: [String: Any] = [
-//        "Nama Pemesan": "Nadia Prameswari",
-//        "No. Telp Pemesan": "0812-5566-2233",
-//        "Nama Penerima": "Rafi Setiawan",
-//        "No. Telp Penerima": "0813-7788-9922",
-//        "Tanggal Pesanan": "20 Oktober 2025",
-//        "Jam Kirim": "15.30 WIB",
-//        "Alamat Kirim": "Jl. Dharmahusada Indah Barat No. 27",
-//        "Pesanan": [
-//            "[[{\"item\": \"Strawberry Fresh Cream Cake – ukuran 18 cm\", \"quantity\": 1}]]"
-//        ],
-//        "Adds-on": [
-//            "[[{\"item\": \"Lilin angka \\\"30\\\"\", \"quantity\": 1}, {\"item\": \"pita dekorasi merah\", \"quantity\": 1}]]"
-//        ],
-//        "Notes": "Mohon kue dikirim dalam kondisi dingin"
-//    ]
-//    
-//    let samplePhoto = UIImage(systemName: "photo.fill")!
-//    @State var previewImages: [UIImage?] = [samplePhoto, samplePhoto, nil]
-//
-//    return NavigationStack {
-//        EditOrderView(
-//            parsedOrderData: sampleData,
-//            selectedImages: $previewImages
-//        )
-//        .environmentObject(session)
-//    }
-//}
+    // Sample data for preview
+    let sampleData: [String: Any] = [
+        "Nama Pemesan": "Nadia Prameswari",
+        "No. Telp Pemesan": "0812-5566-2233",
+        "Nama Penerima": "Rafi Setiawan",
+        "No. Telp Penerima": "0813-7788-9922",
+        "Tanggal Pesanan": "20 Oktober 2025",
+        "Jam Kirim": "15.30 WIB",
+        "Alamat Kirim": "Jl. Dharmahusada Indah Barat No. 27",
+        "Pesanan": [
+            "[[{\"item\": \"Strawberry Fresh Cream Cake – ukuran 18 cm\", \"quantity\": 1}]]"
+        ],
+        "Adds-on": [
+            "[[{\"item\": \"Lilin angka \\\"30\\\"\", \"quantity\": 1}, {\"item\": \"pita dekorasi merah\", \"quantity\": 1}]]"
+        ],
+        "Notes": "Mohon kue dikirim dalam kondisi dingin"
+    ]
+
+    // Sample images
+    let samplePhoto = UIImage(systemName: "photo.fill")!
+    
+    // Use @State wrappers to simulate bindings
+    @State var previewImages: [UIImage?] = [samplePhoto, nil, nil]
+    @State var previewParsedData: [String: Any] = sampleData
+    @State var previewPath = NavigationPath()
+
+    // Return the full preview view
+    return NavigationStack {
+        EditOrderView(
+            parsedOrderData: $previewParsedData,
+            selectedImages: $previewImages,
+            path: $previewPath
+        )
+        .environmentObject(session)
+        .environmentObject(DeleteOverlayBus())
+    }
+}
+
 

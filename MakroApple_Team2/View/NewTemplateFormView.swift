@@ -6,6 +6,8 @@ struct NewTemplateFormView: View {
     @State private var formPesanan = ""
     @State private var viewModel = NewTemplateViewModel()
     @EnvironmentObject var session: SessionManager
+    @Binding var path: NavigationPath
+    @State private var keyboardVisible = false
     
     var body: some View {
         GeometryReader { geometry in
@@ -43,7 +45,7 @@ struct NewTemplateFormView: View {
                             )
                             .overlay(
                                 Group {
-                                    if formPesanan.isEmpty {
+                                    if formPesanan.isEmpty && !keyboardVisible {
                                         Text("""
                                     Paste or write your Form Order here ✨(e.g. for your F&B or custom order form)
 
@@ -71,26 +73,26 @@ struct NewTemplateFormView: View {
                                 }
                             )
                         
-                        // ✅ Show result from ViewModel
-                        if let json = viewModel.resultJSON {
-                            Text("✅ Template JSON:")
-                                .font(.headline)
-                                .padding(.top)
-                            ScrollView {
-                                Text(json)
-                                    .font(.system(.caption, design: .monospaced))
-                                    .padding()
-                                    .background(Color(.secondarySystemBackground))
-                                    .cornerRadius(10)
-                            }
-                        }
-                        
-                        // ✅ Show error from ViewModel
-                        if let error = viewModel.errorMessage {
-                            Text("❌ Error: \(error)")
-                                .foregroundColor(.red)
-                                .padding(.top)
-                        }
+//                        // ✅ Show result from ViewModel
+//                        if let json = viewModel.resultJSON {
+//                            Text("✅ Template JSON:")
+//                                .font(.headline)
+//                                .padding(.top)
+//                            ScrollView {
+//                                Text(json)
+//                                    .font(.system(.caption, design: .monospaced))
+//                                    .padding()
+//                                    .background(Color(.secondarySystemBackground))
+//                                    .cornerRadius(10)
+//                            }
+//                        }
+//                        
+//                        // ✅ Show error from ViewModel
+//                        if let error = viewModel.errorMessage {
+//                            Text("❌ Error: \(error)")
+//                                .foregroundColor(.red)
+//                                .padding(.top)
+//                        }
                     }
                     .padding()
                 }
@@ -124,20 +126,26 @@ struct NewTemplateFormView: View {
                 .disabled(formPesanan.isEmpty || viewModel.isLoading)
             }
             .navigationDestination(isPresented: $viewModel.didSave) {
-                EditTemplateFormView()
+                EditTemplateFormView(path: $path)
             }
         }
         .task {
             viewModel.configure(userId: session.userId)
         }
+        .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { _ in
+            withAnimation(.easeOut(duration: 0.12)) { keyboardVisible = true }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)) { _ in
+            withAnimation(.easeOut(duration: 0.12)) { keyboardVisible = false }
+        }
     }
 }
 
-#Preview {
-    let session = SessionManager()
-    session.isSignedIn = true
-    session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
-    
-    return NewTemplateFormView()
-        .environmentObject(session)
-}
+//#Preview {
+//    let session = SessionManager()
+//    session.isSignedIn = true
+//    session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
+//    
+//    return NewTemplateFormView()
+//        .environmentObject(session)
+//}

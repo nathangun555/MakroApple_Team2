@@ -51,7 +51,7 @@ struct Set_MenuDetailsView: View {
                         }
                         
                         ToolbarItem(placement: .navigationBarTrailing) {
-                            Button {
+                            let button = Button {
                                 Task {
                                     await vm.saveAll { dismiss() }
                                 }
@@ -64,7 +64,12 @@ struct Set_MenuDetailsView: View {
                                         .foregroundColor(vm.hasPendingChanges ? .blue : .gray)
                                 }
                             }
-                            .disabled(!vm.hasPendingChanges || vm.isLoading)
+
+                            if vm.hasPendingChanges {
+                                button.buttonStyle(BorderedProminentButtonStyle())
+                            } else {
+                                button.buttonStyle(BorderlessButtonStyle())
+                            }
                         }
                         
                     }

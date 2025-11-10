@@ -28,6 +28,9 @@ struct NewOrderView: View {
     
     let edgeFunctionURL = URL(string: "https://iznjcwyoziqjgfjahemb.supabase.co/functions/v1/form-template")!
     
+    @FocusState private var isTextEditorFocused: Bool
+
+    
     var body: some View {
         // flag to show that this is the latest iwak's code
         ZStack{
@@ -65,13 +68,14 @@ struct NewOrderView: View {
                             TextEditor(text: $formPesanan)
                                 .padding(8)
                                 .frame(minHeight: 200)
+                                .focused($isTextEditorFocused)
                             
-                            if formPesanan.isEmpty {
-                                Text("Tempel formulir pesanan anda di sini ✨")
-                                    .foregroundColor(.gray)
-                                    .padding(.horizontal, 8)
-                                    .padding(.vertical, 12)
-                            }
+                            if formPesanan.isEmpty && !isTextEditorFocused { // 👈 only show placeholder when NOT focused
+                                    Text("Tempel formulir pesanan anda di sini ✨")
+                                        .foregroundColor(.gray)
+                                        .padding(.horizontal, 8)
+                                        .padding(.vertical, 12)
+                                }
                         }
                         .overlay(
                             RoundedRectangle(cornerRadius: 10)
@@ -126,6 +130,7 @@ struct NewOrderView: View {
                 .disabled(viewModel.isLoading || formPesanan.isEmpty)
             }
             .onAppear {
+                
                 // Load shared text if exists
                 if !sharedText.isEmpty && formPesanan.isEmpty {
                     formPesanan = sharedText
