@@ -127,6 +127,7 @@ extension SupabaseManager {
     
     func updateOrder(
             orderId: UUID,
+            invoiceDueDate: String,
             subtotal: Decimal,
             shippingCost: Decimal,
             totalAmount: Decimal,
@@ -140,6 +141,7 @@ extension SupabaseManager {
             let discountDouble = NSDecimalNumber(decimal: discountAmount).doubleValue
             
             var updateData: [String: AnyCodable] = [
+                "invoice_due_date": AnyCodable(invoiceDueDate),
                 "subtotal": AnyCodable(subtotalDouble),
                 "shipping_cost": AnyCodable(shippingDouble),
                 "total_amount": AnyCodable(totalDouble),

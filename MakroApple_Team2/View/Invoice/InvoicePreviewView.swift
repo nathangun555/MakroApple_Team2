@@ -87,6 +87,21 @@ struct InvoicePreviewView: View {
                                 }
                                 .disabled(isSaving)
                             }
+                        } else {
+                            VStack(spacing: 0) {
+                                Button {
+                                    path = NavigationPath()
+                                } label: {
+                                    Text("Konfirmasi")
+                                        .frame(maxWidth: .infinity)
+                                        .bold()
+                                        .padding()
+                                        .foregroundColor(.white)
+                                        .glassEffect(.clear.tint(.primaryButton), in: .rect(cornerRadius: 30))
+                                        .padding(.horizontal)
+                                        .padding(.bottom)
+                                }
+                            }
                         }
                     }
                     
@@ -96,18 +111,26 @@ struct InvoicePreviewView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button(action: {
-                        viewModel.exportFormat = .pdf
-                        if let pdfURL = exportedPDFURL {
-                            viewModel.shareInvoice(items: [pdfURL]) { success in
-                                print("✅ PDF shared")
+                    if !viewModel.isPreviewMode {
+                        Button(action: {
+                            viewModel.exportFormat = .pdf
+                            if let pdfURL = exportedPDFURL {
+                                viewModel.shareInvoice(items: [pdfURL]) { success in
+                                    print("✅ PDF shared")
+                                }
                             }
+                        }) {
+                            Image(systemName: "square.and.arrow.up")
                         }
                     }) {
                         Image(systemName: "square.and.arrow.up")
+                            .font(.title3)
+                            .foregroundColor(.white)
                     }
+                    .buttonStyle(.glassProminent)
                 }
             }
+            
             
             .task {
                 viewModel.configure(userId: session.userId, orderId: orderId)

@@ -12,16 +12,17 @@ import Combine
 struct MakroApple_Team2App: App {
     @StateObject var session = SessionManager()
     @StateObject var deleteBus = DeleteOverlayBus()
-    @State private var selectedTab: Int = 1
+    @State private var selectedTab: Int = 0
     @State private var sharedText: String = ""
     @State private var sharedImages: [UIImage] = []
     @State private var hasNewObject = false
     @StateObject var unsavedBus = UnsavedOverlayBus()
 
     
+    @State private var path : NavigationPath = .init()
     var body: some Scene {
         WindowGroup {
-//            InvoicePreviewView(orderId: "82536742-DDC4-481C-B63A-87400194D0AA")
+//            InvoicePreviewView(orderId: "82536742-DDC4-481C-B63A-87400194D0AA", path: $path)
 //                .environmentObject(session)
             
             MainTabView(selectedTab: $selectedTab, sharedText: $sharedText,hasNewObject: $hasNewObject, sharedImages : $sharedImages)

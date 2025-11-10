@@ -51,7 +51,7 @@ struct Set_MenuDetailsView: View {
                         }
                         
                         ToolbarItem(placement: .navigationBarTrailing) {
-                            Button {
+                            let button = Button {
                                 Task {
                                     await vm.saveAll { dismiss() }
                                 }
@@ -59,13 +59,19 @@ struct Set_MenuDetailsView: View {
                                 if vm.isLoading {
                                     ProgressView()
                                 } else {
-                                    Image(systemName: "checkmark.circle.fill")
-                                        .font(.title2)
-                                        .foregroundColor(vm.hasPendingChanges ? .blue : .gray)
+                                    Image(systemName: "checkmark")
+                                        .font(.title3)
+                                        .foregroundColor(vm.hasPendingChanges ? .white : .gray)
                                 }
                             }
-                            .disabled(!vm.hasPendingChanges || vm.isLoading)
+
+                            if vm.hasPendingChanges {
+                                button.buttonStyle(BorderedProminentButtonStyle())
+                            } else {
+                                button.buttonStyle(BorderlessButtonStyle())
+                            }
                         }
+
                     }
             }
         }

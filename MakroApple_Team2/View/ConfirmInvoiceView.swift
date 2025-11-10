@@ -211,19 +211,18 @@ struct ConfirmInvoiceView: View {
                 
                 VStack(alignment: .leading, spacing: 12) {
                     InvoiceRowField(label: "Tanggal Pesanan", value: $viewModel.orderDate)
-                    InvoiceRowField(label: "Jam Kirim", value: $viewModel.deliveryTime)
+//                    InvoiceRowField(label: "Jam Kirim", value: $viewModel.deliveryTime)
                 }
                 .padding()
 
-                // MARK: - Lain - Lain
-                InvoiceSectionHeader(title: "Lain - Lain")
-                
-                VStack(alignment: .leading, spacing: 12) {
-                    InvoiceRowField(label: "Add-on", value: $viewModel.addOn)
-                    InvoiceRowField(label: "Pengiriman", value: $viewModel.shippingOption)
-                    InvoiceRowField(label: "Notes", value: $viewModel.notes)
-                }
-                .padding()
+//                // MARK: - Lain - Lain
+//                InvoiceSectionHeader(title: "Lain - Lain")
+//                
+//                VStack(alignment: .leading, spacing: 12) {
+//                    InvoiceRowField(label: "Pengiriman", value: $viewModel.shippingOption)
+//                    InvoiceRowField(label: "Notes", value: $viewModel.notes)
+//                }
+//                .padding()
 
                 // MARK: - Referensi Foto
                 if !viewModel.photoUrl1.isEmpty {
@@ -256,13 +255,13 @@ struct ConfirmInvoiceView: View {
                         }
                     }
                 } label: {
-                    Image(systemName: "arrow.right")
+                    Image(systemName: "chevron.right")
+                        .font(.title3)
                         .foregroundColor(.white)
-                        .padding(8)
-                        .background(Color.blue)
-                        .clipShape(Circle())
                 }
+                .buttonStyle(.glassProminent)
             }
+           
         }
         .task {
             viewModel.configure(userId: session.userId, orderId: orderId)

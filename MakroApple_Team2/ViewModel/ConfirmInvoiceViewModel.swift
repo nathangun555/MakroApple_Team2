@@ -86,7 +86,7 @@ class ConfirmInvoiceViewModel {
         let now = Date()
         let tomorrow = Calendar.current.date(byAdding: .day, value: 1, to: now)!
         
-        self.invoiceDate = order.invoiceDueDate ?? DateFormatterHelper.isoDateString(from: now)
+        self.invoiceDate = DateFormatterHelper.isoDateString(from: now)
         self.invoiceDueDate = order.invoiceDueDate ?? DateFormatterHelper.isoDateString(from: tomorrow)
         
         self.accountName = order.customFields?["account_name"]?.value as? String ?? "Michelle Michiko"
@@ -192,6 +192,7 @@ class ConfirmInvoiceViewModel {
         
         let updatedOrder = try await SupabaseManager.shared.updateOrder(
             orderId: orderUUID,
+            invoiceDueDate: invoiceDueDate,
             subtotal: totalProductSubtotal,
             shippingCost: shippingCost,
             totalAmount: totalAfterDiscount
