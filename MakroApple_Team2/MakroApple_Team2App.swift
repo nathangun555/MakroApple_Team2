@@ -16,10 +16,10 @@ struct MakroApple_Team2App: App {
     @State private var sharedText: String = ""
     @State private var sharedImages: [UIImage] = []
     @State private var hasNewObject = false
-    
+    @State private var path : NavigationPath = .init()
     var body: some Scene {
         WindowGroup {
-//            InvoicePreviewView(orderId: "82536742-DDC4-481C-B63A-87400194D0AA")
+//            InvoicePreviewView(orderId: "82536742-DDC4-481C-B63A-87400194D0AA", path: $path)
 //                .environmentObject(session)
             
             MainTabView(selectedTab: $selectedTab, sharedText: $sharedText,hasNewObject: $hasNewObject, sharedImages : $sharedImages)

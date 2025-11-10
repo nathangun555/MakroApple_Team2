@@ -255,13 +255,13 @@ struct ConfirmInvoiceView: View {
                         }
                     }
                 } label: {
-                    Image(systemName: "arrow.right")
+                    Image(systemName: "chevron.right")
+                        .font(.title3)
                         .foregroundColor(.white)
-                        .padding(8)
-                        .background(Color.blue)
-                        .clipShape(Circle())
                 }
+                .buttonStyle(.glassProminent)
             }
+           
         }
         .task {
             viewModel.configure(userId: session.userId, orderId: orderId)

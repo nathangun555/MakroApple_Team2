@@ -53,7 +53,7 @@ struct AllOrdersView: View {
     }
 
     var body: some View {
-        NavigationStack(path: $path) {
+//        NavigationStack(path: $path) {
             VStack {
                 // 🏷️ Header
                 HStack {
@@ -171,7 +171,7 @@ struct AllOrdersView: View {
                     InputBusinessDetailsView(path: $path)
                 }
             }
-        }
+//        }
         .searchable(text: $searchText, prompt: "Cari Nama Pelanggan")
     }
     
