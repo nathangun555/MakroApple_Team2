@@ -57,7 +57,7 @@ class EditOrderViewModel {
         var processedKeys: Set<String> = []
         
         // 1. Customer fields
-        let customerKeys = ["Nama Pemesan", "No. Telp Pemesan", "No Telp Pemesan", "Nama Penerima", "No. Telp Penerima", "No Telp Penerima", "Alamat Kirim"]
+        let customerKeys = ["Nama Pemesan", "No. Telp Pemesan", "Nama Penerima", "No. Telp Penerima", "Alamat Kirim"]
         for key in customerKeys {
             if let value = data[key] as? String {
                 customerFields.append(OrderField(label: "\(key) :", value: value))
@@ -66,7 +66,7 @@ class EditOrderViewModel {
         }
         
         // 2. Schedule fields
-        let scheduleKeys = ["Tanggal Pesanan", "Jam Kirim"]
+        let scheduleKeys = ["Tanggal Pesanan"]
         for key in scheduleKeys {
             if let value = data[key] as? String {
                 scheduleFields.append(OrderField(label: "\(key) :", value: value))
@@ -92,19 +92,19 @@ class EditOrderViewModel {
             products.append(ProductItem(category: "", name: "", quantity: 0))
         }
 
-        // 4. Add-ons
-        if let addonsValue = data["Adds-on"] {
-            let addOnsArray = JSONStringArrayParse(addonsValue)
-            addOns = addOnsArray.compactMap { item in
-                guard let name = item["item"] as? String, !name.isEmpty else { return nil }
-                let qty = item["quantity"] as? Int ?? 1
-                return AddOnItem(name: name, quantity: qty)
-            }
-            processedKeys.insert("Adds-on")
-        }
-        if addOns.isEmpty {
-            addOns.append(AddOnItem(name: "", quantity: 0))
-        }
+//        // 4. Add-ons
+//        if let addonsValue = data["Adds-on"] {
+//            let addOnsArray = JSONStringArrayParse(addonsValue)
+//            addOns = addOnsArray.compactMap { item in
+//                guard let name = item["item"] as? String, !name.isEmpty else { return nil }
+//                let qty = item["quantity"] as? Int ?? 1
+//                return AddOnItem(name: name, quantity: qty)
+//            }
+//            processedKeys.insert("Adds-on")
+//        }
+//        if addOns.isEmpty {
+//            addOns.append(AddOnItem(name: "", quantity: 0))
+//        }
 
         // 5. Add ALL remaining fields to otherFields
         for (key, value) in data {

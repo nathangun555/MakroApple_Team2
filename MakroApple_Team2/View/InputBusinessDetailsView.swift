@@ -62,6 +62,7 @@ struct InputBusinessDetailsView: View {
   @State private var isUploadingLogo = false
   @State private var showUnsavedAlert = false
   @State private var navigateToMenu = false
+  @Binding var path: NavigationPath
 
   enum Field: Hashable {
     case businessName, businessPhone, businessAddress, businessLogoUrl, businessEmail
@@ -359,7 +360,7 @@ struct InputBusinessDetailsView: View {
         }
       }
       .navigationDestination(isPresented: $navigateToMenu) {
-              InputMenuView()
+          InputMenuView(path: $path)
       }
       .onChange(of: vm.businessName) { _ in
         vm.saveSuccess = false
@@ -422,10 +423,10 @@ struct InputBusinessDetailsView: View {
   }
 }
 
-#Preview {
-  let session = SessionManager()
-  session.isSignedIn = true
-  session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
-  return NavigationStack { InputBusinessDetailsView() }
-    .environmentObject(session)
-}
+//#Preview {
+//  let session = SessionManager()
+//  session.isSignedIn = true
+//  session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
+//  return NavigationStack { InputBusinessDetailsView() }
+//    .environmentObject(session)
+//}

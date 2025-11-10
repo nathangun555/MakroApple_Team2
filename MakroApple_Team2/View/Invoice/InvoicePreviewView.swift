@@ -84,6 +84,21 @@ struct InvoicePreviewView: View {
                                 }
                                 .disabled(isSaving)
                             }
+                        } else {
+                            VStack(spacing: 0) {
+                                Button {
+                                    path = NavigationPath()
+                                } label: {
+                                    Text("Konfirmasi")
+                                        .frame(maxWidth: .infinity)
+                                        .bold()
+                                        .padding()
+                                        .foregroundColor(.white)
+                                        .glassEffect(.clear.tint(.primaryButton), in: .rect(cornerRadius: 30))
+                                        .padding(.horizontal)
+                                        .padding(.bottom)
+                                }
+                            }
                         }
                     }
                     

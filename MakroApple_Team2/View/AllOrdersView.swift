@@ -168,7 +168,7 @@ struct AllOrdersView: View {
                     InvoicePreviewView(orderId: orderId, path: $path)
                     
                 case .tutorial:
-                    InputBusinessDetailsView()
+                    InputBusinessDetailsView(path: $path)
                 }
             }
         }
@@ -181,6 +181,7 @@ struct AllOrdersView: View {
         orderImagesCache[id] = sharedImages
         orderDataCache[id] = ["sharedText": sharedText]
         
+        print("AMMAR BANGET \(viewModel.hasTemplates)")
         if viewModel.hasTemplates {
             path.append(OrderDestination.newOrder)
         } else {

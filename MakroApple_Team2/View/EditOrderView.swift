@@ -60,14 +60,14 @@ struct EditOrderView: View {
                                 },
                                 fieldErrors: viewModel.fieldErrors
                             )
-                            // Adds On
-                            AddOnsSection(
-                                addOns: $viewModel.addOns,
-                                onAdd: { viewModel.addAddOn() },
-                                onDelete: { index in
-                                    deleteBus.request { viewModel.deleteAddOn(at: index) }
-                                }
-                            )
+//                            // Adds On
+//                            AddOnsSection(
+//                                addOns: $viewModel.addOns,
+//                                onAdd: { viewModel.addAddOn() },
+//                                onDelete: { index in
+//                                    deleteBus.request { viewModel.deleteAddOn(at: index) }
+//                                }
+//                            )
                             // Foto
                             PhotoSection(
                                 selectedItems: $selectedItems,

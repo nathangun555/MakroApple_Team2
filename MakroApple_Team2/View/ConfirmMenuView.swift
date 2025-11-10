@@ -14,6 +14,7 @@ struct ConfirmMenuView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var showUnsavedChangesAlert = false
     @State private var navigateToTemplateForm = false
+    @Binding var path: NavigationPath
     
     let scannedCategories: [MenuCategory] // ✅ Add this parameter
     
@@ -75,7 +76,7 @@ struct ConfirmMenuView: View {
             }
         }
         .navigationDestination(isPresented: $navigateToTemplateForm) {
-                NewTemplateFormView()
+            NewTemplateFormView(path: $path)
         }
     }
     
@@ -277,24 +278,24 @@ struct ConfirmMenuView: View {
     }
 }
 
-#Preview {
-    let session = SessionManager()
-    session.isSignedIn = true
-    session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
-    
-    // ✅ Mock scanned data for preview
-    let mockCategories = [
-        MenuCategory(categoryName: "Custom Cake", products: [
-            MenuProduct(name: "Custom Cake 12cm - Vanilla", price: 110000, notes: "2 layer vanilla sponge", productType: "Custom Cake"),
-            MenuProduct(name: "Custom Cake 16cm - Chococrunch", price: 190000, notes: "With chococrunch filling", productType: "Custom Cake")
-        ]),
-        MenuCategory(categoryName: "Signature Cake", products: [
-            MenuProduct(name: "Strawberry Shortcake 16cm", price: 240000, notes: "vanilla sponge, fresh strawberry", productType: "Signature Cake")
-        ])
-    ]
-    
-    return NavigationStack {
-        ConfirmMenuView(scannedCategories: mockCategories)
-            .environmentObject(session)
-    }
-}
+//#Preview {
+//    let session = SessionManager()
+//    session.isSignedIn = true
+//    session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
+//    
+//    // ✅ Mock scanned data for preview
+//    let mockCategories = [
+//        MenuCategory(categoryName: "Custom Cake", products: [
+//            MenuProduct(name: "Custom Cake 12cm - Vanilla", price: 110000, notes: "2 layer vanilla sponge", productType: "Custom Cake"),
+//            MenuProduct(name: "Custom Cake 16cm - Chococrunch", price: 190000, notes: "With chococrunch filling", productType: "Custom Cake")
+//        ]),
+//        MenuCategory(categoryName: "Signature Cake", products: [
+//            MenuProduct(name: "Strawberry Shortcake 16cm", price: 240000, notes: "vanilla sponge, fresh strawberry", productType: "Signature Cake")
+//        ])
+//    ]
+//    
+//    return NavigationStack {
+//        ConfirmMenuView(scannedCategories: mockCategories)
+//            .environmentObject(session)
+//    }
+//}

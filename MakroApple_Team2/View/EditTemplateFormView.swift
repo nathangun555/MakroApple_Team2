@@ -12,6 +12,7 @@ struct EditTemplateFormView: View {
     @State private var viewModel = EditTemplateViewModel()
     @EnvironmentObject var session: SessionManager
     @Environment(\.dismiss) var dismiss
+    @Binding var path: NavigationPath
     
     var body: some View {
         ZStack {
@@ -117,9 +118,9 @@ struct EditTemplateFormView: View {
                 .disabled(viewModel.isSaving)
             }
         }
-//        .navigationDestination(isPresented: $viewModel.didSave) {
-//            InvoicePreviewView(orderId: nil)
-//        }
+        .navigationDestination(isPresented: $viewModel.didSave) {
+            InvoicePreviewView(orderId: nil, path: $path)
+        }
         .task {
             viewModel.configure(userId: session.userId)
             await viewModel.loadTemplate()
@@ -127,12 +128,12 @@ struct EditTemplateFormView: View {
     }
 }
 
-#Preview {
-    let session = SessionManager()
-    session.isSignedIn = true
-    session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
-    
-    let view = EditTemplateFormView()
-    
-    return view.environmentObject(session)
-}
+//#Preview {
+//    let session = SessionManager()
+//    session.isSignedIn = true
+//    session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
+//    
+//    let view = EditTemplateFormView()
+//    
+//    return view.environmentObject(session)
+//}

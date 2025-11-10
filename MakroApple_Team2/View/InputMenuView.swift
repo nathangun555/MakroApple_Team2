@@ -39,6 +39,7 @@ struct InputMenuView: View {
     @State private var showErrorAlert = false
     @State private var errorMessage = ""
     @State private var scannedCategories: [MenuCategory] = []
+    @Binding var path: NavigationPath
     
     var viewModel = InputMenuViewModel()
     
@@ -82,7 +83,7 @@ struct InputMenuView: View {
                 Text(errorMessage)
             }
             .navigationDestination(isPresented: $navigateToConfirm) {
-                ConfirmMenuView(scannedCategories: scannedCategories)
+                ConfirmMenuView(path: $path, scannedCategories: scannedCategories)
                     .environmentObject(session)
             }
     }
@@ -396,13 +397,13 @@ struct ImagePicker: UIViewControllerRepresentable {
     }
 }
 
-#Preview {
-    let session = SessionManager()
-    session.isSignedIn = true
-    session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
-    
-    return NavigationStack {
-        InputMenuView()
-            .environmentObject(session)
-    }
-}
+//#Preview {
+//    let session = SessionManager()
+//    session.isSignedIn = true
+//    session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
+//    
+//    return NavigationStack {
+//        InputMenuView()
+//            .environmentObject(session)
+//    }
+//}

@@ -6,6 +6,7 @@ struct NewTemplateFormView: View {
     @State private var formPesanan = ""
     @State private var viewModel = NewTemplateViewModel()
     @EnvironmentObject var session: SessionManager
+    @Binding var path: NavigationPath
     
     var body: some View {
         GeometryReader { geometry in
@@ -124,7 +125,7 @@ struct NewTemplateFormView: View {
                 .disabled(formPesanan.isEmpty || viewModel.isLoading)
             }
             .navigationDestination(isPresented: $viewModel.didSave) {
-                EditTemplateFormView()
+                EditTemplateFormView(path: $path)
             }
         }
         .task {
@@ -133,11 +134,11 @@ struct NewTemplateFormView: View {
     }
 }
 
-#Preview {
-    let session = SessionManager()
-    session.isSignedIn = true
-    session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
-    
-    return NewTemplateFormView()
-        .environmentObject(session)
-}
+//#Preview {
+//    let session = SessionManager()
+//    session.isSignedIn = true
+//    session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
+//    
+//    return NewTemplateFormView()
+//        .environmentObject(session)
+//}

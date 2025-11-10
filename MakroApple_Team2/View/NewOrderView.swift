@@ -126,6 +126,7 @@ struct NewOrderView: View {
                 .disabled(viewModel.isLoading || formPesanan.isEmpty)
             }
             .onAppear {
+                
                 // Load shared text if exists
                 if !sharedText.isEmpty && formPesanan.isEmpty {
                     formPesanan = sharedText
