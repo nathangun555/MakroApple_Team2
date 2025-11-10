@@ -39,6 +39,11 @@ class InvoicePreviewViewModel {
     var total: Decimal = 0
     var downPayment: Decimal = 0
     var photoUrl1: String = ""
+    var businessName: String = ""
+    var businessPhone: String = ""
+    var businessAddress: String = ""
+    var businessLogoUrl: String = ""
+    var businessEmail: String = ""
     
     var isLoading = false
     var errorMessage: String?
@@ -78,7 +83,23 @@ class InvoicePreviewViewModel {
         }
     }
 
-    
+    func loadUserProfileData() async {
+        guard let userId, let uuid = UUID(uuidString: userId) else { return }
+        do {
+            let user = try await SupabaseManager.shared.fetchUser(by: uuid)
+            self.userRecord = user
+            self.businessName = user?.businessName ?? ""
+            self.businessPhone = user?.businessPhone ?? ""
+            self.businessAddress = user?.businessAddress ?? ""
+            self.bankName = user?.bankName ?? ""
+            self.accountNumber = user?.bankAccountNumber ?? ""
+            self.accountName = user?.bankAccountName ?? ""
+            self.businessLogoUrl = user?.businessLogoUrl ?? ""
+            self.businessEmail = user?.businessEmail ?? ""
+        } catch {
+            errorMessage = "No user found"
+        }
+    }
     
     // MARK: - Load Data (Real or Mock)
     func loadInvoiceData() async {
@@ -98,13 +119,20 @@ class InvoicePreviewViewModel {
     // MARK: - Load Real Order Data
     private func loadRealOrderData(orderUUID: UUID) async {
         do {
-            let order = try await SupabaseManager.shared.fetchOrder(id: orderUUID)
-            let items = try await SupabaseManager.shared.fetchOrderItem(orderId: orderUUID)
-            
-            self.orderRecord = order
-            self.orderItems = items
-            
-            populateFromOrder(order: order, items: items)
+            if let userIdString = userId, let userUUID = UUID(uuidString: userIdString) {
+                if let user = try await SupabaseManager.shared.fetchUser(by: userUUID) {
+                    self.userRecord = user
+                    let order = try await SupabaseManager.shared.fetchOrder(id: orderUUID)
+                    let items = try await SupabaseManager.shared.fetchOrderItem(orderId: orderUUID)
+                    
+                    self.orderRecord = order
+                    self.orderItems = items
+                    
+                    populateFromOrder(order: order, items: items, user: user)
+                } else {
+                    errorMessage = "User not found"
+                }
+            }
             
         } catch {
             errorMessage = "Gagal memuat data invoice: \(error.localizedDescription)"
@@ -133,6 +161,7 @@ class InvoicePreviewViewModel {
             }
             
             // Generate mock data for preview
+            await loadUserProfileData()
             generateMockInvoiceData()
             
         } catch {
@@ -141,14 +170,19 @@ class InvoicePreviewViewModel {
     }
     
     // MARK: - Populate from Real Order
-    private func populateFromOrder(order: OrderRecord, items: [OrderItemRecord]) {
+    private func populateFromOrder(order: OrderRecord, items: [OrderItemRecord], user: UserRecord) {
         invoiceNumber = order.orderNumber
         invoiceDate = order.invoiceDueDate ?? DateFormatterHelper.isoDateString(from: Date())
         invoiceDueDate = order.invoiceDueDate ?? DateFormatterHelper.isoDateString(from: Calendar.current.date(byAdding: .day, value: 1, to: Date())!)
         
-        accountName = order.customFields?["account_name"]?.value as? String ?? "Michelle Michiko"
-        accountNumber = order.customFields?["account_number"]?.value as? String ?? "12345678910"
-        bankName = order.customFields?["bank_name"]?.value as? String ?? "Bank Transfer - BCA"
+        businessName = user.businessName ?? "AIVA Bakery"
+        businessAddress = user.businessAddress ?? "Orchard Road"
+        businessPhone = user.businessPhone ?? "08123456789"
+        businessEmail = user.businessEmail ?? "hello@aivabakery.com"
+        businessLogoUrl = user.businessLogoUrl ?? ""
+        accountName = user.bankAccountName ?? "Michelle Michiko"
+        accountNumber = user.bankAccountNumber ?? "12345678910"
+        bankName = user.bankName ?? "Bank Transfer - BCA"
         
         customerName = order.customerOrderName
         customerPhone = order.customerOrderPhone ?? ""

@@ -66,15 +66,23 @@ struct InvoiceContentView: View {
     // MARK: - Header Section
     private var headerSection: some View {
         HStack(alignment: .top, spacing: 12) {
-            RoundedRectangle(cornerRadius: 4)
-                .fill(Color(.systemGray5))
+            if let url = URL(string: viewModel.businessLogoUrl), !viewModel.businessLogoUrl.isEmpty {
+                AsyncImage(url: url) { image in
+                    image
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                } placeholder: {
+                    Color.gray.opacity(0.2)
+                }
                 .frame(width: 60, height: 60)
-                .overlay(
-                    Text("LOGO")
-                        .font(.system(size: 8))
-                        .foregroundColor(.gray)
-                )
-            
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+            } else {
+                Image(systemName: "building.2.crop.circle")
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 60, height: 60)
+                    .foregroundColor(.gray)
+            }
             VStack(alignment: .leading, spacing: 2) {
                 Text(viewModel.userRecord?.businessName ?? "TaskFlow Bakery")
                     .font(.system(size: 25))
