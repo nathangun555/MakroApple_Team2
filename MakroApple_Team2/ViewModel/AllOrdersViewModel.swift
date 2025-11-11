@@ -11,6 +11,8 @@ class AllOrdersViewModel {
     var errorMessage: String?
     var orders: [OrderRecord] = []
     var orderItems: [OrderItemRecord] = []
+    var hasTemplates: Bool = false
+    var isCheckingTemplates: Bool = false
     
     private(set) var userId: String?
     
@@ -163,6 +165,18 @@ class AllOrdersViewModel {
         }
     }
     
-    
+    func checkIfUserHasTemplates(for userId: UUID) async {
+        isCheckingTemplates = true
+        defer { isCheckingTemplates = false }
+        
+        do {
+            let template = try await SupabaseManager.shared.fetchUser(by: userId)
+            hasTemplates = (template?.templateFormat != nil)
+            print(hasTemplates ? "✅ User has templates" : "⚠️ User has no templates")
+        } catch {
+            print("❌ Error checking templates: \(error)")
+            hasTemplates = false
+        }
+    }
 
 }

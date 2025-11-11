@@ -14,22 +14,33 @@ struct NewOrderView: View {
     @EnvironmentObject var session: SessionManager
     @State private var formPesanan = ""
     
-    @State private var selectedItems: [PhotosPickerItem?] = [nil, nil, nil]
-    @State private var selectedImages: [UIImage?] = [nil, nil, nil]
-    @State private var savedImagePaths: [URL?] = [nil, nil, nil]
-    
+    @State private var selectedItems: [PhotosPickerItem?] = [nil]
+    @Binding var selectedImages: [UIImage?]
+    @Binding var parsedOrderData: [String : Any]
+    @State private var savedImagePaths: [URL?] = [nil]
     @State private var isLoading = false
     @State private var resultJSON: String? = nil
     @State private var errorMessage: String? = nil
     
+    @Binding var sharedText: String
+    @Binding var sharedImages: [UIImage]
+    @Binding var path: NavigationPath
+    
     let edgeFunctionURL = URL(string: "https://iznjcwyoziqjgfjahemb.supabase.co/functions/v1/form-template")!
     
+    @FocusState private var isTextEditorFocused: Bool
+
+    
     var body: some View {
-        GeometryReader { geometry in
+        // flag to show that this is the latest iwak's code
+        ZStack{
+            
             ZStack(alignment: .bottom){
                 ScrollView{
                     VStack(alignment: .leading){
                         HStack{
+                            
+                            
                             Text("Formulir Pesanan")
                                 .font(.title3)
                                 .fontWeight(.bold)
@@ -49,158 +60,138 @@ struct NewOrderView: View {
                                     .cornerRadius(20)
                             }
                         }
-                    
-                        
-                        TextEditor(text: $formPesanan)
-                            .padding(3)
-                            .frame(height: geometry.size.height / 3)
-                            .cornerRadius(10)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 10)
-                                    .stroke(Color.gray.opacity(5), lineWidth: 0.5)
-                            )
-                            .overlay(
-                                Group {
-                                    if formPesanan.isEmpty {
-                                        Text("Tempel formulir pesanan anda di sini ✨")
-                                            .foregroundColor(.gray)
-                                            .padding(.horizontal, 14)
-                                            .padding(.vertical, 12)
-                                            .frame(maxWidth: .infinity, alignment: .leading)
-                                    }
-                                }
-                            )
-
                         
                         
-                        Text("Masukkan Foto Referensi")
-                            .font(.title3)
-                            .fontWeight(.bold)
-                            .padding(.top)
-                        
-                        HStack(spacing: 12) {
-                            ForEach(0..<3, id: \.self) { index in
-                                VStack {
-                                    if let image = selectedImages[index] {
-                                        Image(uiImage: image)
-                                            .resizable()
-                                            .scaledToFill()
-                                            .frame(width: 115, height: 115)
-                                            .clipped()
-                                            .cornerRadius(10)
-                                            .overlay(
-                                                Button(action: {
-                                                    selectedImages[index] = nil
-                                                    selectedItems[index] = nil
-                                                    savedImagePaths[index] = nil
-                                                }) {
-                                                    Image(systemName: "xmark.circle.fill")
-                                                        .foregroundColor(.white)
-                                                        .background(Color.black.opacity(0.6))
-                                                        .clipShape(Circle())
-                                                }
-                                            )
-                                    } else {
-                                        PhotosPicker(selection: Binding(
-                                            get: { selectedItems[index] },
-                                            set: { newValue in
-                                                selectedItems[index] = newValue
-                                                Task {
-                                                    await loadImage(for: index)
-                                                }
-                                            }
-                                        ), matching: .images) {
-                                            VStack {
-                                                Image(systemName: "photo.badge.plus")
-                                                    .font(.title)
-                                            }
-                                            .foregroundColor(.black)
-                                            .frame(width: 115, height: 115)
-                                            .overlay(
-                                                RoundedRectangle(cornerRadius: 10)
-                                                    .strokeBorder(style: StrokeStyle(lineWidth: 1, dash: [5]))
-                                                    .foregroundStyle(Color.secondary)
-                                                    .background(.gray.opacity(0.1))
-                                                    .cornerRadius(10)
-                                            )
-                                        }
-                                    }
-                                }
-                            }
+                        ZStack(alignment: .topLeading) {
                             
+                            
+                            TextEditor(text: $formPesanan)
+                                .padding(8)
+                                .frame(minHeight: 200)
+                                .focused($isTextEditorFocused)
+                            
+                            if formPesanan.isEmpty && !isTextEditorFocused { // 👈 only show placeholder when NOT focused
+                                    Text("Tempel formulir pesanan anda di sini ✨")
+                                        .foregroundColor(.gray)
+                                        .padding(.horizontal, 8)
+                                        .padding(.vertical, 12)
+                                }
                         }
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 10)
+                                .stroke(Color.gray.opacity(0.4), lineWidth: 0.8)
+                        )
                         
-                        // Info penyimpanan gambar
-                        if savedImagePaths.contains(where: { $0 != nil }) {
-                            Text("✅ \(savedImagePaths.compactMap { $0 }.count) gambar terunggah.")
-                                .font(.footnote)
-                                .foregroundColor(.green)
+                        
+                        
+                        
+                        PhotoSection(
+                            selectedItems: $selectedItems,
+                            selectedImages: $selectedImages
+                        )
+                        
+                        if let error = viewModel.errorMessage {
+                            HStack {
+                                Image(systemName: "exclamationmark.triangle.fill")
+                                    .foregroundColor(.red)
+                                Text(error)
+                                    .font(.footnote)
+                            }
+                            .padding()
+                            .background(Color.red.opacity(0.1))
+                            .cornerRadius(8)
                         }
                     }
                     .padding()
                 }
+                
+                // MARK: - Submit Button
                 Button(action: {
-                    Task{
+                    Task {
                         await viewModel.parseOrder(text: formPesanan)
-                        print("saved")
                     }
                 }) {
-                    Text("Tinjau Pesanan")
-                        .fontWeight(.semibold)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.blue)
-                        .foregroundColor(.white)
-                        .cornerRadius(30)
-                        .padding(.horizontal)
-                        .shadow(radius: 5)
+                    HStack {
+                        if viewModel.isLoading {
+                            ProgressView()
+                                .tint(.white)
+                        }
+                        Text("Tinjau Pesanan")
+                            .fontWeight(.semibold)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.blue)
+                    .foregroundColor(.white)
+                    .cornerRadius(30)
+                    .padding(.horizontal)
+                    .shadow(radius: 5)
+                }
+                .disabled(viewModel.isLoading || formPesanan.isEmpty)
+            }
+            .onAppear {
+                
+                // Load shared text if exists
+                if !sharedText.isEmpty && formPesanan.isEmpty {
+                    formPesanan = sharedText
+                    print("📥 Initial shared text loaded into formPesanan: \(sharedText)")
+                }
+
+                // Load shared images into the photo picker
+                if !sharedImages.isEmpty {
+                    for (index, image) in sharedImages.prefix(3).enumerated() {
+                        selectedImages[index] = image
+                    }
+                    sharedImages.removeAll() // optional cleanup
+                    print("📸 Auto-filled shared images into photo slots")
                 }
             }
-            .navigationTitle("Add New Order")
-            .task {
-                viewModel.configure(userId: session.userId)
-            }
-            .navigationDestination(isPresented: $viewModel.navigateToConfirm) {
-                EditOrderView(parsedOrderData: viewModel.parsedOrderData ?? [:])
+
+            .onChange(of: sharedText) { newValue in
+                print("SHARED TEXT INSIDE THE NEW ORDER \(newValue)")
+                formPesanan = newValue
             }
         }
-    }
-    // 🔹 Fungsi memuat dan menyimpan gambar per slot
-    private func loadImage(for index: Int) async {
-        guard let item = selectedItems[index] else { return }
-        if let data = try? await item.loadTransferable(type: Data.self),
-           let uiImage = UIImage(data: data) {
-            selectedImages[index] = uiImage
-            if let savedPath = saveImageToDocuments(uiImage) {
-                savedImagePaths[index] = savedPath
-            }
-        }
-    }
-    
-    // 🔹 Fungsi simpan gambar ke Documents
-    private func saveImageToDocuments(_ image: UIImage) -> URL? {
-        guard let data = image.jpegData(compressionQuality: 0.8) else { return nil }
-        let filename = UUID().uuidString + ".jpg"
-        let documents = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-        let fileURL = documents.appendingPathComponent(filename)
+//        .onReceive(NotificationCenter.default.publisher(for: Notification.Name("SharedTextReceived"))) { notif in
+//            if let text = notif.object as? String {
+//                formPesanan = text    // paste into TextEditor
+//            }
+//        }
         
-        do {
-            try data.write(to: fileURL)
-            print("✅ Saved image at: \(fileURL)")
-            return fileURL
-        } catch {
-            print("❌ Error saving image: \(error)")
-            return nil
+        .navigationTitle("Add New Order")
+        .task {
+            viewModel.configure(userId: session.userId)
+        }
+        .onChange(of: viewModel.navigateToConfirm) { newValue in
+            if newValue, let parsedData = viewModel.parsedOrderData {
+                parsedOrderData = parsedData
+                path.append(OrderDestination.editOrder)
+            }
+        }
+    }
+    
+    private func cleanUpEmptySlots() {
+        // Remove all trailing nils except one at the end
+        while selectedImages.count > 1, selectedImages.last == nil, selectedImages.dropLast().contains(nil) {
+            selectedImages.removeLast()
+            selectedItems.removeLast()
+            savedImagePaths.removeLast()
+        }
+        
+        // Always ensure exactly one empty slot at the end
+        if selectedImages.last != nil {
+            selectedImages.append(nil)
+            selectedItems.append(nil)
+            savedImagePaths.append(nil)
         }
     }
 }
 
-
-#Preview {
-    let session = SessionManager()
-    session.isSignedIn = true
-    session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
-    
-    return NewOrderView()
-        .environmentObject(session)
-}
+//#Preview {
+//    let session = SessionManager()
+//    session.isSignedIn = true
+//    session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
+//
+//    return NewOrderView(sharedText: .constant(""), sharedImages: .constant([]))
+//        .environmentObject(session)
+//}

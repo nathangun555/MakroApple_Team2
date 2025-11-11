@@ -5,151 +5,75 @@
 //  Created by Nathan Gunawan on 06/10/25.
 //
 
-//import SwiftUI
-//
-//@main
-//struct MakroApple_Team2App: App {
-//    @StateObject private var session = SessionManager()
-//
-//    var body: some Scene {
-//        WindowGroup {
-//            AllOrdersView()
-//                .environmentObject(session)   // ✅ Inject globally
-//        }
-//    }
-//}
-
 import SwiftUI
-
-//@main
-//struct MakroApple_Team2App: App {
-//  @StateObject private var session = SessionManager()
-//
-//  var body: some Scene {
-//    WindowGroup {
-//      NavigationStack {
-//        AllOrdersView()
-//          .environmentObject(session)   // Inject globally
-//      }
-//      .task {
-//        #if DEV_STUB_SESSION
-//        // Dev stub session: skip real auth and force a specific user
-//        session.isSignedIn = true
-//        session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
-//        #else
-//        // In non-dev builds, keep your normal flow (e.g., ContentView auto-checks session)
-//        // If using ContentView in production, switch root to ContentView() here.
-//        #endif
-//      }
-//    }
-//    // Group {
-//    //     if session.isSignedIn {
-//    //       NavigationStack { AllOrdersView() }
-//    //     } else {
-//    //       NavigationStack { SignInWithAppleView() }
-//    //     }
-//    //   }
-//    //   .environmentObject(session)
-//    //   .task {
-//    //     await session.restoreSessionIfAvailable()
-//    //     session.startAuthListener()
-//    //   }
-//  }
-//}
+import Combine
 
 @main
-//struct MakroApple_Team2App: App {
-//    @StateObject var session = SessionManager()
-//
-//    var body: some Scene {
-//        WindowGroup {
-//            ContentView()
-//                .environmentObject(session)
-//                .task {
-//                    // ✅ Manual injection (for testing)
-//                    session.isSignedIn = true
-//                    session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
-//
-//                    print("🪪 Injected user ID manually:", session.userId ?? "nil")
-//                }
-//        }
-//    }
-//}
-
-//@main
 struct MakroApple_Team2App: App {
     @StateObject var session = SessionManager()
-        @State private var selectedTab: Int = 1   // 👈 Add this
-
+    @StateObject var deleteBus = DeleteOverlayBus()
+    @State private var selectedTab: Int = 0
+    @State private var sharedText: String = ""
+    @State private var sharedImages: [UIImage] = []
+    @State private var hasNewObject = false
+    @StateObject var unsavedBus = UnsavedOverlayBus()
 
     
+    @State private var path : NavigationPath = .init()
     var body: some Scene {
         WindowGroup {
-            MainTabView(selectedTab: $selectedTab)
-                .environmentObject(session)
-        }
-    }
-}
-
-class AppDelegate: NSObject, UIApplicationDelegate {
-    func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey : Any] = [:]) -> Bool {
-        if url.scheme == "macroa2" && url.host == "share" {
-            let sharedDefaults = UserDefaults(suiteName: "group.com.macroa2.identifier")
-            let sharedText = sharedDefaults?.string(forKey: "sharedText")
-            let sharedImage = sharedDefaults?.string(forKey: "sharedImage")
+//            InvoicePreviewView(orderId: "82536742-DDC4-481C-B63A-87400194D0AA", path: $path)
+//                .environmentObject(session)
             
-            print("📩 Received shared text:", sharedText ?? "None")
-            print("🖼️ Received shared image:", sharedImage ?? "None")
-
-            // ✅ Optionally clear after use
-            sharedDefaults?.removeObject(forKey: "sharedText")
-            sharedDefaults?.removeObject(forKey: "sharedImage")
-            return true
+            MainTabView(selectedTab: $selectedTab, sharedText: $sharedText,hasNewObject: $hasNewObject, sharedImages : $sharedImages)
+                .environmentObject(session)
+                .environmentObject(deleteBus)
+                .environmentObject(unsavedBus)
+                .onAppear {
+                    
+                    if let defaults = UserDefaults(suiteName: "group.com.please.shared") {
+                        
+                        // Load text from another app
+                        if let text = defaults.string(forKey: "sharedText") {
+                            sharedText = text
+                            hasNewObject = true
+                            defaults.removeObject(forKey: "sharedText")
+                            print("REMOVED OBJECT \(text)")
+                        }
+                        
+                        // Load image from another app
+                        if let image = defaults.array(forKey: "sharedImagesData") as? [Data] {
+                            sharedImages = image.compactMap { UIImage(data: $0) }
+                            hasNewObject = true
+                            defaults.removeObject(forKey: "sharedImagesData")
+                            print("LOADED \(sharedImages.count) shared images")
+                            
+                            
+                        }
+                        defaults.synchronize()
+                    }
+                }
+                .onOpenURL { url in
+                    if url.host == "fromwhatsapp" {
+                        if let defaults = UserDefaults(suiteName: "group.com.please.shared") {
+                            
+                            if let text = defaults.string(forKey: "sharedText") {
+                                sharedText = text
+                                hasNewObject = true
+                                print("SHARED TEXT : \(text)")
+                            }
+                            
+                            if let image = defaults.array(forKey: "sharedImagesData") as? [Data] {
+                                sharedImages = image.compactMap { UIImage(data: $0) }
+                                hasNewObject = true
+                                print("LOADED \(sharedImages.count) shared images")
+                            }
+                            defaults.synchronize()
+                        }
+                    }
+                }
+            
         }
-        return false
+        
     }
 }
-//@main
-//struct MakroApple_Team2App: App {
-//  @StateObject private var session = SessionManager()
-//
-//  var body: some Scene {
-//    WindowGroup {
-//      NavigationStack {
-//        NewTemplateFormView()
-//          .environmentObject(session)   // Inject globally
-//      }
-//      .task {
-//        #if DEV_STUB_SESSION
-//        // Dev stub session: skip real auth and force a specific user
-//        session.isSignedIn = true
-//        session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
-//        #else
-//        // In non-dev builds, keep your normal flow (e.g., ContentView auto-checks session)
-//        // If using ContentView in production, switch root to ContentView() here.
-//        #endif
-//      }
-//    }
-//    // Group {
-//    //     if session.isSignedIn {
-//    //       NavigationStack { AllOrdersView() }
-//    //     } else {
-//    //       NavigationStack { SignInWithAppleView() }
-//    //     }
-//    //   }
-//    //   .environmentObject(session)
-//    //   .task {
-//    //     await session.restoreSessionIfAvailable()
-//    //     session.startAuthListener()
-//    //   }
-//  }
-//}
-
-//@main
-//struct MakroApple_Team2App: App {
-//    var body: some Scene {
-//        WindowGroup {
-//            SignInWithAppleView(isSignedIn: .constant(false), userId: .constant(nil))
-//        }
-//    }
-//}

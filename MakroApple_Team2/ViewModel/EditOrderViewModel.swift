@@ -17,7 +17,7 @@ struct ProductItem: Identifiable {
     var quantity: Int
 }
 
-struct AddOnItem: Identifiable {
+struct AddOnItem: Identifiable, Codable {
     let id = UUID()
     var name: String
     var quantity: Int
@@ -26,32 +26,38 @@ struct AddOnItem: Identifiable {
 @Observable
 @MainActor
 class EditOrderViewModel {
+    
     var customerFields: [OrderField] = []
     var scheduleFields: [OrderField] = []
     var products: [ProductItem] = []
     var addOns: [AddOnItem] = []
     var otherFields: [OrderField] = []
     
+    var selectedPhotos: [UIImage] = []
+    var uploadedPhotoURLs: [String] = []
+    var isUploadingPhotos = false
+    
     var isLoading = false
     var didSave = false
     var errorMessage: String?
+    var fieldErrors: Set<String> = []
     
     private(set) var userId: String?
     private var originalParsedData: [String: Any] = [:]
     
-    func configure(parsedOrderData: [String: Any]) {
+    func configure(userId: String?, parsedOrderData: [String: Any], selectedPhotos: [UIImage] = []) {
+        print("parsedOrderData: \(parsedOrderData)")
+        self.userId = userId
         self.originalParsedData = parsedOrderData
-        
-        // Parse the data into sections
+        self.selectedPhotos = selectedPhotos
         parseIntoSections(parsedOrderData)
     }
     
     private func parseIntoSections(_ data: [String: Any]) {
-        // Track which keys have been processed
         var processedKeys: Set<String> = []
         
         // 1. Customer fields
-        let customerKeys = ["Nama Pemesan", "No. Telp Pemesan", "No Telp Pemesan", "Nama Penerima", "No. Telp Penerima", "No Telp Penerima", "Alamat Kirim"]
+        let customerKeys = ["Nama Pemesan", "No. Telp Pemesan", "Nama Penerima", "No. Telp Penerima", "Alamat Kirim"]
         for key in customerKeys {
             if let value = data[key] as? String {
                 customerFields.append(OrderField(label: "\(key) :", value: value))
@@ -60,7 +66,7 @@ class EditOrderViewModel {
         }
         
         // 2. Schedule fields
-        let scheduleKeys = ["Tanggal Pesanan", "Jam Kirim"]
+        let scheduleKeys = ["Tanggal Pesanan"]
         for key in scheduleKeys {
             if let value = data[key] as? String {
                 scheduleFields.append(OrderField(label: "\(key) :", value: value))
@@ -70,44 +76,15 @@ class EditOrderViewModel {
         
         // 3. Products
         if let pesananValue = data["Pesanan"] {
-            var jsonString: String? = nil
-            
-            if let array = pesananValue as? [Any], let firstItem = array.first as? String {
-                jsonString = firstItem
-            }
-            else if let str = pesananValue as? String {
-                jsonString = str
-            }
-            
-            if var jsonString = jsonString {
-                print("🔵 Pesanan string: \(jsonString.prefix(100))...")
-                
-                if jsonString.hasPrefix("[[") && jsonString.hasSuffix("]]") {
-                    jsonString.removeFirst()  // Remove first [
-                    jsonString.removeLast()   // Remove last ]
-                }
-                
-                print("✅ Cleaned: \(jsonString.prefix(100))...")
-                
-                if let jsonData = jsonString.data(using: .utf8) {
-                    do {
-                        if let pesananArray = try JSONSerialization.jsonObject(with: jsonData) as? [[String: Any]] {
-                            products = pesananArray.compactMap { item in
-                                guard let name = item["item"] as? String, !name.isEmpty else { return nil }
-                                let qty = item["quantity"] as? Int ?? 1
-                                return ProductItem(
-                                    category: item["category"] as? String ?? "Classic Cake",
-                                    name: name,
-                                    quantity: qty
-                                )
-                            }
-                            print("✅ Products parsed: \(products.count)")
-                        }
-                    } catch {
-                        print("❌ JSON error: \(error)")
-                        print("   String was: \(jsonString)")
-                    }
-                }
+            let pesananArray = JSONStringArrayParse(pesananValue)
+            products = pesananArray.compactMap { item in
+                guard let name = item["item"] as? String, !name.isEmpty else { return nil }
+                let qty = item["quantity"] as? Int ?? 1
+                return ProductItem(
+                    category: item["category"] as? String ?? "Classic Cake",
+                    name: name,
+                    quantity: qty
+                )
             }
             processedKeys.insert("Pesanan")
         }
@@ -115,60 +92,21 @@ class EditOrderViewModel {
             products.append(ProductItem(category: "", name: "", quantity: 0))
         }
 
-        // 4. Add-ons
-        if let addonsValue = data["Adds-on"] {
-            var jsonString: String? = nil
-            
-            if let array = addonsValue as? [Any], let firstItem = array.first as? String {
-                jsonString = firstItem
-            }
-            else if let str = addonsValue as? String {
-                jsonString = str
-            }
-            
-            if var jsonString = jsonString {
-                print("🔵 Adds-on string: \(jsonString.prefix(100))...")
-                
-                if jsonString.hasPrefix("[[") && jsonString.hasSuffix("]]") {
-                    jsonString.removeFirst()
-                    jsonString.removeLast()
-                }
-                
-                print("✅ Cleaned: \(jsonString.prefix(100))...")
-                
-                if let jsonData = jsonString.data(using: .utf8) {
-                    do {
-                        if let addonsArray = try JSONSerialization.jsonObject(with: jsonData) as? [[String: Any]] {
-                            addOns = addonsArray.compactMap { item in
-                                guard let name = item["item"] as? String, !name.isEmpty else { return nil }
-                                let qty = item["quantity"] as? Int ?? 1
-                                return AddOnItem(name: name, quantity: qty)
-                            }
-                            print("✅ Add-ons parsed: \(addOns.count)")
-                        }
-                    } catch {
-                        print("❌ JSON error: \(error)")
-                        print("   String was: \(jsonString)")
-                    }
-                }
-            }
-            processedKeys.insert("Adds-on")
-        }
-        if addOns.isEmpty {
-            addOns.append(AddOnItem(name: "", quantity: 0))
-        }
-
-        
-//        // ✅ 5. Photo references
-//        let photoKeys = ["Foto Referensi (optional)", "Foto Referensi", "Photo Reference"]
-//        for key in photoKeys {
-//            if let photoData = data[key] {
-//                photoReferences[key] = photoData
-//                processedKeys.insert(key)
+//        // 4. Add-ons
+//        if let addonsValue = data["Adds-on"] {
+//            let addOnsArray = JSONStringArrayParse(addonsValue)
+//            addOns = addOnsArray.compactMap { item in
+//                guard let name = item["item"] as? String, !name.isEmpty else { return nil }
+//                let qty = item["quantity"] as? Int ?? 1
+//                return AddOnItem(name: name, quantity: qty)
 //            }
+//            processedKeys.insert("Adds-on")
 //        }
-        
-        // 6. Add ALL remaining fields to otherFields
+//        if addOns.isEmpty {
+//            addOns.append(AddOnItem(name: "", quantity: 0))
+//        }
+
+        // 5. Add ALL remaining fields to otherFields
         for (key, value) in data {
             // Skip if already processed
             if processedKeys.contains(key) {
@@ -202,7 +140,7 @@ class EditOrderViewModel {
         }
     }
     
-    // MARK: - Product Management
+    // MARK: - Product add and delete
     func addProduct() {
         products.append(ProductItem(category: "", name: "", quantity: 0))
     }
@@ -212,7 +150,7 @@ class EditOrderViewModel {
         products.remove(at: index)
     }
     
-    // MARK: - Add-On Management
+    // MARK: - Add-On add and delete
     func addAddOn() {
         addOns.append(AddOnItem(name: "", quantity: 0))
     }
@@ -223,33 +161,71 @@ class EditOrderViewModel {
     }
     
     // MARK: - Save Order
-    func saveOrder() async {
-//        guard let userId, let uuid = UUID(uuidString: userId) else {
-//            errorMessage = "User belum login"
-//            return
-//        }
-//        
-//        isLoading = true
-//        defer { isLoading = false }
-//        
-//        do {
-//            // Build updated order data
-//            let orderData = buildOrderData()
-//            
-//            print("🔵 Saving order...")
-//            let order = try await SupabaseManager.shared.createOrderWithItems(
-//                userId: uuid,
-//                parsedOrder: orderData
-//            )
-//            
-//            print("✅ Order saved: \(order.id)")
-//            didSave = true
-//            
-//        } catch {
-//            print("❌ Error saving: \(error)")
-//            errorMessage = error.localizedDescription
-//        }
+    func saveOrder(photos: [UIImage]) async -> OrderRecord? {
+        guard let userId, let uuid = UUID(uuidString: userId) else {
+            errorMessage = "User belum login"
+            return nil
+        }
+        
+        isLoading = true
+        defer { isLoading = false }
+        
+        do {
+            if !photos.isEmpty {
+                isUploadingPhotos = true
+                for photo in photos {
+                    if let tempURL = saveImageToTemp(photo) {
+                        let photoURL = try await SupabaseManager.shared.uploadFile(
+                            tempURL,
+                            folder: "order-references"
+                        )
+                        uploadedPhotoURLs.append(photoURL)
+                        print("✅ Photo uploaded: \(photoURL)")
+                    }
+                }
+                isUploadingPhotos = false
+            }
+            
+            let orderData = buildOrderData()
+            
+            print("🔵 Saving order...")
+            let order = try await SupabaseManager.shared.createOrder(
+                userId: uuid,
+                parsedOrder: orderData,
+                photoURLs: uploadedPhotoURLs
+            )
+            
+            print("✅ Order saved: \(order.id)")
+            
+            let orderItems = try await SupabaseManager.shared.createOrderItems(
+                products: self.products,
+                orderId: order.id
+            )
+            print("✅ Order items created count: \(orderItems.count)")
+            
+            return order
+        } catch {
+            print("❌ Error saving: \(error)")
+            errorMessage = error.localizedDescription
+            return nil
+        }
     }
+
+    private func saveImageToTemp(_ image: UIImage) -> URL? {
+        guard let data = image.jpegData(compressionQuality: 0.8) else { return nil }
+        let tempDir = FileManager.default.temporaryDirectory
+        let filename = UUID().uuidString + ".jpg"
+        let fileURL = tempDir.appendingPathComponent(filename)
+        
+        do {
+            try data.write(to: fileURL)
+            return fileURL
+        } catch {
+            print("❌ Error saving temp image: \(error)")
+            return nil
+        }
+    }
+
     
     private func buildOrderData() -> [String: Any] {
         var data: [String: Any] = [:]
@@ -293,4 +269,54 @@ class EditOrderViewModel {
         
         return data
     }
+    
+    func JSONStringArrayParse(_ raw: Any?) -> [[String: Any]] {
+        if let arr = raw as? [[String: Any]] { return arr }
+        if let arr = raw as? [[Any]], let first = arr.first as? [[String: Any]] { return first }
+        if let arr = raw as? [[Any]] {
+            return arr.flatMap { $0 as? [[String: Any]] ?? [] }
+        }
+        if let arr = raw as? [Any], let dictArr = arr as? [[String: Any]] { return dictArr }
+        return []
+    }
+    
+    func validateAllFields() -> Bool {
+            fieldErrors.removeAll()
+            
+            // 1. Validate customer fields
+            for (index, field) in customerFields.enumerated() {
+                if field.value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    fieldErrors.insert("customer-\(index)")
+                }
+            }
+            
+            // 2. Validate schedule fields
+            for (index, field) in scheduleFields.enumerated() {
+                if field.value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    fieldErrors.insert("schedule-\(index)")
+                }
+            }
+            
+            // 3. Validate products
+            for (index, product) in products.enumerated() {
+                if product.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    fieldErrors.insert("product-\(index)-name")
+                }
+                if product.quantity <= 0 {
+                    fieldErrors.insert("product-\(index)-quantity")
+                }
+            }
+            
+            // 4. Validate add-ons (optional - bisa diisi atau tidak)
+            // Skip validation untuk add-ons jika mau optional
+            
+            // 5. Validate other fields
+            for (index, field) in otherFields.enumerated() {
+                if field.value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    fieldErrors.insert("other-\(index)")
+                }
+            }
+            
+            return fieldErrors.isEmpty
+        }
 }

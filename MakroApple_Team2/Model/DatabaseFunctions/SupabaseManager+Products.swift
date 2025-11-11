@@ -118,6 +118,25 @@ extension SupabaseManager {
 
         return try JSONDecoder().decode([ProductRecord].self, from: response.data)
     }
+    
+    // MARK: - Delete single product
+       func deleteProduct(id: UUID) async throws {
+           try await client
+               .from("products")
+               .delete()
+               .eq("id", value: id)
+               .execute()
+       }
+
+       // MARK: - Delete all products under a category
+       func deleteProductsByCategory(_ category: String, userId: UUID) async throws {
+           try await client
+               .from("products")
+               .delete()
+               .eq("product_type", value: category)
+               .eq("user_id", value: userId)
+               .execute()
+       }
 }
 
 // MARK: - Type Erasure for Encodable values

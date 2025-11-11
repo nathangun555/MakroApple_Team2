@@ -7,22 +7,6 @@
 
 import SwiftUI
 
-// MARK: - Order Status Color Extension
-import SwiftUI
-
-extension OrderRecord {
-    var statusColor: Color {
-        switch status {
-        case "Belum Terbayar": return .belumBayar
-        case "Diproses": return .diproses
-        case "Terkirim": return .terkirim
-        case "Selesai": return .selesai
-        case "Dibatalkan": return .dibatalkan
-        default: return .gray
-        }
-    }
-}
-
 struct OrderCard: View {
     
     let order: OrderRecord
@@ -38,7 +22,7 @@ struct OrderCard: View {
             // Indikator
             RoundedRectangle(cornerRadius: 10)
                 .frame(width: 6)
-                .foregroundColor(order.statusColor)
+                .foregroundColor(statusColors[order.status] )
                 .padding(.vertical, 3)
             
             // Card
@@ -53,7 +37,7 @@ struct OrderCard: View {
                     Spacer()
                     
                     // Tanggal Pesan
-                    Text(DateFormatterHelper.formattedDate(order.orderDdayDate!, showTime: true))
+                    Text(DateFormatterHelper.formattedDate(order.orderDdayDate ?? "g", showTime: true))
                     
                     
                     Image(systemName: "chevron.right")
@@ -77,7 +61,7 @@ struct OrderCard: View {
                             .bold()
                             .foregroundColor(.white)
                             .frame(width: 24, height: 24)
-                            .background(Circle().fill(order.statusColor.opacity(0.7)))
+                            .background(Circle().fill(statusColors[order.status] ?? .gray .opacity(0.7)))
                     }
                 }
                 
@@ -90,10 +74,12 @@ struct OrderCard: View {
             }
             .padding()
         }
-        
+        .onAppear{
+            
+        }
         .background(
             LinearGradient(
-                gradient: Gradient(colors: [Color.white.opacity(0.15), order.statusColor.opacity(0.15)]),
+                gradient: Gradient(colors: [Color.white.opacity(0.15),  (statusColors[order.status] ?? .gray).opacity(0.15)]),
                 startPoint: .leading,
                 endPoint: .trailing
             )
@@ -108,15 +94,15 @@ struct OrderCard: View {
     }
 }
 
-#Preview {
-    // Create a stub session
-    let session = SessionManager()
-    session.isSignedIn = true
-    session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
-    
-    // Create the view
-    let view = AllOrdersView()
-    
-    // Inject the environment object
-    return view.environmentObject(session)
-}
+//#Preview {
+//    // Create a stub session
+//    let session = SessionManager()
+//    session.isSignedIn = true
+//    session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
+//    
+//    // Create the view
+//    let view = AllOrdersView()
+//    
+//    // Inject the environment object
+//    return view.environmentObject(session)
+//}

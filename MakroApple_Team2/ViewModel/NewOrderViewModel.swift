@@ -10,6 +10,7 @@ import Foundation
 import Observation
 
 @Observable
+@MainActor
 class NewOrderViewModel {
     var userRecord: UserRecord?
     var errorMessage: String?
@@ -93,7 +94,6 @@ class NewOrderViewModel {
             
             guard httpResponse.statusCode == 200 else {
                 print("❌ HTTP Error: \(httpResponse.statusCode)")
-                // Try to extract error message from response
                 if let errorJson = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
                    let errorMsg = errorJson["error"] as? String {
                     print("❌ Error message: \(errorMsg)")
@@ -115,6 +115,7 @@ class NewOrderViewModel {
                     print("==============================\n")
                     self.parsedOrderData = parsedOrder
                     self.navigateToConfirm = true
+                    print("HASIL NAVIGATE : \(navigateToConfirm)")
                 } else {
                     print("❌ No 'parsedOrder' key in response")
                     print("Available keys: \(json.keys)")
@@ -129,32 +130,6 @@ class NewOrderViewModel {
             print("❌ Error caught: \(error)")
             print("❌ Error description: \(error.localizedDescription)")
             showErrorAlert("Gagal memproses pesanan: \(error.localizedDescription)")
-        }
-    }
-
-
-    
-    func saveOrder(templateString: String) async {
-        guard let userId, let uuid = UUID(uuidString: userId) else {
-            errorMessage = "User belum login atau UID tidak valid."
-            return
-        }
-        
-        isLoading = true
-        errorMessage = nil
-        didSave = false
-        defer { isLoading = false }
-        
-        do {
-            let updatedRecord = try await SupabaseManager.shared.upsertFormTemplate(
-                id: uuid,
-                formTemplate: templateString
-            )
-            self.userRecord = updatedRecord
-            self.errorMessage = nil
-            self.didSave = true
-        } catch {
-            self.errorMessage = error.localizedDescription
         }
     }
     

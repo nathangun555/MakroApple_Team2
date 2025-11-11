@@ -63,7 +63,7 @@ struct OrderListView: View {
                         }
                         
                         // Kelompokkan berdasarkan productType
-                        let groupedItems = Dictionary(grouping: itemsForDate) { $0.productType }
+                        let groupedItems = Dictionary(grouping: itemsForDate) { $0.productName }
                         
                         // Urutkan productType secara alfabet
                         let sortedTypes = groupedItems.keys.sorted()

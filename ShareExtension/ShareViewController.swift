@@ -5,66 +5,126 @@
 //  Created by Edward Suwandi on 30/10/25.
 //
 
+
 import UIKit
-import Social
+import SwiftUI
 import UniformTypeIdentifiers
 
-class ShareViewController: SLComposeServiceViewController {
-
-    override func isContentValid() -> Bool {
-        return true
+class ShareViewController: UIViewController {
+    private var hostingController: UIHostingController<ShareContentView>?
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        setupSwiftUIView()
+        handleIncomingData()
     }
-
-    override func didSelectPost() {
-        // Save shared data
-        if let extensionItem = extensionContext?.inputItems.first as? NSExtensionItem {
-            for attachment in extensionItem.attachments ?? [] {
-                if attachment.hasItemConformingToTypeIdentifier(UTType.text.identifier) {
-                    attachment.loadItem(forTypeIdentifier: UTType.text.identifier, options: nil) { item, error in
-                        if let text = item as? String {
-                            self.saveToApp(text: text)
-                            self.openMainApp()
-                        }
+    
+    private func setupSwiftUIView() {
+        let swiftUIView = ShareContentView()
+        let host = UIHostingController(rootView: swiftUIView)
+        
+        addChild(host)
+        host.view.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(host.view)
+        
+        NSLayoutConstraint.activate([
+            host.view.topAnchor.constraint(equalTo: view.topAnchor),
+            host.view.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            host.view.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            host.view.trailingAnchor.constraint(equalTo: view.trailingAnchor)
+        ])
+        
+        host.didMove(toParent: self)
+        self.hostingController = host
+    }
+    
+    
+    private func handleIncomingData() {
+        guard let extensionItem = extensionContext?.inputItems.first as? NSExtensionItem else { return }
+        
+        var allImageData: [Data] = []
+        var sharedText: String? = nil
+        let groupDefaults = UserDefaults(suiteName: "group.com.please.shared")
+        
+        let dispatchGroup = DispatchGroup()
+        
+        
+        for provider in extensionItem.attachments ?? [] {
+            
+            // Handle Text
+            if provider.hasItemConformingToTypeIdentifier(UTType.text.identifier) {
+                dispatchGroup.enter()
+                provider.loadItem(forTypeIdentifier: UTType.text.identifier, options: nil) { (item: NSSecureCoding?, error: Error?) in
+                    if let text = item as? String {
+                        sharedText = text
+                        print("📩 Received text: \(text)")
                     }
-                } else if attachment.hasItemConformingToTypeIdentifier(UTType.image.identifier) {
-                    attachment.loadItem(forTypeIdentifier: UTType.image.identifier, options: nil) { item, error in
-                        if let url = item as? URL {
-                            self.saveToApp(imageURL: url)
-                            self.openMainApp()
-                        } else if let image = item as? UIImage {
-                            if let data = image.pngData() {
-                                let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent("shared.png")
-                                try? data.write(to: tempURL)
-                                self.saveToApp(imageURL: tempURL)
-                                self.openMainApp()
-                            }
-                        }
-                    }
+                    dispatchGroup.leave()
                 }
             }
+            
+            else if provider.hasItemConformingToTypeIdentifier(UTType.image.identifier), allImageData.count < 3{
+                dispatchGroup.enter()
+                provider.loadItem(forTypeIdentifier: UTType.image.identifier, options: nil) { (item: NSSecureCoding?, error: Error?) in
+                    if let url = item as? URL, let data = try? Data(contentsOf : url) {
+                        allImageData.append(data)
+                        print("RECEIVED IMAGE URL : \(url)")
+                    }
+                    else if let image = item as? UIImage, let data = image.pngData() {
+                        allImageData.append(data)
+                        print("RECEIVED IMAGE DIRECTLY")
+                    }
+                    else {
+                        print("UNSUPPORTED IMAGE TYPE")
+                    }
+                    
+                    dispatchGroup.leave()
+                }
+                
+            }
+            
         }
-
-        self.extensionContext?.completeRequest(returningItems: [], completionHandler: nil)
-    }
-
-    private func saveToApp(text: String? = nil, imageURL: URL? = nil) {
-        let sharedDefaults = UserDefaults(suiteName: "group.com.macroa2.identifier")
-        sharedDefaults?.set(text, forKey: "sharedText")
-        sharedDefaults?.set(imageURL?.absoluteString, forKey: "sharedImage")
-        sharedDefaults?.synchronize()
-    }
-
-    private func openMainApp() {
-        // Open your main app via custom URL scheme
-        if let url = URL(string: "macroa2://share") {
-            var responder: UIResponder? = self
-            while responder != nil {
-                if let app = responder as? UIApplication {
-                    app.open(url, options: [:], completionHandler: nil)
-                    break
-                }
-                responder = responder?.next
+        
+        // After all items are loaded
+        dispatchGroup.notify(queue: .main) {
+            if let text = sharedText {
+                groupDefaults?.set(text, forKey: "sharedText")
+                print("✅ Saved text to App Group: \(text)")
             }
+            
+            if !allImageData.isEmpty {
+                groupDefaults?.set(allImageData, forKey: "sharedImagesData")
+                print("✅ Saved \(allImageData.count) images to App Group")
+            }
+            
+            groupDefaults?.synchronize()
+            self.openMainApp()
+        }
+        
+        
+    }
+    
+    private func openMainApp() {
+        guard let url = URL(string: "makroa2://fromwhatsapp") else {
+            extensionContext?.completeRequest(returningItems: nil, completionHandler: nil)
+            return
+        }
+        
+        var responder: UIResponder? = self
+        while responder != nil {
+            if let application = responder as? UIApplication {
+                application.open(url)
+                print("🚀 MAIN APP OPENED SUCCESSFULLY")
+                break
+            }
+            responder = responder?.next
         }
     }
 }
+    
+    
+    
+    
+
+
+

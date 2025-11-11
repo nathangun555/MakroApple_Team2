@@ -15,15 +15,20 @@ enum OrderSource {
 
 struct OrderDetailView: View {
     
+    @State private var activeAlert: CustomAlertType?
     
     @State private var viewModel = AllOrdersViewModel()
+    @State private var invoiceViewModel = InvoicePreviewViewModel()
     @EnvironmentObject var session: SessionManager
-    let order: OrderRecord
+    @State var order: OrderRecord
     let orderItem: [OrderItemRecord]
     
     
     @State private var showSuccessToast = false
     @Environment(\.dismiss) private var dismiss
+    
+    @State private var selectedPDFURL: URL?
+    @State private var showPDFViewer = false
     
     let source: OrderSource
     
@@ -32,12 +37,6 @@ struct OrderDetailView: View {
 
     private var userIdString: String? { session.userId }
     
-    enum ActiveAlert {
-        case payment
-        case cancel
-    }
-
-    @State private var activeAlert: ActiveAlert? = nil
     
     
     private func currency(_ value: Double) -> String {
@@ -56,8 +55,10 @@ struct OrderDetailView: View {
             return "Lanjut ke Pengiriman"
         case "Terkirim":
             return "Pesanan Diterima Pemesan"
+        case "Dibatalkan" :
+            return "Pesan Kembali"
         default:
-            return nil // hide button for "Selesai" or "Dibatalkan"
+            return nil
         }
     }
     
@@ -71,12 +72,6 @@ struct OrderDetailView: View {
                 VStack{
                     
                     OrderStatus(order: order)
-                    
-                    
-//                    Text("Order ID: \(order.id.uuidString)")
-//                    Text("User ID: \(userIdString ?? "nil")")
-//                    
-//                    Text("User ID: \(session.userId ?? "nil")")
                     
                     
                     VStack{
@@ -151,7 +146,7 @@ struct OrderDetailView: View {
                                 
                                 
                                 Text("Tanggal Pesanan :")
-                                Text(DateFormatterHelper.formattedDate(order.orderDdayDate!))
+                                Text(DateFormatterHelper.formattedDate(order.orderDdayDate ?? "g"))
                                     .padding(.vertical, 3)
                                     .frame(maxWidth: .infinity)
                                     .background(
@@ -161,7 +156,7 @@ struct OrderDetailView: View {
                                     )
                                 
                                 Text("Jam Kirim :")
-                                Text("\(DateFormatterHelper.formattedTime(order.orderDdayDate!)) WIB")
+                                Text("\(DateFormatterHelper.formattedTime(order.orderDdayDate ?? "g")) WIB")
                                     .padding(.vertical, 3)
                                     .frame(maxWidth: .infinity)
                                     .background(
@@ -185,7 +180,6 @@ struct OrderDetailView: View {
                             
                             ForEach(orderItem) { item in
                                 
-                                // CHANGE THIS LATER WITH PRODUCT CATEGORY
                                 Text(item.productType)
                                     .bold()
                                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -236,24 +230,23 @@ struct OrderDetailView: View {
                                     Text("Nama Produk :")
                                     Text(order.addOn!)
                                         .frame(maxWidth: .infinity, alignment: .center)
-                                        .padding(4)
+                                        .padding(5)
                                         .lineLimit(10)
                                         .background(
                                             RoundedRectangle(cornerRadius: 10)
-                                                .stroke(Color.gray, lineWidth: 0.5) // stroke
+                                                .stroke(Color.gray, lineWidth: 0.5)
                                                 .background(RoundedRectangle(cornerRadius: 30).fill(.secondary.opacity(0.1))) // fill
                                         )
                                     
                                     Text("Jumlah Produk :")
-                                    
                                     // CHANGE THIS WITH ADD ON AMOUNT
-                                    Text("3")
+                                    Text("1")
                                         .padding(.vertical, 3)
                                         .frame(maxWidth: .infinity)
                                         .background(
                                             RoundedRectangle(cornerRadius: 10)
-                                                .stroke(Color.gray, lineWidth: 0.5) // stroke
-                                                .background(RoundedRectangle(cornerRadius: 30).fill(.secondary.opacity(0.1))) // fill
+                                                .stroke(Color.gray, lineWidth: 0.5)
+                                                .background(RoundedRectangle(cornerRadius: 30).fill(.secondary.opacity(0.1)))
                                         )
                                     
                                 }
@@ -270,10 +263,33 @@ struct OrderDetailView: View {
                             .font(.title3)
                         
                         let photoURLs = [order.photoUrl1, order.photoUrl2, order.photoUrl3]
+                            .compactMap { $0 }
+                            .filter { !$0.isEmpty }
+                        
                         
                         HStack(spacing: 12) {
-                            ForEach(Array(photoURLs.enumerated()), id: \.offset) { index, url in
-                                if let url = url, !url.isEmpty {
+                            if photoURLs.isEmpty {
+                                // Show placeholder when there are no photos at all
+                                VStack {
+                                    Image(systemName: "photo.badge.exclamationmark.fill")
+                                        .font(.title)
+                                        .foregroundColor(.gray)
+                                    Text("No photos")
+                                        .font(.caption2)
+                                        .foregroundColor(.secondary)
+                                }
+                                .frame(width: 115, height: 115)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 10)
+                                        .strokeBorder(style: StrokeStyle(lineWidth: 0.5))
+                                        .foregroundStyle(Color.primary)
+                                        .background(.gray.opacity(0.1))
+                                        .cornerRadius(10)
+                                )
+                                
+                                
+                            } else {
+                                ForEach(photoURLs, id: \.self) { url in
                                     AsyncImage(url: URL(string: url)) { image in
                                         image
                                             .resizable()
@@ -285,23 +301,10 @@ struct OrderDetailView: View {
                                         ProgressView()
                                             .frame(width: 115, height: 115)
                                     }
-                                } else {
-                                    VStack {
-                                        Image(systemName: "photo.badge.exclamationmark.fill")
-                                            .font(.title)
-                                            .foregroundColor(.gray)
-                                    }
-                                    .frame(width: 115, height: 115)
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 10)
-                                            .strokeBorder(style: StrokeStyle(lineWidth: 0.5))
-                                            .foregroundStyle(Color.primary)
-                                            .background(.gray.opacity(0.1))
-                                            .cornerRadius(10)
-                                    )
                                 }
                             }
-                            
+
+                            Spacer()
                         }
                         
                         Text("Lain - Lain")
@@ -325,7 +328,7 @@ struct OrderDetailView: View {
                             Text("Notes :")
                             Text(order.notes!)
                                 .lineLimit(5)
-                                .padding(.vertical, 3)
+                                .padding(5)
                             
                                 .lineLimit(10)
                                 .frame(maxWidth: .infinity)
@@ -345,28 +348,89 @@ struct OrderDetailView: View {
                         
                         LazyVGrid(columns: columns, spacing: 10) {
                             
-                            RoundedRectangle(cornerRadius: 10)
-                                .stroke(Color.gray, lineWidth: 0.5)
-                                .frame(height: 200)
-                                .shadow(radius: 30)
-                            VStack {
-                                Text("INV/2025/00001 Nadia Prameswari")
-                                
+                            if let urlString = order.invoiceUrl,
+                                   let pdfURL = URL(string: urlString) {
+                                    Button {
+                                        // Show PDF preview
+                                        activeAlert = nil
+                                        showPDFPreview(url: pdfURL)
+                                    } label: {
+                                        ZStack {
+                                            RoundedRectangle(cornerRadius: 10)
+                                                .stroke(Color.gray, lineWidth: 0.5)
+                                                .frame(height: 200)
+                                                .shadow(radius: 30)
+                                            
+                                            VStack {
+                                                Image(systemName: "doc.richtext.fill")
+                                                    .font(.system(size: 40))
+                                                    .foregroundColor(.blue)
+                                                Text("Tap to Preview Invoice")
+                                                    .font(.footnote)
+                                                    .foregroundColor(.secondary)
+                                            }
+                                        }
+                                    }
+                                } else {
+                                    ZStack {
+                                        RoundedRectangle(cornerRadius: 10)
+                                            .stroke(Color.gray, lineWidth: 0.5)
+                                            .frame(height: 200)
+                                            .shadow(radius: 30)
+                                        VStack {
+                                            Image(systemName: "doc.text.fill.badge.exclamationmark")
+                                                .font(.system(size: 40))
+                                                .foregroundColor(.gray)
+                                            Text("No Invoice Uploaded")
+                                                .font(.footnote)
+                                                .foregroundColor(.secondary)
+                                        }
+                                    }
+                                }
+                            
+                            
+                            VStack (alignment: .leading) {
+                                Text("INV/2025/00001")
+                                Text(order.customerOrderName)
                                 
                                 Spacer()
                                 
                                 
-                                Label("Bagikan Invoice", systemImage: "square.and.arrow.up")
-                                    .padding()
-                                    .frame(maxWidth: .infinity)
-                                    .background(Color.blue)
-                                    .foregroundColor(Color.white)
-                                    .cornerRadius(30)
-                                    .padding(.horizontal)
+                                Button(action: {
+                                    guard let urlString = order.invoiceUrl,
+                                          let remoteURL = URL(string: urlString) else { return }
+
+                                    Task {
+                                        do {
+                                            let (data, _) = try await URLSession.shared.data(from: remoteURL)
+                                            let tempURL = FileManager.default.temporaryDirectory
+                                                .appendingPathComponent("invoice.pdf")
+                                            try data.write(to: tempURL)
+                                            
+                                            invoiceViewModel.shareInvoice(items: [tempURL]) { success in
+                                                print(success ? "✅ PDF shared" : "❌ Failed to share")
+                                            }
+                                        } catch {
+                                            print("❌ Failed to download PDF:", error)
+                                        }
+                                    }
+                                }) {
+                                    Label("Bagikan Invoice", systemImage: "square.and.arrow.up")
+                                        .padding(10)
+                                        .frame(maxWidth: .infinity)
+                                        .background(.primaryButton)
+                                        .foregroundColor(Color.white)
+                                        .cornerRadius(30)
+//                                        .padding()
+                                }
+
+
+                                
                                 
                                 Spacer()
                                 
                             }
+                            .padding(.horizontal)
                             .frame(maxWidth: .infinity)
                         }
                         
@@ -394,8 +458,10 @@ struct OrderDetailView: View {
                         activeAlert = .payment
                         
                     }
+                    else if order.status == "Dibatalkan"{
+                        activeAlert = .reorder
+                    }
                     else {
-                        
                         Task {
                             await handleStatusUpdate()
                         }
@@ -407,7 +473,7 @@ struct OrderDetailView: View {
                         .frame(maxWidth: .infinity)
                         .padding()
                         .foregroundColor(.white)
-                        .glassEffect(.clear.tint(.blue), in: .rect(cornerRadius: 30))
+                        .glassEffect(.clear.tint(.primaryButton), in: .rect(cornerRadius: 30))
                         .padding(.horizontal)
                 }
             }
@@ -450,7 +516,6 @@ struct OrderDetailView: View {
                         activeAlert = .cancel
                     } label: {
                         Image(systemName: "trash")
-                        //                                .foregroundColor(.red)
                     }
                 }
             }
@@ -464,38 +529,79 @@ struct OrderDetailView: View {
             } else {
                 print("❌ Passed session.userId invalid or nil")
             }
+            
         }
-        
-//        .alert(isPresented: .constant(activeAlert != nil)) {
-//            switch activeAlert {
-//            case .payment:
-//                return Alert(
-//                    title: Text("Pembeli sudah melunasi pembayaran?"),
-//                    message: Text("Jika sudah dibayar penuh, status akan diubah menjadi 'Selesai'."),
-//                    primaryButton: .default(Text("Sudah")) {
-//                        Task { await handleStatusUpdate(to: "Selesai") }
-//                    },
-//                    secondaryButton: .cancel(Text("Belum"))
-//                )
-//
-//            case .cancel:
-//                return Alert(
-//                    title: Text("Batalkan pesanan ini?"),
-//                    message: Text("Pesanan yang dibatalkan tidak dapat dipulihkan."),
-//                    primaryButton: .destructive(Text("Ya, batalkan")) {
-//                        Task { await handleStatusUpdate(to: "Dibatalkan") }
-//                    },
-//                    secondaryButton: .cancel(Text("Tidak"))
-//                )
-//
-//            case .none:
-//                return Alert(title: Text(""))
-//            }
-//        }
+        .onDisappear {
+            switch order.status.lowercased() {
+            case "belum terbayar": activeTab = .belumBayar
+            case "diproses": activeTab = .diproses
+            case "terkirim": activeTab = .terkirim
+            case "selesai": activeTab = .selesai
+            case "dibatalkan": activeTab = .dibatalkan
+            default: break
+            }
+        }
+        .sheet(isPresented: $showPDFViewer) {
+            NavigationStack {
+                if let url = selectedPDFURL {
+                    PDFKitView(url: url)
+                        .navigationTitle("Invoice Preview")
+                        .toolbar {
+                            ToolbarItem(placement: .navigationBarTrailing) {
+                                Button {
+                                    if let url = selectedPDFURL {
+                                        invoiceViewModel.shareInvoice(items: [url]) { success in
+                                            print(success ? "✅ Shared" : "❌ Failed")
+                                        }
+                                    }
+                                } label: {
+                                    Image(systemName: "square.and.arrow.up")
+                                }
+                            }
 
 
+                        }
+                }
+            }
         
+        }
+
     }
+    private func showPDFPreview(url: URL) {
+        if url.isFileURL {
+            selectedPDFURL = url
+            showPDFViewer = true
+            return
+        }
+
+        // Detect image files (png/jpg)
+        if url.pathExtension.lowercased() == "png" || url.pathExtension.lowercased() == "jpg" {
+            print("🖼️ This is an image, not a PDF. Use an Image viewer instead.")
+            // Example: show a SwiftUI Image view or custom viewer
+            return
+        }
+
+        // Otherwise download and preview as PDF
+        Task {
+            do {
+                let (data, _) = try await URLSession.shared.data(from: url)
+                let tempURL = FileManager.default.temporaryDirectory
+                    .appendingPathComponent("invoice_preview.pdf")
+                try data.write(to: tempURL)
+
+                await MainActor.run {
+                    selectedPDFURL = tempURL
+                    showPDFViewer = true
+                }
+            } catch {
+                print("❌ Failed to download PDF:", error)
+            }
+        }
+    }
+
+
+
+
     
     private func handleStatusUpdate(to newStatus: String? = nil) async {
         guard let userIdString = session.userId,
@@ -515,6 +621,7 @@ struct OrderDetailView: View {
                 case "belum terbayar": finalStatus = "Diproses"
                 case "diproses": finalStatus = "Terkirim"
                 case "terkirim": finalStatus = "Selesai"
+                case "dibatalkan": finalStatus = "Belum Terbayar"
                 default: return
                 }
 
@@ -524,6 +631,11 @@ struct OrderDetailView: View {
 
             // 2️⃣ Refresh all orders
             await viewModel.fetchOrders(for: userId)
+            
+            // NEW: update local state
+            if let updated = viewModel.orders.first(where: { $0.id == order.id }) {
+                self.order = updated
+            }
 
             // 3️⃣ Show success toast
             withAnimation { showSuccessToast = true }
@@ -531,21 +643,6 @@ struct OrderDetailView: View {
             // 4️⃣ Hide toast after delay and handle navigation
             DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
                 withAnimation { showSuccessToast = false }
-
-                // 5️⃣ Switch tab based on *new* final status
-                if source == .allOrders {
-                    switch finalStatus.lowercased() {
-                    case "belum terbayar": activeTab = .belumBayar
-                    case "diproses": activeTab = .diproses
-                    case "terkirim": activeTab = .terkirim
-                    case "selesai": activeTab = .selesai
-                    case "dibatalkan": activeTab = .dibatalkan
-                    default: break
-                    }
-                }
-
-                // 6️⃣ Dismiss to go back
-                dismiss()
             }
 
         } catch {
@@ -558,16 +655,16 @@ struct OrderDetailView: View {
 
 
 
-#Preview {
-    // Create a stub session
-    let session = SessionManager()
-    session.isSignedIn = true
-    session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
-    
-    // Create the view
-    let view = AllOrdersView()
-    
-    // Inject the environment object
-    return view.environmentObject(session)
-}
+//#Preview {
+//    // Create a stub session
+//    let session = SessionManager()
+//    session.isSignedIn = true
+//    session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
+//
+//    // Create the view
+//    let view = AllOrdersView()
+//
+//    // Inject the environment object
+//    return view.environmentObject(session)
+//}
 
