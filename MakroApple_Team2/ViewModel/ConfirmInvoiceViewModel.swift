@@ -123,10 +123,9 @@ class ConfirmInvoiceViewModel {
         self.receiverPhone = order.customerReceiverPhone ?? ""
         self.shippingAddress = order.shippingAddress ?? ""
         
-//        let (tanggalPesanan, jamKirim) = DateFormatterHelper.indonesianDateAndTime(from: order.orderDdayDate ?? "")
+        let (tanggalPesanan, jamKirim) = DateFormatterHelper.indonesianDateAndTime(from: order.orderDdayDate ?? "")
         self.orderDate = order.orderDdayDate ?? DateFormatterHelper.isoDateString(from: now)
-//        self.deliveryTime = jamKirim
-
+        self.deliveryTime = jamKirim
         self.shippingOption = order.opsiPengiriman ?? ""
         self.notes = order.notes ?? ""
         self.downPaymentText = order.customFields?["down_payment"]?.value as? String ?? ""
