@@ -166,14 +166,15 @@ struct SettingsView: View {
         defer { isCheckingTemplate = false }
 
         do {
-            let user = try await SupabaseManager.shared.fetchUser(by: uuid)
-            // Dengan UserRecord: templateFormat: [String: AnyCodable]? → null berarti belum ada template
-            let isNull = (user?.templateFormat == nil)
-            if isNull {
+            
+            let template = try await SupabaseManager.shared.fetchUser(by: uuid)
+            
+            if let temp = template, let format = temp.templateFormat, format.isEmpty || template?.templateFormat == nil {
                 navigateToNewTemplate = true
             } else {
                 navigateToEditTemplate = true
             }
+
         } catch {
             checkError = "Gagal memeriksa template: $$error.localizedDescription)"
         }

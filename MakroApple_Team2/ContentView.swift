@@ -59,7 +59,7 @@ struct MainTabView: View {
     var body: some View {
         ZStack {
             TabView(selection: $selectedTab) {
-                Tab("Pesanan", systemImage: "basket.fill", value: 0) {
+                Tab("Pesanan", systemImage: "book.pages.fill", value: 0) {
                     AllOrdersView(sharedImages: $sharedImages,
                                   sharedText: $sharedText,
                                   hasNewObject: $hasNewObject)
