@@ -63,12 +63,15 @@ extension SupabaseManager {
         orderData["customer_receiver_phone"] = AnyCodable(parsedOrder["No. Telp Penerima"] as? String ?? "")
         orderData["shipping_address"] = AnyCodable(parsedOrder["Alamat Kirim"] as? String ?? "")
         
-        let pesananDateRaw = parsedOrder["Tanggal Pesanan"] as? String ?? ""
-        let jamKirimRaw = parsedOrder["Jam Kirim"] as? String ?? ""
-        let finalTimeString = jamKirimRaw.isEmpty ? "00:00" : jamKirimRaw
+        let now = ISO8601DateFormatter().string(from: Date())
+        
+        let pesananDateRaw = parsedOrder["Tanggal Pesanan"] as? String ?? DateFormatterHelper.formattedDate(now, showTime: false)
+        print(pesananDateRaw)
+        let jamKirimRaw = parsedOrder["Jam Kirim"] as? String ?? "00:00"
+        print(jamKirimRaw)
 
         let pesananDateTimeISO = !pesananDateRaw.isEmpty
-            ? DateFormatterHelper.dateTimeToISO(dateString: pesananDateRaw, timeString: finalTimeString)
+            ? DateFormatterHelper.dateTimeToISO(dateString: pesananDateRaw, timeString: jamKirimRaw)
             : nil
 
         orderData["order_dday_date"] = pesananDateTimeISO != nil ? AnyCodable(pesananDateTimeISO!) : nil
@@ -111,7 +114,6 @@ extension SupabaseManager {
         }
         orderData["custom_fields"] = customFields.isEmpty ? nil : AnyCodable(customFields)
 
-        let now = ISO8601DateFormatter().string(from: Date())
         orderData["created_at"] = AnyCodable(now)
         orderData["updated_at"] = AnyCodable(now)
 
