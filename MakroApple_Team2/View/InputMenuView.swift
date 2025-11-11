@@ -39,7 +39,8 @@ struct InputMenuView: View {
     @State private var showErrorAlert = false
     @State private var errorMessage = ""
     @State private var scannedCategories: [MenuCategory] = []
-    @Binding var path: NavigationPath
+    
+    @Binding var isDismissed: Bool
     
     var viewModel = InputMenuViewModel()
     
@@ -83,8 +84,7 @@ struct InputMenuView: View {
                 Text(errorMessage)
             }
             .navigationDestination(isPresented: $navigateToConfirm) {
-                ConfirmMenuView(path: $path, scannedCategories: scannedCategories)
-                    .environmentObject(session)
+                ConfirmMenuView(isDismissed: $isDismissed, scannedCategories: scannedCategories)
             }
     }
     

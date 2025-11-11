@@ -12,7 +12,8 @@ struct EditTemplateFormView: View {
     @State private var viewModel = EditTemplateViewModel()
     @EnvironmentObject var session: SessionManager
     @Environment(\.dismiss) var dismiss
-    @Binding var path: NavigationPath
+    
+    @Binding var isDismissed: Bool
     
     var body: some View {
         ZStack {
@@ -48,7 +49,7 @@ struct EditTemplateFormView: View {
                         FormSection(
                             title: "Rincian Pesanan",
                             fields: $viewModel.orderFields,
-                            onAddColumn: { viewModel.addOrderField() },
+                            onAddColumn: { viewModel.addOrderField() }
 //                                showDelete: true,
 //                                onDelete: { index in viewModel.deleteOrderField(at: index) }
                         )
@@ -58,8 +59,8 @@ struct EditTemplateFormView: View {
                             title: "Lain - Lain",
                             fields: $viewModel.otherFields,
                             onAddColumn: { viewModel.addOtherField() },
-//                                showDelete: true,
-//                                onDelete: { index in viewModel.deleteOtherField(at: index) }
+                            showDelete: true,
+                            onDelete: { index in viewModel.deleteOtherField(at: index) }
                         )
                         
                         // Referensi Foto Section
@@ -119,7 +120,7 @@ struct EditTemplateFormView: View {
             }
         }
         .navigationDestination(isPresented: $viewModel.didSave) {
-            InvoicePreviewView(orderId: nil, path: $path)
+            InvoicePreviewView(isDismissed: $isDismissed)
         }
         .task {
             viewModel.configure(userId: session.userId)

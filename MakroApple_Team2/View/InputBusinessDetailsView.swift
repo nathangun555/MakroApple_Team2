@@ -62,7 +62,7 @@ struct InputBusinessDetailsView: View {
   @State private var isUploadingLogo = false
   @State private var showUnsavedAlert = false
   @State private var navigateToMenu = false
-  @Binding var path: NavigationPath
+  @Binding var isDismissed: Bool
 
   enum Field: Hashable {
     case businessName, businessPhone, businessAddress, businessLogoUrl, businessEmail
@@ -360,7 +360,7 @@ struct InputBusinessDetailsView: View {
         }
       }
       .navigationDestination(isPresented: $navigateToMenu) {
-          InputMenuView(path: $path)
+          InputMenuView(isDismissed: $isDismissed)
       }
       .onChange(of: vm.businessName) { _ in
         vm.saveSuccess = false

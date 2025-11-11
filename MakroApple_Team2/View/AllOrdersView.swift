@@ -9,7 +9,6 @@ import SwiftUI
 
 struct AllOrdersView: View {
     @State private var searchText = ""
-    @State private var path = NavigationPath()
     @State var activeTab: TabModel = .belumBayar
     @State private var showSearchBar = false
     
@@ -18,9 +17,9 @@ struct AllOrdersView: View {
     @Binding var hasNewObject: Bool
     @State var showNewOrderView = false
     @State var showTutorial = false
+    @State var isDismissed = false
     
-    @State private var parsedOrderData: [String: Any] = [:]
-    @State private var selectedImages: [UIImage?] = [nil]
+    @Environment(\.dismiss) var dismiss
     
     // 🧠 These caches temporarily store data per navigation ID
     @State private var orderDataCache: [UUID: [String: Any]] = [:]
@@ -54,7 +53,7 @@ struct AllOrdersView: View {
     }
 
     var body: some View {
-        NavigationStack(path: $path) {
+        NavigationStack() {
             VStack {
                 // 🏷️ Header
                 HStack {
@@ -119,6 +118,7 @@ struct AllOrdersView: View {
                     }
                     .padding(.bottom, 20)
                 }
+                .navigationBarHidden(true)
             }
             .task {
                 guard let userIdString = session.userId,
@@ -144,32 +144,33 @@ struct AllOrdersView: View {
                     hasNewObject = false
                 }
             }
-            .navigationDestination(for: OrderDestination.self) { destination in
-                switch destination {
-                case .newOrder:
+            .fullScreenCover(isPresented: $showNewOrderView) {
+                NavigationStack{
                     NewOrderView(
-                        selectedImages: $selectedImages,
-                        parsedOrderData: $parsedOrderData,
                         sharedText: $sharedText,
                         sharedImages: $sharedImages,
-                        path: $path
+                        isDismissed: $isDismissed
                     )
                     
-                case .editOrder:
-                    EditOrderView(
-                        parsedOrderData: $parsedOrderData,
-                        selectedImages: $selectedImages,
-                        path: $path
-                    )
-                    
-                case .confirmInvoice(let orderId):
-                    ConfirmInvoiceView(orderId: orderId, path: $path)
-                    
-                case .invoicePreview(let orderId):
-                    InvoicePreviewView(orderId: orderId, path: $path)
-                    
-                case .tutorial:
-                    InputBusinessDetailsView(path: $path)
+                }
+            }
+            .onChange(of: isDismissed) { newValue in
+                if newValue {
+                    showNewOrderView = false  // closes the fullScreenCover
+                    isDismissed = false       // reset state for next time
+                }
+            }
+
+            .fullScreenCover(isPresented: $showTutorial) {
+                NavigationStack{
+                    InputBusinessDetailsView(isDismissed: $isDismissed)
+                   
+                }
+            }
+            .onChange(of: isDismissed) { newValue in
+                if newValue {
+                    showTutorial = false  // closes the fullScreenCover
+                    isDismissed = false       // reset state for next time
                 }
             }
         }
@@ -181,23 +182,13 @@ struct AllOrdersView: View {
         let id = UUID()
         orderImagesCache[id] = sharedImages
         orderDataCache[id] = ["sharedText": sharedText]
-        
-        print("AMMAR BANGET \(viewModel.hasTemplates)")
+
         if viewModel.hasTemplates {
-            path.append(OrderDestination.newOrder)
+            showNewOrderView = true
         } else {
-            path.append(OrderDestination.tutorial)
+            showTutorial = true
         }
     }
-}
-
-// MARK: - 🧭 Navigation Enum (Now Clean & Hashable)
-enum OrderDestination: Hashable {
-    case newOrder
-    case editOrder
-    case confirmInvoice(orderId: String)
-    case invoicePreview(orderId: String)
-    case tutorial
 }
 
 //#Preview {

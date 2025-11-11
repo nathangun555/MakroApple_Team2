@@ -11,10 +11,10 @@ import Foundation
 
 struct EditOrderView: View {
     
-    @Binding var parsedOrderData: [String: Any]
+    var parsedOrderData: [String: Any]
     
     @Binding var selectedImages: [UIImage?]
-    @Binding var path: NavigationPath
+    @Binding var isDismissed: Bool
     @State private var viewModel = EditOrderViewModel()
     @State private var selectedItems: [PhotosPickerItem?] = [nil, nil, nil]
     
@@ -24,6 +24,8 @@ struct EditOrderView: View {
     @FocusState private var focusedField: String?
     // Simpan id error pertama untuk trigger scroll
     @State private var firstErrorId: String?
+    
+    @State private var navigateToConfirmInvoice = false
 
     @EnvironmentObject var session: SessionManager
     @EnvironmentObject var deleteBus: DeleteOverlayBus
@@ -107,6 +109,10 @@ struct EditOrderView: View {
         }
         .navigationTitle("")
         .navigationBarTitleDisplayMode(.inline)
+        .task {
+            let unwrappedImages = selectedImages.compactMap { $0 }
+            viewModel.configure(userId: session.userId, parsedOrderData: parsedOrderData, selectedPhotos: unwrappedImages)
+        }
         .toolbar {
             ToolbarItem(placement: .principal) {
                 Text("Tinjauan Pesanan").font(.title2.bold())
@@ -140,14 +146,13 @@ struct EditOrderView: View {
         }
         .alert("Berhasil!", isPresented: $viewModel.didSave) {
             Button("OK") {
-                path.append(OrderDestination.confirmInvoice(orderId: lastOrderId))
+                navigateToConfirmInvoice = true
             }
         } message: {
             Text("Pesanan berhasil disimpan!")
         }
-        .task {
-            let unwrappedImages = selectedImages.compactMap { $0 }
-            viewModel.configure(userId: session.userId, parsedOrderData: parsedOrderData, selectedPhotos: unwrappedImages)
+        .navigationDestination(isPresented: $navigateToConfirmInvoice) {
+            ConfirmInvoiceView(orderId: lastOrderId, isDismissed: $isDismissed)
         }
     }
 
@@ -337,48 +342,48 @@ struct AddOnsSection: View {
         }
     }
 }
-#Preview {
-    // Mock session
-    let session = SessionManager()
-    session.isSignedIn = true
-    session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
-
-    // Sample data for preview
-    let sampleData: [String: Any] = [
-        "Nama Pemesan": "Nadia Prameswari",
-        "No. Telp Pemesan": "0812-5566-2233",
-        "Nama Penerima": "Rafi Setiawan",
-        "No. Telp Penerima": "0813-7788-9922",
-        "Tanggal Pesanan": "20 Oktober 2025",
-        "Jam Kirim": "15.30 WIB",
-        "Alamat Kirim": "Jl. Dharmahusada Indah Barat No. 27",
-        "Pesanan": [
-            "[[{\"item\": \"Strawberry Fresh Cream Cake – ukuran 18 cm\", \"quantity\": 1}]]"
-        ],
-        "Adds-on": [
-            "[[{\"item\": \"Lilin angka \\\"30\\\"\", \"quantity\": 1}, {\"item\": \"pita dekorasi merah\", \"quantity\": 1}]]"
-        ],
-        "Notes": "Mohon kue dikirim dalam kondisi dingin"
-    ]
-
-    // Sample images
-    let samplePhoto = UIImage(systemName: "photo.fill")!
-    
-    // Use @State wrappers to simulate bindings
-    @State var previewImages: [UIImage?] = [samplePhoto, nil, nil]
-    @State var previewParsedData: [String: Any] = sampleData
-    @State var previewPath = NavigationPath()
-
-    // Return the full preview view
-    return NavigationStack {
-        EditOrderView(
-            parsedOrderData: $previewParsedData,
-            selectedImages: $previewImages,
-            path: $previewPath
-        )
-        .environmentObject(session)
-        .environmentObject(DeleteOverlayBus())
-    }
-}
-
-
+//#Preview {
+//    // Mock session
+//    let session = SessionManager()
+//    session.isSignedIn = true
+//    session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
+//
+//    // Sample data for preview
+//    let sampleData: [String: Any] = [
+//        "Nama Pemesan": "Nadia Prameswari",
+//        "No. Telp Pemesan": "0812-5566-2233",
+//        "Nama Penerima": "Rafi Setiawan",
+//        "No. Telp Penerima": "0813-7788-9922",
+//        "Tanggal Pesanan": "20 Oktober 2025",
+//        "Jam Kirim": "15.30 WIB",
+//        "Alamat Kirim": "Jl. Dharmahusada Indah Barat No. 27",
+//        "Pesanan": [
+//            "[[{\"item\": \"Strawberry Fresh Cream Cake – ukuran 18 cm\", \"quantity\": 1}]]"
+//        ],
+//        "Adds-on": [
+//            "[[{\"item\": \"Lilin angka \\\"30\\\"\", \"quantity\": 1}, {\"item\": \"pita dekorasi merah\", \"quantity\": 1}]]"
+//        ],
+//        "Notes": "Mohon kue dikirim dalam kondisi dingin"
+//    ]
+//
+//    // Sample images
+//    let samplePhoto = UIImage(systemName: "photo.fill")!
+//    
+//    // Use @State wrappers to simulate bindings
+//    @State var previewImages: [UIImage?] = [samplePhoto, nil, nil]
+//    @State var previewParsedData: [String: Any] = sampleData
+//    @State var previewPath = NavigationPath()
+//
+//    // Return the full preview view
+//    return NavigationStack {
+//        EditOrderView(
+//            parsedOrderData: $previewParsedData,
+//            selectedImages: $previewImages,
+//            path: $previewPath
+//        )
+//        .environmentObject(session)
+//        .environmentObject(DeleteOverlayBus())
+//    }
+//}
+//
+//
