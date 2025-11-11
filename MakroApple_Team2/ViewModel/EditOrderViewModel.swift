@@ -50,7 +50,10 @@ class EditOrderViewModel {
         self.userId = userId
         self.originalParsedData = parsedOrderData
         self.selectedPhotos = selectedPhotos
-        parseIntoSections(parsedOrderData)
+        
+        if customerFields.isEmpty {
+            parseIntoSections(parsedOrderData)
+        }
     }
     
     private func parseIntoSections(_ data: [String: Any]) {

@@ -44,8 +44,9 @@ class EditTemplateViewModel {
                 errorMessage = "Template tidak ditemukan"
                 return
             }
-
-            parseTemplate(templateDict)
+            if customerFields.isEmpty{
+                parseTemplate(templateDict)
+            }
         } catch {
             errorMessage = "Gagal memuat template: \(error.localizedDescription)"
         }

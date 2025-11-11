@@ -129,6 +129,7 @@ struct NewOrderView: View {
                 }
                 .disabled(viewModel.isLoading || formPesanan.isEmpty)
             }
+            
             .onAppear {
                 
                 // Load shared text if exists
@@ -152,6 +153,7 @@ struct NewOrderView: View {
                 formPesanan = newValue
             }
         }
+        
 //        .onReceive(NotificationCenter.default.publisher(for: Notification.Name("SharedTextReceived"))) { notif in
 //            if let text = notif.object as? String {
 //                formPesanan = text    // paste into TextEditor
@@ -171,6 +173,20 @@ struct NewOrderView: View {
                 )
             }
         }
+        .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                Button {
+                    isDismissed = true
+                } label: {
+                    Image(systemName: "chevron.left")
+                        .font(.title3)
+                        .foregroundColor(.white)
+                }
+                .buttonStyle(.glassProminent)
+                .disabled(viewModel.isLoading)
+            }
+        }
+        
     }
     
     private func cleanUpEmptySlots() {
