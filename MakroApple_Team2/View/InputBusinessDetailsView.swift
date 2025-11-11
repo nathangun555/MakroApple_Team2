@@ -8,9 +8,9 @@
 import SwiftUI
 import PhotosUI
 
-private struct RowDivider: View {
-  var body: some View { Rectangle().fill(Color(.separator)).frame(height: 0.5) }
-}
+//private struct RowDivider: View {
+//  var body: some View { Rectangle().fill(Color(.separator)).frame(height: 0.5) }
+//}
 
 private struct PillTextField: View {
   let placeholder: String
@@ -36,21 +36,21 @@ private struct PillTextField: View {
   }
 }
 
-private struct LabeledRow<Content: View>: View {
-  let label: String
-  let labelWidth: CGFloat
-  @ViewBuilder var field: () -> Content
-
-  var body: some View {
-    HStack(alignment: .center, spacing: 12) {
-      Text(label)
-        .font(.body)
-        .frame(width: labelWidth, alignment: .leading)
-      field()
-    }
-    .padding(.vertical, 6)
-  }
-}
+//private struct LabeledRow<Content: View>: View {
+//  let label: String
+//  let labelWidth: CGFloat
+//  @ViewBuilder var field: () -> Content
+//
+//  var body: some View {
+//    HStack(alignment: .center, spacing: 12) {
+//      Text(label)
+//        .font(.body)
+//        .frame(width: labelWidth, alignment: .leading)
+//      field()
+//    }
+//    .padding(.vertical, 6)
+//  }
+//}
 
 struct InputBusinessDetailsView: View {
   @EnvironmentObject var session: SessionManager

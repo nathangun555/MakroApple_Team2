@@ -50,7 +50,7 @@ public struct AutoGrowingTextEditor: View {
         ZStack(alignment: .topLeading) {
             if text.isEmpty {
                 Text(placeholder)
-                    .font(font)
+                    .font(.subheadline)
                     .foregroundColor(.gray)
                     .padding(.horizontal, 12)
                     .padding(.vertical, verticalPadding)
@@ -67,7 +67,7 @@ public struct AutoGrowingTextEditor: View {
                     text = String(collapsed.prefix(maxChars))
                 }
             ))
-            .font(font)
+            .font(.subheadline)
             .disabled(!isEditing)
             .padding(.horizontal, 8)
             .padding(.vertical, verticalPadding)

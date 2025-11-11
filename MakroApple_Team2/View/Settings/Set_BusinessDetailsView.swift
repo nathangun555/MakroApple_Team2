@@ -1257,49 +1257,30 @@
 import SwiftUI
 import PhotosUI
 
-private struct RowDivider: View {
-  var body: some View { Rectangle().fill(Color(.separator)).frame(height: 0.5) }
-}
 
-private struct PillTextField: View {
-  let placeholder: String
-  @Binding var text: String
-  var keyboard: UIKeyboardType = .default
-  var contentType: UITextContentType? = nil
-  var autocap: TextInputAutocapitalization? = .sentences
-  var autocorrect: Bool = true
-
-  var body: some View {
-    TextField(placeholder, text: $text)
-      .textInputAutocapitalization(autocap)
-      .autocorrectionDisabled(!autocorrect)
-      .keyboardType(keyboard)
-      .textContentType(contentType)
-      .padding(.horizontal, 12)
-      .frame(height: 36)
-      .background(Color.clear)
-      .overlay(
-        RoundedRectangle(cornerRadius: 12, style: .continuous)
-            .stroke(Color.black, lineWidth: 0.1)
-      )
-  }
-}
-
-private struct LabeledRow<Content: View>: View {
-  let label: String
-  let labelWidth: CGFloat
-  @ViewBuilder var field: () -> Content
-
-  var body: some View {
-    HStack(alignment: .center, spacing: 12) {
-      Text(label)
-        .font(.body)
-        .frame(width: labelWidth, alignment: .leading)
-      field()
-    }
-    .padding(.vertical, 6)
-  }
-}
+//private struct PillTextField: View {
+//  let placeholder: String
+//  @Binding var text: String
+//  var keyboard: UIKeyboardType = .default
+//  var contentType: UITextContentType? = nil
+//  var autocap: TextInputAutocapitalization? = .sentences
+//  var autocorrect: Bool = true
+//
+//  var body: some View {
+//    TextField(placeholder, text: $text)
+//      .textInputAutocapitalization(autocap)
+//      .autocorrectionDisabled(!autocorrect)
+//      .keyboardType(keyboard)
+//      .textContentType(contentType)
+//      .padding(.horizontal, 12)
+//      .frame(height: 36)
+//      .background(Color.clear)
+//      .overlay(
+//        RoundedRectangle(cornerRadius: 12, style: .continuous)
+//            .stroke(Color.black, lineWidth: 0.1)
+//      )
+//  }
+//}
 
 struct Set_BusinessDetailsView: View {
   @EnvironmentObject var session: SessionManager
@@ -1598,7 +1579,7 @@ struct Set_BusinessDetailsView: View {
 
           // Nomor Rekening dengan error
           VStack(alignment: .leading, spacing: 2) {
-            LabeledRow(label: "Nomor Rekening :", labelWidth: labelWidth) {
+            LabeledRow(label: "No Rekening :", labelWidth: labelWidth) {
                 AutoGrowingTextEditor(
                            text: $vm.bankAccountNumber,
                            placeholder: "Silakan isi no rekening anda",
@@ -1614,6 +1595,8 @@ struct Set_BusinessDetailsView: View {
                        .frame(maxWidth: .infinity, alignment: .leading)
                        .focused($focusedField, equals: .bankAccountNumber)
                        .keyboardType(.numberPad)
+                
+                
             }
             if let error = vm.fieldErrors["bankAccountNumber"] {
                 HStack(spacing: 6) {
@@ -1686,6 +1669,7 @@ struct Set_BusinessDetailsView: View {
         ToolbarItem(placement: .principal) {
               Text("Rincian Bisnis")
                   .font(.title2.bold())
+            
         }
           
         ToolbarItem(placement: .topBarLeading) {
