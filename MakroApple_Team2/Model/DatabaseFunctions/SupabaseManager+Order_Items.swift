@@ -40,13 +40,13 @@ extension SupabaseManager {
     
     func createOrderItems(products: [ProductItem], orderId: UUID) async throws -> [OrderItemRecord] {
         let nowString = ISO8601DateFormatter().string(from: Date())
-        let orderItemId = UUID()
+//        let orderItemId = UUID()
         let productId = "e5819927-6930-4b71-ad93-188be0f72a9a"
         let itemRows: [[String: AnyCodable]] = products
             .filter { !$0.name.isEmpty }
             .map { product in
                 [
-                    "id": AnyCodable(orderItemId.uuidString),
+                    "id": AnyCodable(UUID().uuidString),
                     "order_id": AnyCodable(orderId.uuidString),
                     "product_id": AnyCodable(productId),
                     "product_name": AnyCodable(product.name),

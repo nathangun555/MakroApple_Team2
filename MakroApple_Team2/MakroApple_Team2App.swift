@@ -17,12 +17,15 @@ struct MakroApple_Team2App: App {
     @State private var sharedImages: [UIImage] = []
     @State private var hasNewObject = false
     @StateObject var unsavedBus = UnsavedOverlayBus()
+    
+    
+    @State private var isDismissed: Bool = false
 
     
     @State private var path : NavigationPath = .init()
     var body: some Scene {
         WindowGroup {
-//            InvoicePreviewView(orderId: "82536742-DDC4-481C-B63A-87400194D0AA", path: $path)
+//            InvoicePreviewView(orderId: "82536742-DDC4-481C-B63A-87400194D0AA", isDismissed: $isDismissed)
 //                .environmentObject(session)
             
             MainTabView(selectedTab: $selectedTab, sharedText: $sharedText,hasNewObject: $hasNewObject, sharedImages : $sharedImages)
@@ -72,7 +75,7 @@ struct MakroApple_Team2App: App {
                         }
                     }
                 }
-            
+//            
         }
         
     }
