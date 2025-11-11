@@ -192,10 +192,10 @@ struct InvoiceContentView: View {
             .frame(maxWidth: 210)
             
             VStack(alignment: .trailing, spacing: 2) {
-                Text("Tanggal Invoice : \(viewModel.invoiceDate)")
+                Text("Tanggal Invoice : \(DateFormatterHelper.formattedDate(viewModel.invoiceDate, showTime: false))")
                     .font(.system(size: 10))
                 
-                Text("Jatuh Tempo Pembayaran : \(viewModel.invoiceDueDate)")
+                Text("Jatuh Tempo Pembayaran : \(DateFormatterHelper.formattedDate(viewModel.invoiceDueDate, showTime: false))")
                     .font(.system(size: 10))
             }
             

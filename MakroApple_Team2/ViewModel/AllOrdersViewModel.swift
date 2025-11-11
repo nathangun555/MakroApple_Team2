@@ -88,7 +88,6 @@ class AllOrdersViewModel {
 //    }
     
     func hasOrders(for date: Date) -> Bool {
-       
         return orders.contains { order in
             guard let orderDate = DateFormatterHelper.toDate(order.orderDdayDate ?? "") else {
                 return false

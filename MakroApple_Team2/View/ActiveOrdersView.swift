@@ -103,7 +103,6 @@ struct ActiveOrdersView: View {
             .coordinateSpace(name: "ordersSpace")
           }
           .task {
-              // Pastikan user sudah login
               if let userIdString = session.userId,
                  let userId = UUID(uuidString: userIdString) {
                   await viewModel.fetchBusinessName(for: userId)

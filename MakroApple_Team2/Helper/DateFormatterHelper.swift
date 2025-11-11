@@ -11,7 +11,7 @@ struct DateFormatterHelper {
     
     static func formattedDate(_ dateString: String, showTime: Bool = false) -> String {
         let inputFormatter = ISO8601DateFormatter()
-        inputFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        inputFormatter.formatOptions = [.withInternetDateTime]
         
         guard let date = inputFormatter.date(from: dateString) else {
             print("❌ Gagal parse tanggal:", dateString)
@@ -31,23 +31,37 @@ struct DateFormatterHelper {
     }
     
     static func formattedTime(_ dateString: String) -> String {
-        let inputFormatter = ISO8601DateFormatter()
-        inputFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        let isoFormatter = ISO8601DateFormatter()
+        isoFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
         
-        guard let date = inputFormatter.date(from: dateString) else {
+        var date: Date? = isoFormatter.date(from: dateString)
+        
+        if date == nil {
+            // fallback tanpa fractional seconds
+            let fallbackFormatter = ISO8601DateFormatter()
+            fallbackFormatter.formatOptions = [.withInternetDateTime]
+            date = fallbackFormatter.date(from: dateString)
+        }
+        
+        guard let validDate = date else {
             print("❌ Gagal parse tanggal:", dateString)
-            return dateString
+            return "-"
         }
         
         let timeFormatter = DateFormatter()
         timeFormatter.locale = Locale(identifier: "id_ID")
-        timeFormatter.dateFormat = "HH:mm" // pakai format 24 jam
+        timeFormatter.dateFormat = "HH:mm"
         
-        return timeFormatter.string(from: date)
+        return timeFormatter.string(from: validDate)
     }
     
-    static func toDate(_ dateString: String) -> Date? {
+    static func toDate(_ dateString: String?) -> Date? {
+        guard let dateString = dateString else { return nil }
         let isoFormatter = ISO8601DateFormatter()
+        isoFormatter.formatOptions = [.withInternetDateTime]
+        if let date = isoFormatter.date(from: dateString) {
+            return date
+        }
         isoFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
         return isoFormatter.date(from: dateString)
     }

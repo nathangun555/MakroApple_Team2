@@ -32,7 +32,8 @@ final class SessionManager: ObservableObject {
     // ✅ Dev mode setup - instant, synchronous
     private func setupDevSession() {
         self.isSignedIn = true
-        self.userId = "11a1686a-f25c-4f0d-bc6b-1327fe8eca63"
+        self.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f" // Lama
+//        self.userId = "11a1686a-f25c-4f0d-bc6b-1327fe8eca63" // Baru
         print("🧪 DEV MODE: Instant session loaded")
         print("🪪 userId:", userId ?? "nil")
     }

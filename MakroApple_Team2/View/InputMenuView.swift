@@ -397,13 +397,15 @@ struct ImagePicker: UIViewControllerRepresentable {
     }
 }
 
-//#Preview {
-//    let session = SessionManager()
-//    session.isSignedIn = true
-//    session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
-//    
-//    return NavigationStack {
-//        InputMenuView()
-//            .environmentObject(session)
-//    }
-//}
+#Preview {
+    let session = SessionManager()
+    session.isSignedIn = true
+    session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
+
+    let dismiss = Binding.constant(false)
+
+    return NavigationStack {
+        InputMenuView(isDismissed: dismiss)
+            .environmentObject(session)
+    }
+}
