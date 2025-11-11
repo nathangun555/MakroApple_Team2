@@ -125,6 +125,7 @@ struct InvoicePreviewView: View {
                                 .foregroundColor(.white)
                         }
                         .buttonStyle(.glassProminent)
+                        .tint(.primaryButton)
                     }
                 }
             }
@@ -214,3 +215,4 @@ struct InvoicePreviewView: View {
 //    return InvoicePreviewView(orderId: "82536742-DDC4-481C-B63A-87400194D0AA")
 //        .environmentObject(session)
 //}
+

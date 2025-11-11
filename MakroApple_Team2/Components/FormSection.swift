@@ -27,8 +27,11 @@ struct FormSection: View {
                     Button(action: onAddColumn) {
                         Label("Tambahkan Kolom", systemImage: "plus")
                             .font(.subheadline)
-                            .foregroundColor(.blue)
+                            .foregroundColor(.primaryButton)
+//                            .background(.gray)
                     }
+                    .buttonStyle(.bordered)
+                    .tint(.gray)
                 }
                 
             }
@@ -69,5 +72,19 @@ struct FormSection: View {
                 }
             }
         }
+    }
+}
+
+#Preview {
+    // Dummy binding
+    @State var isDismissed = false
+
+    // Dummy environment object
+    let session = SessionManager()
+    session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
+
+    return NavigationStack {
+        EditTemplateFormView(isDismissed: $isDismissed)
+            .environmentObject(session)
     }
 }

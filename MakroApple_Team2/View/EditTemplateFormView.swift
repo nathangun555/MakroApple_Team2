@@ -99,25 +99,23 @@ struct EditTemplateFormView: View {
         .navigationTitle("Formulir Pesanan")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            ToolbarItemGroup(placement: .topBarTrailing) {
-                Button(action: {
-                    print("")
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
                     Task {
                         await viewModel.saveTemplate()
                     }
-                }) {
-                    if viewModel.isSaving {
-                        ProgressView()
-                    } else {
-                        Image(systemName: "arrow.right")
-                            .foregroundColor(.white)
-                            .padding(8)
-                            .background(Color.blue)
-                            .clipShape(Circle())
-                    }
+                } label: {
+                    Image(systemName: "chevron.right")
+                        .font(.title3)
+                        .foregroundColor(.white)
+                        
                 }
+                .buttonStyle(.glassProminent)
                 .disabled(viewModel.isSaving)
+                .tint(.primaryButton)
             }
+            
+            
         }
         .navigationDestination(isPresented: $viewModel.didSave) {
             InvoicePreviewView(isDismissed: $isDismissed)
@@ -126,6 +124,20 @@ struct EditTemplateFormView: View {
             viewModel.configure(userId: session.userId)
             await viewModel.loadTemplate()
         }
+    }
+}
+
+#Preview {
+    // Dummy binding
+    @State var isDismissed = false
+
+    // Dummy environment object
+    let session = SessionManager()
+    session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
+
+    return NavigationStack {
+        EditTemplateFormView(isDismissed: $isDismissed)
+            .environmentObject(session)
     }
 }
 

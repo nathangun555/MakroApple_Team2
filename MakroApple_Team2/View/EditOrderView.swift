@@ -14,9 +14,10 @@ struct EditOrderView: View {
     var parsedOrderData: [String: Any]
     
     @Binding var selectedImages: [UIImage?]
+    @Binding var selectedItems: [PhotosPickerItem?]
+    
     @Binding var isDismissed: Bool
     @State private var viewModel = EditOrderViewModel()
-    @State private var selectedItems: [PhotosPickerItem?] = [nil, nil, nil]
     
     @State private var lastOrderId: String = ""
 
@@ -38,7 +39,7 @@ struct EditOrderView: View {
             } else {
                 ScrollViewReader { proxy in
                     ScrollView {
-                        VStack(spacing: 24) {
+                        VStack(alignment: .leading, spacing: 24) {
                             // Rincian Pelanggan
                             OrderFormSection(
                                 title: "Rincian Pelanggan",
@@ -142,6 +143,7 @@ struct EditOrderView: View {
                 }
                 .buttonStyle(.glassProminent)
                 .disabled(viewModel.isLoading)
+                .tint(.primaryButton)
             }
         }
         .alert("Berhasil!", isPresented: $viewModel.didSave) {
@@ -187,8 +189,8 @@ struct ProductsSection: View {
                 Spacer()
                 Button(action: onAdd) {
                     Image(systemName: "plus.circle.fill")
-                        .font(.title2)
-                        .foregroundColor(.blue)
+                        .font(.title)
+                        .foregroundColor(.primaryButton)
                 }
             }
             .padding(.horizontal)
@@ -343,47 +345,26 @@ struct AddOnsSection: View {
     }
 }
 //#Preview {
-//    // Mock session
+//    // Dummy bindings
+//    @State var selectedImages: [UIImage?] = [nil]
+//    @State var selectedItems: [PhotoSection?] = [nil]
+//    @State var isDismissed = false
+//
+//    // Dummy parsedOrderData
+//    let dummyParsedData: [String: Any] = [:]
+//
+//    // Dummy environment objects
 //    let session = SessionManager()
-//    session.isSignedIn = true
-//    session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
+//    let deleteBus = DeleteOverlayBus()
 //
-//    // Sample data for preview
-//    let sampleData: [String: Any] = [
-//        "Nama Pemesan": "Nadia Prameswari",
-//        "No. Telp Pemesan": "0812-5566-2233",
-//        "Nama Penerima": "Rafi Setiawan",
-//        "No. Telp Penerima": "0813-7788-9922",
-//        "Tanggal Pesanan": "20 Oktober 2025",
-//        "Jam Kirim": "15.30 WIB",
-//        "Alamat Kirim": "Jl. Dharmahusada Indah Barat No. 27",
-//        "Pesanan": [
-//            "[[{\"item\": \"Strawberry Fresh Cream Cake – ukuran 18 cm\", \"quantity\": 1}]]"
-//        ],
-//        "Adds-on": [
-//            "[[{\"item\": \"Lilin angka \\\"30\\\"\", \"quantity\": 1}, {\"item\": \"pita dekorasi merah\", \"quantity\": 1}]]"
-//        ],
-//        "Notes": "Mohon kue dikirim dalam kondisi dingin"
-//    ]
-//
-//    // Sample images
-//    let samplePhoto = UIImage(systemName: "photo.fill")!
-//    
-//    // Use @State wrappers to simulate bindings
-//    @State var previewImages: [UIImage?] = [samplePhoto, nil, nil]
-//    @State var previewParsedData: [String: Any] = sampleData
-//    @State var previewPath = NavigationPath()
-//
-//    // Return the full preview view
 //    return NavigationStack {
 //        EditOrderView(
-//            parsedOrderData: $previewParsedData,
-//            selectedImages: $previewImages,
-//            path: $previewPath
+//            parsedOrderData: dummyParsedData,
+//            selectedImages: $selectedImages,
+//            selectedItems: $selectedItems,
+//            isDismissed: $isDismissed
 //        )
 //        .environmentObject(session)
-//        .environmentObject(DeleteOverlayBus())
+//        .environmentObject(deleteBus)
 //    }
 //}
-//
-//

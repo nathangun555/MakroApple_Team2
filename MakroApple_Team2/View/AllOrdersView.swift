@@ -99,18 +99,20 @@ struct AllOrdersView: View {
                 ScrollView {
                     LazyVStack(spacing: 12) {
                         ForEach(filteredOrders) { order in
-                            if let firstItem = viewModel.orderItems.first(where: { $0.orderId == order.id }) {
+                            let orderItems = viewModel.orderItems.filter { $0.orderId == order.id }
+                            
+                            if !orderItems.isEmpty {
                                 NavigationLink(
                                     destination:
                                         OrderDetailView(
                                             order: order,
-                                            orderItem: [firstItem],
+                                            orderItem: orderItems,
                                             source: .allOrders,
                                             activeTab: $activeTab
                                         )
                                         .environmentObject(session)
                                 ) {
-                                    OrderCard(order: order, orderItem: firstItem)
+                                    OrderCard(order: order, orderItem: orderItems.first!)
                                 }
                                 .buttonStyle(PlainButtonStyle())
                             }

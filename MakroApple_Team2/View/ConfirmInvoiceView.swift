@@ -261,6 +261,7 @@ struct ConfirmInvoiceView: View {
                         .foregroundColor(.white)
                 }
                 .buttonStyle(.glassProminent)
+                .tint(.primaryButton)
             }
            
         }

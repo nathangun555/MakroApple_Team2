@@ -54,6 +54,7 @@ struct DateFormatterHelper {
         
         return timeFormatter.string(from: validDate)
     }
+
     
     static func toDate(_ dateString: String?) -> Date? {
         guard let dateString = dateString else { return nil }
