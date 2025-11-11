@@ -46,7 +46,7 @@ struct Set_MenuDetailsView: View {
                             } label: {
                                 Image(systemName: "chevron.left")
                                     .font(.title3)
-                                    .foregroundColor(.blue)
+                                    .foregroundColor(.primaryButton)
                             }
                         }
                         
@@ -61,19 +61,23 @@ struct Set_MenuDetailsView: View {
                                 } else {
                                     Image(systemName: "checkmark")
                                         .font(.title2)
-                                        .foregroundColor(vm.hasPendingChanges ? .blue : .gray)
+                                        .foregroundColor(vm.hasPendingChanges ? .white : .gray)
                                 }
                             }
-
+                            .disabled(!vm.hasPendingChanges || vm.isLoading)
+                            
                             if vm.hasPendingChanges {
-                                button.buttonStyle(BorderedProminentButtonStyle())
+                                button.buttonStyle(BorderedProminentButtonStyle()).tint(.primaryButton)
                             } else {
                                 button.buttonStyle(BorderlessButtonStyle())
                             }
                         }
                         
+                    
+                        
                     }
             }
+            .toolbar(.hidden, for: .tabBar)
         }
         .task {
             vm.configure(userId: session.userId)
@@ -153,22 +157,35 @@ struct Set_MenuDetailsView: View {
                                             vm.toggleEdit(sectionIndex: sIndex)
                                         }
                                     } label: {
-                                        Text(section.isEditing ? "Selesai" : "Edit")
+                                        Text(section.isEditing ? "Done" : "Edit")
                                             .font(.subheadline)
-                                            .foregroundColor(.blue)
+                                            .foregroundColor(.primaryButton)
+                                            .padding(.vertical, 6)
+                                                    .padding(.horizontal, 12)
+                                            .background(
+                                                        Capsule().fill(Color(.systemGray6))  // light grey background
+                                                    )
                                     }
+                                    
                                 }
                                 
                                 // Error nama kategori (UUID-based)
                                 if vm.validationErrors.contains("\(section.id.uuidString)-cat") {
-                                    HStack(spacing: 0) {
+                                    HStack(spacing: 6) {
+                                        Image(systemName: "exclamationmark.triangle.fill")
+                                            .foregroundColor(.red)
+                                            .font(.system(size: 12, weight: .bold))
+
                                         Text("Nama kategori tidak boleh kosong")
                                             .font(.caption)
                                             .foregroundColor(.red)
-                                            .padding(.leading, 3)
+
                                         Spacer()
                                     }
+                                    .padding(.leading, 3)
+                                    .fixedSize(horizontal: false, vertical: true)
                                 }
+
                             }
                             
                             Divider()
@@ -182,7 +199,7 @@ struct Set_MenuDetailsView: View {
                                         Text("Tambah Produk")
                                             .fontWeight(.medium)
                                     }
-                                    .foregroundColor(.blue)
+                                    .foregroundColor(.primaryButton)
                                     .padding(.vertical, 8)
                                     .padding(.horizontal, 14)
                                     .background(Capsule().fill(Color(.systemGray6)))
@@ -237,7 +254,7 @@ struct Set_MenuDetailsView: View {
                 }
                 .padding(.horizontal, 60)
                 .padding(.vertical, 14)
-                .background(Color.blue)
+                .background(Color.primaryButton)
                 .foregroundColor(.white)
                 .clipShape(Capsule())
                 .shadow(color: Color.black.opacity(0.25), radius: 6, x: 0, y: 3)
@@ -298,7 +315,7 @@ struct CustomUnsavedAlert: View {
                     .resizable()
                     .scaledToFit()
                     .frame(width: 50, height: 50)
-                    .foregroundColor(Color.blue)
+                    .foregroundColor(Color.primaryButton)
                     .padding(.top, 8)
                 
                 Text(title)
@@ -330,7 +347,7 @@ struct CustomUnsavedAlert: View {
                             .foregroundColor(.white)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 12)
-                            .background(Color.blue)
+                            .background(Color.primaryButton)
                             .clipShape(Capsule())
                     }
                 }

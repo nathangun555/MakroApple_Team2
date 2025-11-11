@@ -121,13 +121,11 @@ struct InvoicePreviewView: View {
                             }
                         }) {
                             Image(systemName: "square.and.arrow.up")
+                                .font(.title3)
+                                .foregroundColor(.white)
                         }
-                    }) {
-                        Image(systemName: "square.and.arrow.up")
-                            .font(.title3)
-                            .foregroundColor(.white)
+                        .buttonStyle(.glassProminent)
                     }
-                    .buttonStyle(.glassProminent)
                 }
             }
             
@@ -175,15 +173,15 @@ struct InvoicePreviewView: View {
 //            .padding(20)
 //            .background(Color.white)
 //            .frame(width: 595, height: 841)
-//        
+//
 //        guard let pdfData = viewModel.exportAsPDF(view: invoiceView) else {
 //            return nil
 //        }
-//        
+//
 //        let invoiceCode = viewModel.invoiceNumber.isEmpty ? "Invoice" : viewModel.invoiceNumber
 //        let tempURL = FileManager.default.temporaryDirectory
 //            .appendingPathComponent("\(invoiceCode.replacingOccurrences(of: "/", with: "_")).pdf")
-//        
+//
 //        do {
 //            try pdfData.write(to: tempURL)
 //            return tempURL
@@ -212,7 +210,7 @@ struct InvoicePreviewView: View {
 //    let session = SessionManager()
 //    session.isSignedIn = true
 //    session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
-//    
+//
 //    return InvoicePreviewView(orderId: "82536742-DDC4-481C-B63A-87400194D0AA")
 //        .environmentObject(session)
 //}

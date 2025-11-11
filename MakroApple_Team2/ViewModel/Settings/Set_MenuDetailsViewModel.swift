@@ -498,14 +498,19 @@ struct EditableProductRow: View {
 
                 // UUID-based error
                 if validationErrors.contains("\(viewModel.id.uuidString)-name") {
-                    HStack(spacing: 0) {
-                        Color.clear.frame(width: 110)
-                        Text("Nama produk tidak boleh kosong")
-                            .font(.caption)
-                            .foregroundColor(.red)
-                            .padding(.leading, 8)
-                        Spacer()
-                    }
+                    HStack(spacing: 6) {
+                            Color.clear.frame(width: 110) // offset label kiri "Nama Produk :"
+                            HStack(spacing: 6) {
+                                Image(systemName: "exclamationmark.triangle.fill")
+                                    .foregroundColor(.red)
+                                    .font(.system(size: 12, weight: .bold))
+                                Text("Nama produk harus diisi")
+                                    .font(.caption)
+                                    .foregroundColor(.red)
+                            }
+                            .fixedSize(horizontal: false, vertical: true)
+                            Spacer()
+                        }
                 }
             }
 
@@ -519,26 +524,58 @@ struct EditableProductRow: View {
                     HStack(spacing: 4) {
                         Text("Rp")
                             .foregroundColor(.black)
-
                         TextField(
                             "0",
                             text: Binding(
                                 get: {
                                     let intValue = NSDecimalNumber(decimal: viewModel.price).intValue
-                                    return intValue == 0 ? "" : "\(intValue)"
+                                    if intValue == 0 { return "" }
+                                    // Saat edit: tampilkan angka polos tanpa titik
+                                    if isEditing {
+                                        return String(intValue)
+                                    } else {
+                                        // Saat tidak edit: tampilkan terformat
+                                        return IDRFormat.string(from: intValue)
+                                    }
                                 },
                                 set: { newValue in
-                                    let onlyDigits = newValue.filter { $0.isNumber }
+                                    // Setter tetap simpan digit murni + maxDigits
+                                    let digits = newValue.filter { $0.isNumber }
                                     let maxDigits = 12
-                                    let limited = String(onlyDigits.prefix(maxDigits))
+                                    let limited = String(digits.prefix(maxDigits))
                                     if limited.isEmpty {
                                         viewModel.price = 0
-                                    } else if let decimal = Decimal(string: limited) {
-                                        viewModel.price = decimal
+                                    } else if let dec = Decimal(string: limited) {
+                                        viewModel.price = dec
                                     }
                                 }
                             )
                         )
+//                        TextField(
+//                            "0",
+//                            text: Binding(
+//                                get: {
+//                                    let intValue = NSDecimalNumber(decimal: viewModel.price).intValue
+//                                    return intValue == 0 ? "" : IDRFormat.string(from: intValue) // mis. "1.000.000"
+//                                },
+//                                set: { newValue in
+//                                    // Ambil digit saja dari input/hasil paste
+//                                    let digits = newValue.filter { $0.isNumber }
+//
+//                                    // Batasi total digit seperti aturan lama
+//                                    let maxDigits = 12
+//                                    let limited = String(digits.prefix(maxDigits))
+//
+//                                    // Simpan ke model sebagai Decimal murni (tanpa titik)
+//                                    if limited.isEmpty {
+//                                        viewModel.price = 0
+//                                    } else if let dec = Decimal(string: limited) {
+//                                        viewModel.price = dec
+//                                    }
+//                                    // Tidak ada else-fallback: biarkan nilai lama jika parsing gagal
+//                                }
+//                            )
+//                        )
                         .keyboardType(.numberPad)
                         .disabled(!isEditing)
                         .font(.system(size: 16))
@@ -557,18 +594,23 @@ struct EditableProductRow: View {
                     .frame(maxWidth: .infinity)
                     .opacity(isEditing ? 1 : 0.7)
                 }
+                
 
                 // UUID-based error
                 if validationErrors.contains("\(viewModel.id.uuidString)-price") {
-                    HStack(spacing: 0) {
-                        Color.clear
-                            .frame(width: 110)
-                        Text("Harga harus lebih dari 0")
-                            .font(.caption)
-                            .foregroundColor(.red)
-                            .padding(.leading, 8)
-                        Spacer()
-                    }
+                    HStack(spacing: 6) {
+                            Color.clear.frame(width: 110) // offset label kiri "Harga Produk :"
+                            HStack(spacing: 6) {
+                                Image(systemName: "exclamationmark.triangle.fill")
+                                    .foregroundColor(.red)
+                                    .font(.system(size: 12, weight: .bold))
+                                Text("Harga harus lebih dari 0")
+                                    .font(.caption)
+                                    .foregroundColor(.red)
+                            }
+                            .fixedSize(horizontal: false, vertical: true)
+                            Spacer()
+                        }
                 }
             }
         }
