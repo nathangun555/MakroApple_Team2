@@ -65,10 +65,14 @@ extension SupabaseManager {
         
         let pesananDateRaw = parsedOrder["Tanggal Pesanan"] as? String ?? ""
         let jamKirimRaw = parsedOrder["Jam Kirim"] as? String ?? ""
-        let pesananDateTimeISO = (!pesananDateRaw.isEmpty && !jamKirimRaw.isEmpty)
-            ? DateFormatterHelper.dateTimeToISO(dateString: pesananDateRaw, timeString: jamKirimRaw)
+        let finalTimeString = jamKirimRaw.isEmpty ? "00:00" : jamKirimRaw
+
+        let pesananDateTimeISO = !pesananDateRaw.isEmpty
+            ? DateFormatterHelper.dateTimeToISO(dateString: pesananDateRaw, timeString: finalTimeString)
             : nil
+
         orderData["order_dday_date"] = pesananDateTimeISO != nil ? AnyCodable(pesananDateTimeISO!) : nil
+
 
         let invoiceDueRaw = parsedOrder["Tanggal Jatuh Tempo"] as? String ?? ""
         let invoiceDueISO = (!invoiceDueRaw.isEmpty ? DateFormatterHelper.dateToISO(invoiceDueRaw) : nil)

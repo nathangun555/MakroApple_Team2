@@ -12,14 +12,14 @@ struct InvoicePreviewView: View {
     @EnvironmentObject var session: SessionManager
     @Environment(\.dismiss) var dismiss
     
-    let orderId: String?
-    @Binding var path: NavigationPath
+    @State var orderId: String?
     
     @State private var isSaving = false
     @State private var showSuccessAlert = false
     
     @State private var exportedPDFURL: URL?
     
+    @Binding var isDismissed: Bool
     
     var body: some View {
         NavigationStack{
@@ -90,7 +90,7 @@ struct InvoicePreviewView: View {
                         } else {
                             VStack(spacing: 0) {
                                 Button {
-                                    path = NavigationPath()
+                                    isDismissed = true
                                 } label: {
                                     Text("Konfirmasi")
                                         .frame(maxWidth: .infinity)
@@ -159,7 +159,7 @@ struct InvoicePreviewView: View {
             let url = try await viewModel.saveAndUploadInvoice(pdfData: pdfData)
             print("✅ Invoice saved to: \(url)")
             
-            path = NavigationPath()
+            isDismissed = true
             
         } catch {
             viewModel.errorMessage = "Gagal menyimpan invoice: \(error.localizedDescription)"

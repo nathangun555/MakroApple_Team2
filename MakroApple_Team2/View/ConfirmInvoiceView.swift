@@ -14,9 +14,10 @@ struct ConfirmInvoiceView: View {
     @State private var hasDownPayment = false
     @State private var selectedDueDate: Date?
     @State private var expandedProducts = Set<UUID>()
+   
     
     let orderId: String
-    @Binding var path: NavigationPath
+    @Binding var isDismissed: Bool
     @EnvironmentObject var session: SessionManager
     
     var body: some View {
@@ -274,10 +275,8 @@ struct ConfirmInvoiceView: View {
                 viewModel.downPaymentText = ""
             }
         }
-        .onChange(of: viewModel.didSave) { newValue in
-            if newValue {
-                path.append(OrderDestination.invoicePreview(orderId: orderId))
-            }
+        .navigationDestination(isPresented: $viewModel.didSave) {
+            InvoicePreviewView(orderId: orderId, isDismissed: $isDismissed)
         }
     }
 }

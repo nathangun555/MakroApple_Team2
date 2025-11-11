@@ -39,7 +39,8 @@ struct InputMenuView: View {
     @State private var showErrorAlert = false
     @State private var errorMessage = ""
     @State private var scannedCategories: [MenuCategory] = []
-    @Binding var path: NavigationPath
+    
+    @Binding var isDismissed: Bool
     
     var viewModel = InputMenuViewModel()
     
@@ -64,17 +65,17 @@ struct InputMenuView: View {
                     }
                 }
             }
-            .sheet(isPresented: $isCameraPresented) {
-                ImagePicker(sourceType: .camera) { url in
-                    if let url = url {
-                        addFile(url: url)
-                    }
-                }
-            }
+//            .sheet(isPresented: $isCameraPresented) {
+//                ImagePicker(sourceType: .camera) { url in
+//                    if let url = url {
+//                        addFile(url: url)
+//                    }
+//                }
+//            }
             .confirmationDialog("Pilih Sumber File", isPresented: $showUploadOptions, titleVisibility: .visible) {
-                Button("Pilih File (PDF/Image)") { isFileImporterPresented = true }
-                Button("Pilih dari Galeri") { isPhotoPickerPresented = true }
-                Button("Ambil Foto") { isCameraPresented = true }
+                Button("Pilih File PDF") { isFileImporterPresented = true }
+                Button("Pilih Gambar dari Galeri") { isPhotoPickerPresented = true }
+//                Button("Ambil Foto") { isCameraPresented = true }
                 Button("Batal", role: .cancel) {}
             }
             .alert("Error", isPresented: $showErrorAlert) {
@@ -83,8 +84,7 @@ struct InputMenuView: View {
                 Text(errorMessage)
             }
             .navigationDestination(isPresented: $navigateToConfirm) {
-                ConfirmMenuView(path: $path, scannedCategories: scannedCategories)
-                    .environmentObject(session)
+                ConfirmMenuView(isDismissed: $isDismissed, scannedCategories: scannedCategories)
             }
     }
     

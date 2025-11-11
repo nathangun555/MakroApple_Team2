@@ -11,8 +11,8 @@ struct FormSection: View {
     let title: String
     @Binding var fields: [FormFieldItem]
     let onAddColumn: () -> Void
-//    var showDelete: Bool = false
-//    var onDelete: ((Int) -> Void)? = nil
+    var showDelete: Bool = false
+    var onDelete: ((Int) -> Void)? = nil
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -23,11 +23,14 @@ struct FormSection: View {
                 
                 Spacer()
                 
-                Button(action: onAddColumn) {
-                    Label("Tambahkan Kolom", systemImage: "plus")
-                        .font(.subheadline)
-                        .foregroundColor(.blue)
+                if title == "Lain - Lain"{
+                    Button(action: onAddColumn) {
+                        Label("Tambahkan Kolom", systemImage: "plus")
+                            .font(.subheadline)
+                            .foregroundColor(.blue)
+                    }
                 }
+                
             }
             .padding(.horizontal)
             
@@ -55,12 +58,12 @@ struct FormSection: View {
                             )
                             .foregroundColor(.secondary)
                         
-//                        if showDelete, let onDelete = onDelete {
-//                            Button(action: { onDelete(index) }) {
-//                                Image(systemName: "trash")
-//                                    .foregroundColor(.red)
-//                            }
-//                        }
+                        if showDelete, let onDelete = onDelete {
+                            Button(action: { onDelete(index) }) {
+                                Image(systemName: "trash")
+                                    .foregroundColor(.red)
+                            }
+                        }
                     }
                     .padding(.horizontal)
                 }

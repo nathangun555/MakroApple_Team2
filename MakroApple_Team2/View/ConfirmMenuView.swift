@@ -14,7 +14,8 @@ struct ConfirmMenuView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var showUnsavedChangesAlert = false
     @State private var navigateToTemplateForm = false
-    @Binding var path: NavigationPath
+    
+    @Binding var isDismissed: Bool
     
     let scannedCategories: [MenuCategory] // ✅ Add this parameter
     
@@ -76,7 +77,7 @@ struct ConfirmMenuView: View {
             }
         }
         .navigationDestination(isPresented: $navigateToTemplateForm) {
-            NewTemplateFormView(path: $path)
+            NewTemplateFormView(isDismissed: $isDismissed)
         }
     }
     
