@@ -12,7 +12,7 @@ import Observation
 // MARK: - Models
 struct ProductItem: Identifiable {
     let id = UUID()
-    var category: String
+//    var category: String
     var name: String
     var quantity: Int
 }
@@ -41,6 +41,8 @@ class EditOrderViewModel {
     var didSave = false
     var errorMessage: String?
     var fieldErrors: Set<String> = []
+    
+    var orderIdNow: String?
     
     private(set) var userId: String?
     private var originalParsedData: [String: Any] = [:]
@@ -84,7 +86,7 @@ class EditOrderViewModel {
                 guard let name = item["item"] as? String, !name.isEmpty else { return nil }
                 let qty = item["quantity"] as? Int ?? 1
                 return ProductItem(
-                    category: item["category"] as? String ?? "Classic Cake",
+//                    category: item["category"] as? String ?? "Classic Cake",
                     name: name,
                     quantity: qty
                 )
@@ -92,7 +94,7 @@ class EditOrderViewModel {
             processedKeys.insert("Pesanan")
         }
         if products.isEmpty {
-            products.append(ProductItem(category: "", name: "", quantity: 0))
+            products.append(ProductItem(name: "", quantity: 0))
         }
 
 //        // 4. Add-ons
@@ -145,7 +147,7 @@ class EditOrderViewModel {
     
     // MARK: - Product add and delete
     func addProduct() {
-        products.append(ProductItem(category: "", name: "", quantity: 0))
+        products.append(ProductItem(name: "", quantity: 0))
     }
     
     func deleteProduct(at index: Int) {
@@ -174,6 +176,7 @@ class EditOrderViewModel {
         defer { isLoading = false }
         
         do {
+            uploadedPhotoURLs = []
             if !photos.isEmpty {
                 isUploadingPhotos = true
                 for photo in photos {
@@ -191,13 +194,29 @@ class EditOrderViewModel {
             
             let orderData = buildOrderData()
             
-            print("🔵 Saving order...")
-            let order = try await SupabaseManager.shared.createOrder(
-                userId: uuid,
-                parsedOrder: orderData,
-                photoURLs: uploadedPhotoURLs
-            )
+            var order: OrderRecord
             
+            print("🔵 Saving order...")
+            
+            if let orderId = orderIdNow {
+                try await SupabaseManager.shared.deleteOrderItems(for: UUID(uuidString: orderId)!)
+                
+                order = try await SupabaseManager.shared.createOrder(
+                    orderId: orderId,
+                    userId: uuid,
+                    parsedOrder: orderData,
+                    photoURLs: uploadedPhotoURLs
+                )
+            } else {
+                order = try await SupabaseManager.shared.createOrder(
+                    orderId: "",
+                    userId: uuid,
+                    parsedOrder: orderData,
+                    photoURLs: uploadedPhotoURLs
+                )
+            }
+            
+            orderIdNow = order.id.uuidString
             print("✅ Order saved: \(order.id)")
             
             let orderItems = try await SupabaseManager.shared.createOrderItems(
@@ -248,7 +267,7 @@ class EditOrderViewModel {
         // Products
         let productsArray = products.filter { !$0.name.isEmpty }.map { product in
             [
-                "category": product.category,
+//                "category": product.category,
                 "item": product.name,
                 "quantity": product.quantity
             ] as [String: Any]

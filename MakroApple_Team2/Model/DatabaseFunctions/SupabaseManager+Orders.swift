@@ -43,12 +43,20 @@ extension SupabaseManager {
     }
     
     func createOrder(
+        orderId: String,
         userId: UUID,
         parsedOrder: [String: Any],
         photoURLs: [String] = []
     ) async throws -> OrderRecord {
         var orderData: [String: AnyCodable?] = [:]
-        let newOrderId = UUID()
+        
+        var newOrderId: UUID
+        
+        if orderId != "" {
+            newOrderId = UUID(uuidString: orderId)!
+        } else {
+            newOrderId = UUID()
+        }
         
         orderData["id"] = AnyCodable(newOrderId.uuidString)
         orderData["user_id"] = AnyCodable(userId.uuidString)
@@ -119,7 +127,7 @@ extension SupabaseManager {
 
         let response = try await client
             .from("orders")
-            .insert(orderData)
+            .upsert(orderData, onConflict: "id")
             .select()
             .single()
             .execute()

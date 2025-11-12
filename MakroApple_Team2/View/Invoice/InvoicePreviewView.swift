@@ -9,6 +9,7 @@ import SwiftUI
 
 struct InvoicePreviewView: View {
     @State var viewModel = InvoicePreviewViewModel()
+    @State var invoiceData = InvoiceData()
     @EnvironmentObject var session: SessionManager
     @Environment(\.dismiss) var dismiss
     
@@ -136,6 +137,8 @@ struct InvoicePreviewView: View {
                 await viewModel.loadInvoiceData()
                 
                 exportedPDFURL = viewModel.tempPDFURL()
+                
+                invoiceData = viewModel.invoiceData
             }
         }
         
@@ -146,7 +149,7 @@ struct InvoicePreviewView: View {
         isSaving = true
         defer { isSaving = false }
         
-        let invoiceView = InvoiceContentView(viewModel: viewModel)
+        let invoiceView = InvoiceContentView(viewModel: invoiceData)
             .padding(20)
             .background(Color.white)
             .frame(width: 595)
@@ -215,4 +218,5 @@ struct InvoicePreviewView: View {
 //    return InvoicePreviewView(orderId: "82536742-DDC4-481C-B63A-87400194D0AA")
 //        .environmentObject(session)
 //}
+
 

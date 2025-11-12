@@ -403,30 +403,33 @@ struct OrderDetailView: View {
                                 .font(.body)
                                 
                                 
-                                Button(action: {
-                                    guard let urlString = order.invoiceUrl,
-                                          let remoteURL = URL(string: urlString) else { return }
+                                Button {
+                                    if let urlString = order.invoiceUrl,
+                                       let remoteURL = URL(string: urlString) {
+                                        Task {
+                                            do {
+                                                // Download the file (same as toolbar behavior)
+                                                let (data, _) = try await URLSession.shared.data(from: remoteURL)
+                                                let tempURL = FileManager.default.temporaryDirectory
+                                                    .appendingPathComponent("invoice_preview.pdf")
+                                                try data.write(to: tempURL)
 
-                                    Task {
-                                        do {
-                                            let (data, _) = try await URLSession.shared.data(from: remoteURL)
-                                            let tempURL = FileManager.default.temporaryDirectory
-                                                .appendingPathComponent("invoice.pdf")
-                                            try data.write(to: tempURL)
-                                            
-                                            invoiceViewModel.shareInvoice(items: [tempURL]) { success in
-                                                print(success ? "✅ PDF shared" : "❌ Failed to share")
+                                                // Use the same sharing logic as toolbar
+                                                invoiceViewModel.shareInvoice(items: [tempURL]) { success in
+                                                    print(success ? "✅ Shared" : "❌ Failed to share")
+                                                }
+                                            } catch {
+                                                print("❌ Failed to share invoice:", error)
                                             }
-                                        } catch {
-                                            print("❌ Failed to download PDF:", error)
                                         }
                                     }
-                                }) {
+                                } label: {
                                     Image(systemName: "square.and.arrow.up")
-                                        .foregroundColor(Color.black)
+                                        .foregroundColor(.black)
                                 }
                                 .buttonStyle(.bordered)
                                 .tint(.gray)
+
                                 
                                 Spacer()
                                 
