@@ -198,10 +198,10 @@ struct ProductsSection: View {
             ForEach(Array(products.enumerated()), id: \.offset) { index, product in
                 VStack(alignment: .leading, spacing: 12) {
                     HStack {
-                        Text(product.category.isEmpty ? "Kategori Produk" : product.category)
-                            .font(.headline)
-                            .foregroundColor(product.category.isEmpty ? .secondary : .primary)
-                        Spacer()
+//                        Text(product.category.isEmpty ? "Kategori Produk" : product.category)
+//                            .font(.headline)
+//                            .foregroundColor(product.category.isEmpty ? .secondary : .primary)
+//                        Spacer()
                         if products.count > 1 {
                             Button { onDelete(index) } label: {
                                 Image(systemName: "trash").foregroundColor(.red)
