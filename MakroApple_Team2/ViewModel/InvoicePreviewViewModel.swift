@@ -173,7 +173,6 @@ class InvoicePreviewViewModel {
     
     // MARK: - Populate from Real Order
     private func populateFromOrder(order: OrderRecord, items: [OrderItemRecord], user: UserRecord) async {
-        print("SEDANG MENUNGGU KEDATANGAN LORT AMMAR")
         invoiceData.invoiceNumber = order.orderNumber
         invoiceData.invoiceDate = order.invoiceDueDate ?? DateFormatterHelper.isoDateString(from: Date())
         invoiceData.invoiceDueDate = order.invoiceDueDate ?? DateFormatterHelper.isoDateString(from: Calendar.current.date(byAdding: .day, value: 1, to: Date())!)
