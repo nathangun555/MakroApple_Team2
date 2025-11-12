@@ -22,8 +22,14 @@ struct InvoicePreviewView: View {
     
     @Binding var isDismissed: Bool
     
+    
+    
     var body: some View {
         NavigationStack{
+//            InvoiceContentView(viewModel: invoiceData)
+//                .padding(20)
+//                .background(Color.white)
+//                .scaleEffect(0.35)
             
             
             ZStack {
