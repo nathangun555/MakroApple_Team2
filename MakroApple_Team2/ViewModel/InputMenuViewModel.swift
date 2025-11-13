@@ -264,19 +264,26 @@ class InputMenuViewModel {
 
         do {
             let decoder = JSONDecoder()
-                let response = try decoder.decode(MenuScanResponse.self, from: jsonData)
+            let response = try decoder.decode(MenuScanResponse.self, from: jsonData)
 
-                // Transform kategori & produk tanpa mengubah 'response' langsung
-                let categoriesBaru: [MenuCategory] = response.categories.map { cat in
-                    let fixedProducts = cat.products.map { p in
-                        let trimmed = p.productType.trimmingCharacters(in: .whitespacesAndNewlines)
-                        let pt = trimmed.isEmpty ? "No Category" : p.productType
-                        return MenuProduct(name: p.name, price: p.price, notes: p.notes, productType: pt)
-                    }
-                    return MenuCategory(categoryName: cat.categoryName, products: fixedProducts)
+            // Normalisasi ringan (trim + fallback productType kosong)
+            let categoriesBaru: [MenuCategory] = response.categories.map { cat in
+                let catName = cat.categoryName.trimmingCharacters(in: .whitespacesAndNewlines)
+                let fixedProducts = cat.products.map { p in
+                    let ptTrim = p.productType.trimmingCharacters(in: .whitespacesAndNewlines)
+                    let pt = ptTrim.isEmpty ? "No Category" : ptTrim
+                    return MenuProduct(
+                        name: p.name.trimmingCharacters(in: .whitespacesAndNewlines),
+                        price: p.price,
+                        notes: p.notes,
+                        productType: pt
+                    )
                 }
+                return MenuCategory(categoryName: catName, products: fixedProducts)
+            }
 
-            scannedCategories = response.categories
+            // PAKAI categoriesBaru, bukan response.categories
+            scannedCategories = categoriesBaru
             sortCategoriesAlphabetically()
 
             let totalProducts = scannedCategories.reduce(0) { $0 + $1.products.count }
@@ -293,14 +300,27 @@ class InputMenuViewModel {
         }
     }
 
+
     
     private func sortCategoriesAlphabetically() {
         scannedCategories = scannedCategories.map { cat in
             var prods = cat.products
-            prods.sort { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+            prods.sort {
+                $0.name.trimmingCharacters(in: .whitespacesAndNewlines)
+                    .localizedCaseInsensitiveCompare(
+                        $1.name.trimmingCharacters(in: .whitespacesAndNewlines)
+                    ) == .orderedAscending
+            }
             return MenuCategory(categoryName: cat.categoryName, products: prods)
         }
-        scannedCategories.sort { $0.categoryName.localizedCaseInsensitiveCompare($1.categoryName) == .orderedAscending }
+        scannedCategories.sort {
+            $0.categoryName.trimmingCharacters(in: .whitespacesAndNewlines)
+                .localizedCaseInsensitiveCompare(
+                    $1.categoryName.trimmingCharacters(in: .whitespacesAndNewlines)
+                ) == .orderedAscending
+        }
     }
 
+
 }
+
