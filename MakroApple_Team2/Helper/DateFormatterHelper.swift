@@ -22,9 +22,9 @@ struct DateFormatterHelper {
         outputFormatter.locale = Locale(identifier: "id_ID")
         
         if showTime {
-            outputFormatter.dateFormat = "d MMMM YY, HH.mm"
+            outputFormatter.dateFormat = "d MMMM YYYY, HH.mm"
         } else {
-            outputFormatter.dateFormat = "d MMMM YY"
+            outputFormatter.dateFormat = "d MMMM YYYY"
         }
         
         return outputFormatter.string(from: date)
