@@ -163,9 +163,7 @@ struct InputMenuView: View {
                 Text(file.fileSize)
                     .font(.caption)
                     .foregroundColor(.secondary)
-                ProgressView(value: 1.0)
-                    .progressViewStyle(.linear)
-                    .tint(.blue)
+                
             }
             
             Spacer()
@@ -361,18 +359,5 @@ struct ImagePicker: UIViewControllerRepresentable {
             completion(nil)
             picker.dismiss(animated: true)
         }
-    }
-}
-
-#Preview {
-    let session = SessionManager()
-    session.isSignedIn = true
-    session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
-
-    let dismiss = Binding.constant(false)
-
-    return NavigationStack {
-        InputMenuView(isDismissed: dismiss)
-            .environmentObject(session)
     }
 }

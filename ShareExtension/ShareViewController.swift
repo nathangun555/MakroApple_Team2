@@ -46,6 +46,10 @@ class ShareViewController: UIViewController {
         var sharedText: String? = nil
         let groupDefaults = UserDefaults(suiteName: "group.com.please.shared")
         
+        groupDefaults?.removeObject(forKey: "sharedText")
+           groupDefaults?.removeObject(forKey: "sharedImagesData")
+           groupDefaults?.synchronize()
+        
         let dispatchGroup = DispatchGroup()
         
         

@@ -203,6 +203,8 @@ struct AllOrdersView: View {
                         guard let userIdString = session.userId,
                               let userId = UUID(uuidString: userIdString) else { return }
                         
+                        await viewModel.checkIfUserHasTemplates(for: userId)
+                        await viewModel.fetchBusinessName(for: userId)
                         await viewModel.fetchOrders(for: userId)
                         await viewModel.fetchOrderItems(for: userId)
                     }

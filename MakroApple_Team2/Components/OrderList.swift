@@ -22,9 +22,28 @@ struct OrderListView: View {
         let ordersForSelectedDate = viewModel.ordersForDate(for: selectedDate)
         
         if ordersForSelectedDate.isEmpty {
-            Text("Belum ada pesanan yang tercatat untuk hari ini")
-                .foregroundStyle(.secondary)
-                .frame(maxWidth: .infinity, minHeight: 500)
+            VStack {
+                Image(systemName: "doc.text.fill")
+                    .font(.title)
+                    .foregroundColor(.blue)
+                    .padding(12) // jarak dari icon ke tepi circle
+                    .background(
+                        Circle()
+                            .fill(Color.blue.opacity(0.1))
+                    )
+
+                        Text("Belum Ada Pesanan")
+                            .font(.title3)
+                            .fontWeight(.bold)
+                            .foregroundColor(.primary)
+
+                        Text("Belum ada pesanan yang tercatat.\nTambah pesanan baru untuk mulai kelola penjualanmu dengan mudah.")
+                            .font(.subheadline)
+                            .foregroundColor(.gray)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 32)
+                    }
+            .frame(maxWidth: .infinity, minHeight: 500)
         } else {
             ScrollView {
                 LazyVStack(spacing: 16) {
