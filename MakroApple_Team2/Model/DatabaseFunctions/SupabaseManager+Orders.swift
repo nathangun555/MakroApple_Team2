@@ -110,17 +110,17 @@ extension SupabaseManager {
             "No Telp Penerima", "Alamat Kirim", "Tanggal Pesanan", "Jam Kirim", "Pesanan", "Adds-on",
             "Notes", "Pengiriman: Kurir / Pickup"
         ]
-        var customFields: [String: AnyCodable] = [:]
+        
+        var customFields: [String: Any] = [:]
         for (key, value) in parsedOrder {
             if !reservedKeys.contains(key) {
-                if let v = value as Any? {
-                    customFields[key] = AnyCodable(v)
-                } else {
-                    customFields[key] = AnyCodable(nil as Any? ?? "")
-                }
+                customFields[key] = value
             }
         }
-        orderData["custom_fields"] = customFields.isEmpty ? nil : AnyCodable(customFields)
+
+        if !customFields.isEmpty {
+            orderData["custom_fields"] = AnyCodable(customFields)
+        }
 
         orderData["created_at"] = AnyCodable(now)
         orderData["updated_at"] = AnyCodable(now)
