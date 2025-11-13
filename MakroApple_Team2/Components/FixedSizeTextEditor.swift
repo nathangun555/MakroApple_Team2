@@ -15,8 +15,8 @@ public struct FixedPillTextField: View {
     public var lineHeight: CGFloat = 20
     public var verticalPadding: CGFloat = 4
     public var cornerRadius: CGFloat = 12
-    public var borderColor: Color = .black
-    public var borderWidth: CGFloat = 0.75
+    public var borderColor: Color = Color(.secondaryLabel)
+    public var borderWidth: CGFloat = 0.8
     public var keyboard: UIKeyboardType = .default
     public var contentType: UITextContentType? = nil
     public var autocap: TextInputAutocapitalization? = .sentences
@@ -33,8 +33,8 @@ public struct FixedPillTextField: View {
         lineHeight: CGFloat = 20,
         verticalPadding: CGFloat = 4,
         cornerRadius: CGFloat = 12,
-        borderColor: Color = .black,
-        borderWidth: CGFloat = 0.75,
+        borderColor: Color = Color(.secondaryLabel),
+        borderWidth: CGFloat = 0.8,
         keyboard: UIKeyboardType = .default,
         contentType: UITextContentType? = nil,
         autocap: TextInputAutocapitalization? = .sentences,
