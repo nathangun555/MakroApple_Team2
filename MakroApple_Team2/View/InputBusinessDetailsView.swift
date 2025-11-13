@@ -340,15 +340,22 @@ struct InputBusinessDetailsView: View {
                 .frame(width: 32, height: 32)
                 .background(Circle().fill(Color.blue))
             } else {
-              Image(systemName: "chevron.right")
-                .font(.system(size: 16, weight: .bold))
-                .foregroundStyle(.white)
-                .frame(width: 32, height: 32)
-                .background(
-                  Circle().fill(vm.hasChanges ? Color.blue : Color.gray)
-                )
+                Image(systemName: "chevron.right")
+                    .font(.title3)
+                    .foregroundColor(.white)
+                
+//              Image(systemName: "chevron.right")
+//                .font(.system(size: 16, weight: .bold))
+//                .foregroundStyle(.white)
+//                .frame(width: 32, height: 32)
+//                .background(
+//                  Circle().fill(vm.hasChanges ? Color.blue : Color.gray)
+//                )
             }
+                  
           }
+          .buttonStyle(.glassProminent)
+          .tint(.primaryButton)
           .disabled(vm.isSaving || vm.isLoading)
         }
       }
