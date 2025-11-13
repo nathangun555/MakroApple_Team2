@@ -64,7 +64,7 @@ struct MonthNavigationView: View {
             Button(action: nextMonth) {
                 Image(systemName: "chevron.right")
                     .font(.title3)
-                    .foregroundStyle(.primary)
+                    .foregroundStyle(.primaryButton)
             }
         }
         .padding(.horizontal)

@@ -129,10 +129,6 @@ struct NewOrderView: View {
 //                }
 //                .disabled(viewModel.isLoading || formPesanan.isEmpty)
             }
-            .onDisappear {
-                sharedText = ""
-                sharedImages = []
-            }
             
             .onAppear {
                 
@@ -146,8 +142,7 @@ struct NewOrderView: View {
                 if !sharedImages.isEmpty {
                     for (index, image) in sharedImages.prefix(3).enumerated() {
                         selectedImages[index] = image
-                    }
-                    sharedImages.removeAll() // optional cleanup
+                    } 
                     print("📸 Auto-filled shared images into photo slots")
                 }
             }

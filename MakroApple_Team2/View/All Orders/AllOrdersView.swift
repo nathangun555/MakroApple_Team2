@@ -183,6 +183,7 @@ struct AllOrdersView: View {
                     print("📩 Detected new shared text via onChange:", sharedText)
                     showNewOrderView = true
                     hasNewObject = false
+                    
                 }
             }
             .fullScreenCover(isPresented: $showNewOrderView) {
@@ -210,6 +211,8 @@ struct AllOrdersView: View {
                     }
                 }
                 
+                sharedText = ""
+                sharedImages = []
                 
             }
 
