@@ -129,6 +129,10 @@ struct NewOrderView: View {
 //                }
 //                .disabled(viewModel.isLoading || formPesanan.isEmpty)
             }
+            .onDisappear {
+                sharedText = ""
+                sharedImages = []
+            }
             
             .onAppear {
                 

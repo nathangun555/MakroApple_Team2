@@ -349,7 +349,7 @@ struct InputBusinessDetailsView: View {
                 )
             }
           }
-          .disabled(vm.isSaving || vm.isLoading || !vm.hasChanges)
+          .disabled(vm.isSaving || vm.isLoading)
         }
       }
       .task {

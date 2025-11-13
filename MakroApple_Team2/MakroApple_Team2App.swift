@@ -40,30 +40,33 @@ struct MakroApple_Team2App: App {
                 .environmentObject(session)
                 .environmentObject(deleteBus)
                 .environmentObject(unsavedBus)
-                .onAppear {
-                    
-                    if let defaults = UserDefaults(suiteName: "group.com.please.shared") {
-                        
-                        // Load text from another app
-                        if let text = defaults.string(forKey: "sharedText") {
-                            sharedText = text
-                            hasNewObject = true
-                            defaults.removeObject(forKey: "sharedText")
-                            print("REMOVED OBJECT \(text)")
+                .onOpenURL { url in
+                    if url.host == "fromwhatsapp" {
+                        if let defaults = UserDefaults(suiteName: "group.com.please.shared") {
+
+                            // Ambil shared text
+                            if let text = defaults.string(forKey: "sharedText") {
+                                sharedText = text
+                                hasNewObject = true
+                                print("📩 SHARED TEXT: \(text)")
+                                // 🧹 Hapus setelah digunakan
+                                defaults.removeObject(forKey: "sharedText")
+                            }
+
+                            // Ambil shared images
+                            if let imageDataArray = defaults.array(forKey: "sharedImagesData") as? [Data] {
+                                sharedImages = imageDataArray.compactMap { UIImage(data: $0) }
+                                hasNewObject = true
+                                print("🖼️ LOADED \(sharedImages.count) SHARED IMAGES")
+                                // 🧹 Hapus setelah digunakan
+                                defaults.removeObject(forKey: "sharedImagesData")
+                            }
+
+                            defaults.synchronize()
                         }
-                        
-                        // Load image from another app
-                        if let image = defaults.array(forKey: "sharedImagesData") as? [Data] {
-                            sharedImages = image.compactMap { UIImage(data: $0) }
-                            hasNewObject = true
-                            defaults.removeObject(forKey: "sharedImagesData")
-                            print("LOADED \(sharedImages.count) shared images")
-                            
-                            
-                        }
-                        defaults.synchronize()
                     }
                 }
+
                 .onOpenURL { url in
                     if url.host == "fromwhatsapp" {
                         if let defaults = UserDefaults(suiteName: "group.com.please.shared") {
