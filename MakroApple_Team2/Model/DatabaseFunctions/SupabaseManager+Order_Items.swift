@@ -74,11 +74,12 @@ extension SupabaseManager {
     
     func updateOrderItems(id: UUID, order: [OrderItemRecord]) async throws -> [OrderItemRecord] {
         
+        print("aoskaoks: \(order)")
         let response = try await client
             .from("order_items")
             .upsert(order, onConflict: "id")
+            .eq("order_id", value: id.uuidString)
             .select()
-            .single()
             .execute()
 
         print("Raw response data:", String(data: response.data, encoding: .utf8) ?? "Unable to decode")

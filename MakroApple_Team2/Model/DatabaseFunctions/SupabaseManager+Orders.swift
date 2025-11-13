@@ -141,26 +141,31 @@ extension SupabaseManager {
     
     func updateOrder(
             orderId: UUID,
+            invoiceDate: String,
             invoiceDueDate: String,
             subtotal: Decimal,
             shippingCost: Decimal,
             totalAmount: Decimal,
             discountAmount: Decimal = 0,
-            customFields: [String: AnyCodable]? = nil
+            customFields: [String: AnyCodable]? = nil,
+            downPayment: Decimal?
         ) async throws -> OrderRecord {
             
             let subtotalDouble = NSDecimalNumber(decimal: subtotal).doubleValue
             let shippingDouble = NSDecimalNumber(decimal: shippingCost).doubleValue
             let totalDouble = NSDecimalNumber(decimal: totalAmount).doubleValue
             let discountDouble = NSDecimalNumber(decimal: discountAmount).doubleValue
+            let downDouble = NSDecimalNumber(decimal: downPayment ?? 0).doubleValue
             
             var updateData: [String: AnyCodable] = [
+                "invoice_date": AnyCodable(invoiceDate),
                 "invoice_due_date": AnyCodable(invoiceDueDate),
                 "subtotal": AnyCodable(subtotalDouble),
                 "shipping_cost": AnyCodable(shippingDouble),
                 "total_amount": AnyCodable(totalDouble),
                 "discount_amount": AnyCodable(discountDouble),
-                "updated_at": AnyCodable(ISO8601DateFormatter().string(from: Date()))
+                "updated_at": AnyCodable(ISO8601DateFormatter().string(from: Date())),
+                "down_payment": AnyCodable(downDouble)
             ]
             
             let response = try await client

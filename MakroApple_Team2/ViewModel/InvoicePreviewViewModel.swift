@@ -174,7 +174,7 @@ class InvoicePreviewViewModel {
     // MARK: - Populate from Real Order
     private func populateFromOrder(order: OrderRecord, items: [OrderItemRecord], user: UserRecord) async {
         invoiceData.invoiceNumber = order.orderNumber
-        invoiceData.invoiceDate = order.invoiceDueDate ?? DateFormatterHelper.isoDateString(from: Date())
+        invoiceData.invoiceDate = order.invoiceDate ?? DateFormatterHelper.isoDateString(from: Date())
         invoiceData.invoiceDueDate = order.invoiceDueDate ?? DateFormatterHelper.isoDateString(from: Calendar.current.date(byAdding: .day, value: 1, to: Date())!)
         
         invoiceData.businessName = user.businessName ?? "AIVA Bakery"
@@ -192,9 +192,8 @@ class InvoicePreviewViewModel {
         invoiceData.recipientPhone = order.customerReceiverPhone ?? ""
         invoiceData.deliveryAddress = order.shippingAddress ?? ""
         
-        let (tanggalPesanan, jamKirim) = DateFormatterHelper.indonesianDateAndTime(from: order.orderDdayDate ?? "")
-        invoiceData.orderDate = tanggalPesanan
-        invoiceData.deliveryTime = jamKirim
+        invoiceData.orderDate = DateFormatterHelper.formattedDate(order.orderDdayDate ?? DateFormatterHelper.isoDateString(from: Date()), showTime: false)
+        invoiceData.deliveryTime = DateFormatterHelper.formattedTime(order.orderDdayDate ?? "23:59")
         
         invoiceData.deliveryMethod = order.opsiPengiriman ?? ""
         invoiceData.addOns = order.addOn ?? ""
@@ -204,7 +203,7 @@ class InvoicePreviewViewModel {
         invoiceData.shippingCost = order.shippingCost
         invoiceData.discountAmount = order.discountAmount
         invoiceData.total = order.totalAmount
-        invoiceData.downPayment = Decimal(string: order.customFields?["down_payment"]?.value as? String ?? "") ?? 0
+        invoiceData.downPayment = order.downPayment ?? 0
         
         invoiceData.photoUrl1 = order.photoUrl1 ?? ""
         

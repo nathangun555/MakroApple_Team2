@@ -44,9 +44,7 @@ struct ConfirmInvoiceView: View {
                                 get: { selectedDueDate ?? Date() },
                                 set: { newDate in
                                     selectedDueDate = newDate
-                                    let formatter = DateFormatter()
-                                    formatter.dateFormat = "dd/MM/yyyy"
-                                    viewModel.invoiceDueDate = formatter.string(from: newDate)
+                                    viewModel.invoiceDueDate = DateFormatterHelper.isoDateString(from: newDate)
                                 }
                             ),
                             displayedComponents: .date
