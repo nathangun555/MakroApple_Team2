@@ -22,7 +22,7 @@ struct OrderListView: View {
         let ordersForSelectedDate = viewModel.ordersForDate(for: selectedDate)
         
         if ordersForSelectedDate.isEmpty {
-            Text("Tidak ada pesanan")
+            Text("Belum ada pesanan yang tercatat untuk hari ini")
                 .foregroundStyle(.secondary)
                 .frame(maxWidth: .infinity, minHeight: 500)
         } else {

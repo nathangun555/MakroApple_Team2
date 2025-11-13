@@ -95,31 +95,72 @@ struct AllOrdersView: View {
                 .background(Color.blue.opacity(0.2))
                 .cornerRadius(8)
                 
+                
+
+                
                 // 📋 Orders List
-                ScrollView {
-                    LazyVStack(spacing: 12) {
-                        ForEach(filteredOrders) { order in
-                            if let firstItem = viewModel.orderItems.first(where: { $0.orderId == order.id }) {
-                                NavigationLink(
-                                    destination:
-                                        OrderDetailView(
-                                            order: order,
-                                            orderItem: [firstItem],
-                                            source: .allOrders,
-                                            activeTab: $activeTab
-                                        )
-                                        .environmentObject(session)
-                                ) {
-                                    OrderCard(order: order, orderItem: firstItem)
+                
+                VStack {
+                    if filteredOrders.isEmpty {
+                        VStack {
+                            Image(systemName: "doc.text.fill")
+                                .font(.title)
+                                .foregroundColor(.blue)
+                                .padding(12) // jarak dari icon ke tepi circle
+                                .background(
+                                    Circle()
+                                        .fill(Color.blue.opacity(0.1))
+                                )
+
+                                    Text("Belum Ada Pesanan")
+                                        .font(.title3)
+                                        .fontWeight(.bold)
+                                        .foregroundColor(.primary)
+
+                                    Text("Belum ada pesanan yang tercatat.\nTambah pesanan baru untuk mulai kelola penjualanmu dengan mudah.")
+                                        .font(.subheadline)
+                                        .foregroundColor(.gray)
+                                        .multilineTextAlignment(.center)
+                                        .padding(.horizontal, 32)
                                 }
-                                .buttonStyle(PlainButtonStyle())
-                            }
-                        }
                     }
-                    .padding(.bottom, 20)
+                    else {
+                        ScrollView {
+                            LazyVStack(spacing: 12) {
+                                ForEach(filteredOrders) { order in
+                                    let orderItems = viewModel.orderItems.filter { $0.orderId == order.id }
+                                    
+                                    if !orderItems.isEmpty {
+                                        NavigationLink(
+                                            destination:
+                                                OrderDetailView(
+                                                    order: order,
+                                                    orderItem: orderItems,
+                                                    source: .allOrders,
+                                                    activeTab: $activeTab
+                                                )
+                                                .environmentObject(session)
+                                        ) {
+                                            OrderCard(order: order, orderItem: orderItems.first!)
+                                        }
+                                        .buttonStyle(PlainButtonStyle())
+                                    }
+                                }
+                            }
+                            .padding(.bottom, 20)
+                            
+                            
+                        }
+                      
+                    }
                 }
-                .navigationBarHidden(true)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    
+                   
+               
+                   
             }
+            .navigationBarHidden(true)
             .task {
                 guard let userIdString = session.userId,
                       let userId = UUID(uuidString: userIdString) else { return }
@@ -158,7 +199,16 @@ struct AllOrdersView: View {
                 if newValue {
                     showNewOrderView = false  // closes the fullScreenCover
                     isDismissed = false       // reset state for next time
+                    Task {
+                        guard let userIdString = session.userId,
+                              let userId = UUID(uuidString: userIdString) else { return }
+                        
+                        await viewModel.fetchOrders(for: userId)
+                        await viewModel.fetchOrderItems(for: userId)
+                    }
                 }
+                
+                
             }
 
             .fullScreenCover(isPresented: $showTutorial) {
@@ -174,6 +224,7 @@ struct AllOrdersView: View {
                 }
             }
         }
+        
         .searchable(text: $searchText, prompt: "Cari Nama Pelanggan")
     }
     

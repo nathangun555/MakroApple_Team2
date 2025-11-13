@@ -55,7 +55,7 @@ struct OrderCard: View {
                     
                     Spacer()
                     
-                    if order.downPayment != nil {
+                    if order.downPayment != nil && (order.downPayment!) > 0 {
                         Text("DP")
                             .font(.caption)
                             .bold()

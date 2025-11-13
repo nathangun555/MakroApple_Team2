@@ -29,7 +29,7 @@ struct Set_MenuDetailsView: View {
                     .navigationBarBackButtonHidden(true)
                     .toolbar {
                         ToolbarItem(placement: .principal) {
-                            Text("Rincian Isi Catalog")
+                            Text("Rincian Menu/Catalog")
                                 .font(.title2.bold())
                         }
                         ToolbarItem(placement: .navigationBarLeading) {

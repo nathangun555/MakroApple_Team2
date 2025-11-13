@@ -88,7 +88,6 @@ class AllOrdersViewModel {
 //    }
     
     func hasOrders(for date: Date) -> Bool {
-       
         return orders.contains { order in
             guard let orderDate = DateFormatterHelper.toDate(order.orderDdayDate ?? "") else {
                 return false
@@ -178,8 +177,6 @@ class AllOrdersViewModel {
             } else {
                 hasTemplates = true
             }
-           
-            print("INI ADALAH DEBUG UNTUK CE FANNY")
             print(hasTemplates ? "✅ User has templates" : "⚠️ User has no templates")
         } catch {
             print("❌ Error checking templates: \(error)")

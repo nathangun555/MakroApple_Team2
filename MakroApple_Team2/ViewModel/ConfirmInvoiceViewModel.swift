@@ -58,7 +58,7 @@ class ConfirmInvoiceViewModel {
     var businessEmail: String = ""
     
     var totalProductSubtotal: Decimal {
-        products.reduce(0) { $0 + $1.subtotal }
+        products.reduce(0) { $0 + $1.subtotal - $1.discount }
     }
 
     var shippingCost: Decimal {
@@ -123,12 +123,11 @@ class ConfirmInvoiceViewModel {
         self.receiverPhone = order.customerReceiverPhone ?? ""
         self.shippingAddress = order.shippingAddress ?? ""
         
-        let (tanggalPesanan, jamKirim) = DateFormatterHelper.indonesianDateAndTime(from: order.orderDdayDate ?? "")
-        self.orderDate = order.orderDdayDate ?? DateFormatterHelper.isoDateString(from: now)
-        self.deliveryTime = jamKirim
+        self.orderDate = DateFormatterHelper.formattedDate(order.orderDdayDate ?? DateFormatterHelper.isoDateString(from: now), showTime: false)
+        self.deliveryTime = DateFormatterHelper.formattedTime(order.orderDdayDate ?? "23:59")
         self.shippingOption = order.opsiPengiriman ?? ""
         self.notes = order.notes ?? ""
-        self.downPaymentText = order.customFields?["down_payment"]?.value as? String ?? ""
+        self.downPaymentText = order.downPayment?.formatted() ?? 0.00.formatted()
         self.photoUrl1 = order.photoUrl1 ?? ""
         self.orderItems = items
         let tempEditableItems: [EditableProductItem] = items.map { item in
@@ -169,12 +168,11 @@ class ConfirmInvoiceViewModel {
               let orderUUID = UUID(uuidString: orderIdString) else {
             return []
         }
-        
         return products.map { p in
             OrderItemRecord(
                 id: p.id,
                 orderId: orderUUID,
-                productId: UUID(uuidString: "e5819927-6930-4b71-ad93-188be0f72a9a"),
+                productId: UUID(),
                 productName: p.productName,
                 productPrice: p.productPrice,
                 productType: p.productType,
@@ -183,7 +181,9 @@ class ConfirmInvoiceViewModel {
                 createdAt: p.createdAt,
                 updatedAt: ISO8601DateFormatter().string(from: Date())
             )
+            
         }
+       
     }
     
     func autoMapOrderedItemsToMenu(
@@ -196,7 +196,7 @@ class ConfirmInvoiceViewModel {
             let mappedProducts: [EditableProductItem] = orderedItems.map { ordered in
                 if let matchingMenu = bestMatch(for: ordered.productName, in: menuProducts) {
                     return EditableProductItem(
-                        id: matchingMenu.id,
+                        id: ordered.id,
                         productName: matchingMenu.name,
                         productPrice: matchingMenu.price,
                         productType: matchingMenu.productType ?? "",
@@ -259,10 +259,12 @@ class ConfirmInvoiceViewModel {
         
         let updatedOrder = try await SupabaseManager.shared.updateOrder(
             orderId: orderUUID,
+            invoiceDate: invoiceDate,
             invoiceDueDate: invoiceDueDate,
             subtotal: totalProductSubtotal,
             shippingCost: shippingCost,
-            totalAmount: totalAfterDiscount
+            totalAmount: totalAfterDiscount,
+            downPayment: downPayment
         )
         self.orderRecord = updatedOrder
     }

@@ -23,7 +23,6 @@ struct ConfirmMenuView: View {
         ZStack {
             contentView
                 .navigationTitle("Rincian Isi Katalog")
-                .navigationBarBackButtonHidden(true)
                 .toolbar {
                     ToolbarItem(placement: .navigationBarTrailing) {
                         Button {

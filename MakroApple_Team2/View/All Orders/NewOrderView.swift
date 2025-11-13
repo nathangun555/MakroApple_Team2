@@ -56,7 +56,7 @@ struct NewOrderView: View {
                                     .padding(8)
                                     .labelStyle(.titleAndIcon)
                                     .foregroundColor(.white)
-                                    .background(.blue)
+                                    .background(.primaryButton)
                                     .cornerRadius(20)
                             }
                         }
@@ -70,7 +70,7 @@ struct NewOrderView: View {
                                 .frame(minHeight: 200)
                                 .focused($isTextEditorFocused)
                             
-                            if formPesanan.isEmpty && !isTextEditorFocused { // 👈 only show placeholder when NOT focused
+                            if formPesanan.isEmpty && !isTextEditorFocused {
                                     Text("Tempel formulir pesanan anda di sini ✨")
                                         .foregroundColor(.gray)
                                         .padding(.horizontal, 8)
@@ -106,28 +106,28 @@ struct NewOrderView: View {
                 }
                 
                 // MARK: - Submit Button
-                Button(action: {
-                    Task {
-                        await viewModel.parseOrder(text: formPesanan)
-                    }
-                }) {
-                    HStack {
-                        if viewModel.isLoading {
-                            ProgressView()
-                                .tint(.white)
-                        }
-                        Text("Tinjau Pesanan")
-                            .fontWeight(.semibold)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color.blue)
-                    .foregroundColor(.white)
-                    .cornerRadius(30)
-                    .padding(.horizontal)
-                    .shadow(radius: 5)
-                }
-                .disabled(viewModel.isLoading || formPesanan.isEmpty)
+//                Button(action: {
+//                    Task {
+//                        await viewModel.parseOrder(text: formPesanan)
+//                    }
+//                }) {
+//                    HStack {
+//                        if viewModel.isLoading {
+//                            ProgressView()
+//                                .tint(.white)
+//                        }
+//                        Text("Tinjau Pesanan")
+//                            .fontWeight(.semibold)
+//                    }
+//                    .frame(maxWidth: .infinity)
+//                    .padding()
+//                    .background(Color.primaryButton)
+//                    .foregroundColor(.white)
+//                    .cornerRadius(30)
+//                    .padding(.horizontal)
+//                    .shadow(radius: 5)
+//                }
+//                .disabled(viewModel.isLoading || formPesanan.isEmpty)
             }
             
             .onAppear {
@@ -168,7 +168,9 @@ struct NewOrderView: View {
             if let parsedData = viewModel.parsedOrderData {
                 EditOrderView(
                     parsedOrderData: parsedData,
+                    
                     selectedImages: $selectedImages,
+                    selectedItems : $selectedItems,
                     isDismissed: $isDismissed
                 )
             }
@@ -180,10 +182,34 @@ struct NewOrderView: View {
                 } label: {
                     Image(systemName: "chevron.left")
                         .font(.title3)
-                        .foregroundColor(.white)
+                        .foregroundColor(.primary)
+                }
+                
+//                .buttonStyle(.glassProminent)
+                .disabled(viewModel.isLoading)
+            }
+            
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    Task {
+                        await viewModel.parseOrder(text: formPesanan)
+                    }
+                } label: {
+                    if viewModel.isLoading {
+                        ProgressView()
+                            .tint(.white)
+                    }
+                    else {
+                        Image(systemName: "chevron.right")
+                            .font(.title3)
+                            .foregroundColor(.white)
+                    }
+                    
+                        
                 }
                 .buttonStyle(.glassProminent)
-                .disabled(viewModel.isLoading)
+                .disabled(viewModel.isLoading || formPesanan.isEmpty)
+                .tint(.primaryButton)
             }
         }
         
@@ -206,11 +232,23 @@ struct NewOrderView: View {
     }
 }
 
-//#Preview {
-//    let session = SessionManager()
-//    session.isSignedIn = true
-//    session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
-//
-//    return NewOrderView(sharedText: .constant(""), sharedImages: .constant([]))
-//        .environmentObject(session)
-//}
+
+#Preview {
+    // Dummy bindings
+    @State var sharedText = ""
+    @State var sharedImages: [UIImage] = []
+    @State var isDismissed = false
+
+    // Dummy environment object
+    let session = SessionManager()
+    session.userId = "dummyUserId" // wajib ada karena view butuh @EnvironmentObject
+
+    return NavigationStack {
+        NewOrderView(
+            sharedText: $sharedText,
+            sharedImages: $sharedImages,
+            isDismissed: $isDismissed
+        )
+        .environmentObject(session)
+    }
+}

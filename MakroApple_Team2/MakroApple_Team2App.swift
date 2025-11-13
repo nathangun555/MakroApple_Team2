@@ -17,13 +17,24 @@ struct MakroApple_Team2App: App {
     @State private var sharedImages: [UIImage] = []
     @State private var hasNewObject = false
     @StateObject var unsavedBus = UnsavedOverlayBus()
+    
+    @State private var isDismissed: Bool = false
 
     
     @State private var path : NavigationPath = .init()
     var body: some Scene {
         WindowGroup {
-//            InvoicePreviewView(orderId: "82536742-DDC4-481C-B63A-87400194D0AA", path: $path)
+//            InvoicePreviewView(orderId: "97b3757c-a90b-4868-8b97-0fbe9be71955", isDismissed: $isDismissed)
 //                .environmentObject(session)
+//            InvoiceContentView(viewModel: InvoicePreviewViewModel())
+//            HeaderSectionView(
+//                businessLogoUrl: "https://ynxrqdbpovgmhhoobfjt.supabase.co/storage/v1/object/public/MakroAppleTeam2_Bucket/business-logos/3A0A83FE-2480-42F5-82AE-D2A419AAFF89.jpg",
+//                businessName: "Toko Subur",
+//                businessAddress: "Ngagel Jaya",
+//                businessPhone: "62812345678",
+//                businessEmail: "bejo@gmail.com",
+//                invoiceNumber: "1234"
+//            )
             
             MainTabView(selectedTab: $selectedTab, sharedText: $sharedText,hasNewObject: $hasNewObject, sharedImages : $sharedImages)
                 .environmentObject(session)

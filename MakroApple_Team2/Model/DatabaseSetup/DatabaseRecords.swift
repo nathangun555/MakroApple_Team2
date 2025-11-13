@@ -82,6 +82,7 @@ struct OrderRecord: Codable, Identifiable {
     let orderNumber: String
     let status: String
     let orderDdayDate: String?
+    let invoiceDate: String?
     let invoiceDueDate: String?
     let customerOrderName: String
     let customerOrderPhone: String?
@@ -110,6 +111,7 @@ struct OrderRecord: Codable, Identifiable {
         case orderNumber = "order_number"
         case status
         case orderDdayDate = "order_dday_date"
+        case invoiceDate = "invoice_date"
         case invoiceDueDate = "invoice_due_date"
         case customerOrderName = "customer_order_name"
         case customerOrderPhone = "customer_order_phone"
