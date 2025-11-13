@@ -57,12 +57,6 @@ struct InvoiceContentView: View {
             
             
         }
-        .onAppear {
-            print("🧩 Raw:", viewModel.businessLogoUrl)
-            print("🧹 Trimmed:", viewModel.businessLogoUrl.trimmingCharacters(in: .whitespacesAndNewlines))
-            print("🔗 URL init:", URL(string: viewModel.businessLogoUrl.trimmingCharacters(in: .whitespacesAndNewlines)) as Any)
-        }
-        
         .padding(40)
         .frame(width: 595, height: 842)
         .background(

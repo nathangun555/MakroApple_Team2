@@ -16,6 +16,7 @@ struct HeaderSectionView: View {
     var businessPhone : String?
     var businessEmail : String?
     var invoiceNumber: String
+    var url2: URL = URL(string: "https://ynxrqdbpovgmhhoobfjt.supabase.co/storage/v1/object/public/MakroAppleTeam2_Bucket/business-logos/3A0A83FE-2480-42F5-82AE-D2A419AAFF89.jpg") ?? URL(string: "google.com")!
     
     @State private var isLogoLoaded = false
     
@@ -26,38 +27,24 @@ struct HeaderSectionView: View {
                 
                 Text("AMMAR")
                 
-            } else {
-                let url = URL(string : businessLogoUrl)
-                AsyncImage(url: url) { phase in
-                    switch phase {
-                    case .empty:
-                        Text("Loading...")
-                            .frame(width: 60, height: 60)
-                        
-                    case .success(let image):
-                        image
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(width: 60, height: 60)
-                            .clipShape(RoundedRectangle(cornerRadius: 12))
-                            .onAppear {
-                                if !isLogoLoaded {
-                                    isLogoLoaded = true
-                                    print("✅ Logo sudah load")
-                                }
-                            }
-                        
-                    case .failure(_):
-                        Image(systemName: "building.2.crop.circle")
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(width: 60, height: 60)
-                    @unknown default:
-                        EmptyView()
+            } else if let url = URL(string: businessLogoUrl),
+                      let imageData = try? Data(contentsOf: url),
+                      let uiImage = UIImage(data: imageData) {
+                Image(uiImage: uiImage)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 60, height: 60)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                    .onAppear {
+                        if !isLogoLoaded {
+                            isLogoLoaded = true
+                            print("✅ Logo sudah load")
+                        }
                     }
-                    
-                }
+            } else {
+                Text("AMMAR")
             }
+            
             
             
             

@@ -199,7 +199,16 @@ struct AllOrdersView: View {
                 if newValue {
                     showNewOrderView = false  // closes the fullScreenCover
                     isDismissed = false       // reset state for next time
+                    Task {
+                        guard let userIdString = session.userId,
+                              let userId = UUID(uuidString: userIdString) else { return }
+                        
+                        await viewModel.fetchOrders(for: userId)
+                        await viewModel.fetchOrderItems(for: userId)
+                    }
                 }
+                
+                
             }
 
             .fullScreenCover(isPresented: $showTutorial) {
