@@ -182,10 +182,10 @@ struct OrderDetailView: View {
                             ForEach(orderItem) { item in
                                 
                                 VStack{
-                                    Text("\(item.productType.isEmpty == true ? "-" : item.productType)")
-                                        .bold()
-                                        .frame(maxWidth: .infinity, alignment: .leading)
-                                        .font(.headline)
+//                                    Text("\(item.productType.isEmpty == true ? "-" : item.productType)")
+//                                        .bold()
+//                                        .frame(maxWidth: .infinity, alignment: .leading)
+//                                        .font(.headline)
                                     
                                     LazyVGrid(columns: columns, spacing: 10) {
                                         Group {
@@ -221,43 +221,43 @@ struct OrderDetailView: View {
                         
                         
                         
-                        VStack {
-                            Text("Add On")
-                                .bold()
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .font(.headline)
-                            
-                            LazyVGrid(columns: columns, spacing: 10) {
-                                Group {
-                                    
-                                    Text("Nama Produk :")
-                                    Text("\(order.addOn?.isEmpty == true ? "-" : order.addOn!)")
-                                        .frame(maxWidth: .infinity, alignment: .center)
-                                        .padding(5)
-                                        .lineLimit(10)
-                                        .background(
-                                            RoundedRectangle(cornerRadius: 10)
-                                                .stroke(Color.gray, lineWidth: 0.5)
-                                                .background(RoundedRectangle(cornerRadius: 30).fill(.secondary.opacity(0.1)))
-                                        )
-                                    
-                                    Text("Jumlah Produk :")
-                                    // CHANGE THIS WITH ADD ON AMOUNT
-                                    Text("1")
-                                        .padding(.vertical, 3)
-                                        .frame(maxWidth: .infinity)
-                                        .background(
-                                            RoundedRectangle(cornerRadius: 10)
-                                                .stroke(Color.gray, lineWidth: 0.5)
-                                                .background(RoundedRectangle(cornerRadius: 30).fill(.secondary.opacity(0.1)))
-                                        )
-                                    
-                                }
-                            }
-                        }
-                        .padding()
-                        .background(.secondary.opacity(0.1))
-                        .cornerRadius(10)
+//                        VStack {
+//                            Text("Add On")
+//                                .bold()
+//                                .frame(maxWidth: .infinity, alignment: .leading)
+//                                .font(.headline)
+//                            
+//                            LazyVGrid(columns: columns, spacing: 10) {
+//                                Group {
+//                                    
+//                                    Text("Nama Produk :")
+//                                    Text("\(order.addOn?.isEmpty == true ? "-" : order.addOn!)")
+//                                        .frame(maxWidth: .infinity, alignment: .center)
+//                                        .padding(5)
+//                                        .lineLimit(10)
+//                                        .background(
+//                                            RoundedRectangle(cornerRadius: 10)
+//                                                .stroke(Color.gray, lineWidth: 0.5)
+//                                                .background(RoundedRectangle(cornerRadius: 30).fill(.secondary.opacity(0.1)))
+//                                        )
+//                                    
+//                                    Text("Jumlah Produk :")
+//                                    // CHANGE THIS WITH ADD ON AMOUNT
+//                                    Text("1")
+//                                        .padding(.vertical, 3)
+//                                        .frame(maxWidth: .infinity)
+//                                        .background(
+//                                            RoundedRectangle(cornerRadius: 10)
+//                                                .stroke(Color.gray, lineWidth: 0.5)
+//                                                .background(RoundedRectangle(cornerRadius: 30).fill(.secondary.opacity(0.1)))
+//                                        )
+//                                    
+//                                }
+//                            }
+//                        }
+//                        .padding()
+//                        .background(.secondary.opacity(0.1))
+//                        .cornerRadius(10)
                         
                         Text("Referensi Foto")
                             .bold()
@@ -342,6 +342,32 @@ struct OrderDetailView: View {
                                         .background(RoundedRectangle(cornerRadius: 10).fill(.secondary.opacity(0.1)))
                                 )
                         }
+                        
+                        if let customFields = order.customFields, !customFields.isEmpty {
+
+                            let columns = [
+                                GridItem(.fixed(150), alignment: .leading),
+                                GridItem(.flexible(), alignment: .trailing)
+                            ]
+
+                            LazyVGrid(columns: columns, spacing: 10) {
+                                ForEach(customFields.sorted(by: { $0.key < $1.key }), id: \.key) { key, value in
+                                    Text("\(key):")
+                                    Text("\(value.value ?? "-")")
+                                        .padding(.vertical, 3)
+                                        .frame(maxWidth: .infinity)
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 10)
+                                                .stroke(Color.gray, lineWidth: 0.5)
+                                                .background(
+                                                    RoundedRectangle(cornerRadius: 10)
+                                                        .fill(.secondary.opacity(0.1))
+                                                )
+                                        )
+                                }
+                            }
+                        }
+
                         
                         
                         Text("Invoice")
