@@ -19,12 +19,10 @@ final class SessionManager: ObservableObject {
     
     init() {
         // ✅ Immediate dev session
-        #if DEBUG
         if useDevMode {
             setupDevSession()
             return  // Skip auth listener in dev mode
         }
-        #endif
         
         startAuthListener()
     }
@@ -39,12 +37,10 @@ final class SessionManager: ObservableObject {
     
     // Production: restore session from Supabase
     func restoreSessionIfAvailable() async {
-        #if DEBUG
         if useDevMode {
             print("🧪 DEV MODE: Skipping Supabase auth")
             return
         }
-        #endif
         
         do {
             if let current = try? await SupabaseManager.shared.client.auth.currentSession {
@@ -63,12 +59,10 @@ final class SessionManager: ObservableObject {
     
     // Production: listen for auth changes
     func startAuthListener() {
-        #if DEBUG
         if useDevMode {
             print("🧪 DEV MODE: Auth listener disabled")
             return
         }
-        #endif
         
         authListenerTask?.cancel()
         authListenerTask = Task { [weak self] in
@@ -95,12 +89,10 @@ final class SessionManager: ObservableObject {
     }
     
     func signOut() async {
-        #if DEBUG
         if useDevMode {
             print("🧪 DEV MODE: Sign out disabled")
             return
         }
-        #endif
         
         do { try await SupabaseManager.shared.client.auth.signOut() } catch { }
         isSignedIn = false
