@@ -50,21 +50,11 @@ struct InputMenuView: View {
             .navigationBarTitleDisplayMode(.inline)
             .task { viewModel.configure(userId: session.userId) }
             .fileImporter(
-                isPresented: $isFileImporterPresented,
-                allowedContentTypes: [.pdf, .image],
+                isPresented: $showUploadOptions,
+                allowedContentTypes: [.pdf], // Only allow PDFs
                 allowsMultipleSelection: true
             ) { result in
                 handleFileImport(result)
-            }
-            .sheet(isPresented: $isPhotoPickerPresented) {
-                ImagePicker(sourceType: .photoLibrary) { url in
-                    if let url = url { addFile(url: url) }
-                }
-            }
-            .confirmationDialog("Pilih Sumber File", isPresented: $showUploadOptions, titleVisibility: .visible) {
-                Button("Pilih File PDF") { isFileImporterPresented = true }
-                Button("Pilih Gambar dari Galeri") { isPhotoPickerPresented = true }
-                Button("Batal", role: .cancel) {}
             }
             .alert("Error", isPresented: $showErrorAlert) {
                 Button("OK", role: .cancel) { }
@@ -214,17 +204,30 @@ struct InputMenuView: View {
         let fileName = url.lastPathComponent
         let fileSize = getFileSize(url: url)
         let isPDF = url.pathExtension.lowercased() == "pdf"
+        guard isPDF else {
+            errorMessage = "Only PDF files are allowed."
+            showErrorAlert = true
+            return
+        }
         let item = UploadedFileItem(url: url, fileName: fileName, fileSize: fileSize, isPDF: isPDF)
         uploadedFiles.append(item)
     }
     
     private func getFileSize(url: URL) -> String {
-        guard let attributes = try? FileManager.default.attributesOfItem(atPath: url.path),
-              let fileSize = attributes[.size] as? Int64 else {
-            return "00 MB of 10 MB"
+        var fileSizeDisplay = "00 MB of 10 MB"
+        let fileManager = FileManager.default
+
+        if url.startAccessingSecurityScopedResource() {
+            defer { url.stopAccessingSecurityScopedResource() }
+            if let attributes = try? fileManager.attributesOfItem(atPath: url.path),
+               let fileSize = attributes[.size] as? Int64 {
+                let sizeInMB = Double(fileSize) / (1024 * 1024)
+                fileSizeDisplay = String(format: "%.2f MB of 10 MB", sizeInMB)
+            }
+        } else {
+            fileSizeDisplay = "00 MB of 10 MB"
         }
-        let sizeInMB = Double(fileSize) / (1024 * 1024)
-        return String(format: "%.2f MB of 10 MB", sizeInMB)
+        return fileSizeDisplay
     }
     
     // MARK: - Merge categories utility

@@ -36,7 +36,7 @@ struct ConfirmMenuView: View {
                                 ProgressView()
                                     .tint(.white)
                             } else {
-                                Image(systemName: "checkmark")
+                                Image(systemName: "chevron.right")
                                     .font(.title3)
                                     .foregroundColor(.white)
                             }
