@@ -27,6 +27,10 @@ struct OrderItemsTableView: View {
                     .font(.system(size: 10, weight: .bold))
                     .frame(width: 50)
                 
+                Text("Diskon")
+                    .font(.system(size: 10, weight: .bold))
+                    .frame(width: 50)
+                
                 Text("Total Harga")
                     .font(.system(size: 10, weight: .bold))
                     .frame(width: 70, alignment: .trailing)
@@ -47,6 +51,10 @@ struct OrderItemsTableView: View {
                             .frame(width: 70)
                         
                         Text("\(item.quantity)")
+                            .font(.system(size: 10))
+                            .frame(width: 50)
+                        
+                        Text("\(item.discount.formatted())")
                             .font(.system(size: 10))
                             .frame(width: 50)
                         

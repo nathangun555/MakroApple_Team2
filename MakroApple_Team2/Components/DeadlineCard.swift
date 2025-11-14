@@ -9,6 +9,7 @@ import SwiftUI
 
 struct DeadlineCard: View {
     var orders: [OrderRecord]
+    var hastemplates: Bool
     
     private var todayDeadlineCount: Int {
         let today = Calendar.current.startOfDay(for: Date())
@@ -25,38 +26,33 @@ struct DeadlineCard: View {
     }
     
     var body: some View {
+        
+        
         // Today's Deadline Card
-        
-        
-        
-        
         HStack {
             VStack {
-                Image(systemName: "bookmark.fill")
+                Image(systemName: hastemplates ? "bookmark.fill" : "building.2.crop.circle.fill")
                     .font(.title3)
             }
-            
-            
-            
             VStack(alignment: .leading) {
-                Text("Deadline Hari Ini")
+                Text(hastemplates ? "Deadline Hari Ini" : "Data Bisnis Belum Dilengkapi")
                     .font(.title2)
-                .fontWeight(.bold)
+                    .fontWeight(.bold)
                 
-                Spacer()
-                Text("\(todayDeadlineCount) Pesanan yang perlu selesai")
-                    .font(.body)
+                Text(hastemplates ? "\(todayDeadlineCount) Pesanan yang perlu selesai" : "Untuk menambahkan pesanan pertama Anda, lengkapi terlebih dahulu data bisnis yang diperlukan.")
+                    .font(.caption)
             }
+            
         }
         .padding()
         .frame(maxWidth: .infinity, alignment: .leading)
         .foregroundStyle(.primaryButton)
         .background(.deadlineCard)
-        .frame(height: 80)
+        .frame(maxWidth: .infinity, alignment: .leading)
         .cornerRadius(10)
         .padding(.horizontal)
         
-
+        
         
     }
     

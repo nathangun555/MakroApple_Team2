@@ -201,7 +201,6 @@ class InvoicePreviewViewModel {
         
         invoiceData.subtotal = order.subtotal
         invoiceData.shippingCost = order.shippingCost
-        invoiceData.discountAmount = order.discountAmount
         invoiceData.total = order.totalAmount
         invoiceData.downPayment = order.downPayment ?? 0
         
@@ -251,14 +250,16 @@ class InvoicePreviewViewModel {
                     description: item.productName,
                     unitPrice: item.productPrice,
                     quantity: item.quantity,
+                    discount: item.productDiscount,
                     total: item.subtotal
+                    
                 )
             }
         } else {
             // Mock data for preview
             return [
-                InvoiceOrderItem(description: "Product 1", unitPrice: 0, quantity: 1, total: 0),
-                InvoiceOrderItem(description: "Product 2", unitPrice: 0, quantity: 1, total: 0)
+                InvoiceOrderItem(description: "Product 1", unitPrice: 0, quantity: 1, discount: 0, total: 0),
+                InvoiceOrderItem(description: "Product 2", unitPrice: 0, quantity: 1, discount : 0,total: 0)
             ]
         }
     }
@@ -416,5 +417,6 @@ struct InvoiceOrderItem: Identifiable {
     let description: String
     let unitPrice: Decimal
     let quantity: Int
+    let discount : Decimal
     let total: Decimal
 }
