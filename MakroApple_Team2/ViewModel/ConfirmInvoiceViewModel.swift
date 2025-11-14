@@ -181,7 +181,6 @@ class ConfirmInvoiceViewModel {
                 subtotal: p.subtotalAfterDiscount,
                 createdAt: p.createdAt,
                 updatedAt: ISO8601DateFormatter().string(from: Date()),
-                productDiscount: p.discount
             )
             
         }
