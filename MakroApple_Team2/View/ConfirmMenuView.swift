@@ -34,13 +34,16 @@ struct ConfirmMenuView: View {
                         } label: {
                             if vm.isLoading {
                                 ProgressView()
+                                    .tint(.white)
                             } else {
-                                Image(systemName: "checkmark.circle.fill")
-                                    .font(.title2)
-                                    .foregroundColor(vm.hasPendingChanges ? .blue : .gray)
+                                Image(systemName: "checkmark")
+                                    .font(.title3)
+                                    .foregroundColor(.white)
                             }
                         }
+                        .buttonStyle(.borderedProminent)
                         .disabled(!vm.hasPendingChanges || vm.isLoading)
+                        .tint(.primaryButton)
                     }
                 }
             .disabled(showUnsavedChangesAlert)

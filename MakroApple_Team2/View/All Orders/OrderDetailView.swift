@@ -97,7 +97,9 @@ struct OrderDetailView: View {
                                     .background(
                                         RoundedRectangle(cornerRadius: 10)
                                             .stroke(Color.gray, lineWidth: 0.5) // stroke
-                                            .background(RoundedRectangle(cornerRadius: 30).fill(.secondary.opacity(0.1))) // fill
+                                            .background(
+                                                Rectangle()
+                                                .fill(.secondary.opacity(0.1))) // fill
                                     )
                                 
                                 
@@ -108,7 +110,9 @@ struct OrderDetailView: View {
                                     .background(
                                         RoundedRectangle(cornerRadius: 10)
                                             .stroke(Color.gray, lineWidth: 0.5) // stroke
-                                            .background(RoundedRectangle(cornerRadius: 30).fill(.secondary.opacity(0.1))) // fill
+                                            .background(
+                                                Rectangle()
+                                                    .fill(.secondary.opacity(0.1))) // fill
                                     )
                                 
                                 Text("Nama Penerima :")
@@ -118,7 +122,9 @@ struct OrderDetailView: View {
                                     .background(
                                         RoundedRectangle(cornerRadius: 10)
                                             .stroke(Color.gray, lineWidth: 0.5) // stroke
-                                            .background(RoundedRectangle(cornerRadius: 30).fill(.secondary.opacity(0.1))) // fill
+                                            .background(
+                                                Rectangle()
+                                                    .fill(.secondary.opacity(0.1))) // fill
                                     )
                                 
                                 Text("No. Telp Penerima :")
@@ -128,7 +134,9 @@ struct OrderDetailView: View {
                                     .background(
                                         RoundedRectangle(cornerRadius: 10)
                                             .stroke(Color.gray, lineWidth: 0.5) // stroke
-                                            .background(RoundedRectangle(cornerRadius: 30).fill(.secondary.opacity(0.1))) // fill
+                                            .background(
+                                                Rectangle()
+                                                    .fill(.secondary.opacity(0.1))) // fill
                                     )
                                 
                                 
@@ -153,7 +161,9 @@ struct OrderDetailView: View {
                                     .background(
                                         RoundedRectangle(cornerRadius: 10)
                                             .stroke(Color.gray, lineWidth: 0.5) // stroke
-                                            .background(RoundedRectangle(cornerRadius: 30).fill(.secondary.opacity(0.1))) // fill
+                                            .background(
+                                                Rectangle()
+                                                    .fill(.secondary.opacity(0.1))) // fill
                                     )
                                 
                                 Text("Jam Kirim :")
@@ -162,8 +172,10 @@ struct OrderDetailView: View {
                                     .frame(maxWidth: .infinity)
                                     .background(
                                         RoundedRectangle(cornerRadius: 10)
-                                            .stroke(Color.gray, lineWidth: 0.5) // stroke
-                                            .background(RoundedRectangle(cornerRadius: 30).fill(.secondary.opacity(0.1))) // fill
+                                            .stroke(Color.gray, lineWidth: 0.5)
+                                            .background(
+                                                Rectangle()
+                                                    .fill(.secondary.opacity(0.1)))
                                     )
                                 
                                 
@@ -182,10 +194,6 @@ struct OrderDetailView: View {
                             ForEach(orderItem) { item in
                                 
                                 VStack{
-//                                    Text("\(item.productType.isEmpty == true ? "-" : item.productType)")
-//                                        .bold()
-//                                        .frame(maxWidth: .infinity, alignment: .leading)
-//                                        .font(.headline)
                                     
                                     LazyVGrid(columns: columns, spacing: 10) {
                                         Group {
@@ -197,7 +205,9 @@ struct OrderDetailView: View {
                                                 .background(
                                                     RoundedRectangle(cornerRadius: 10)
                                                         .stroke(Color.gray, lineWidth: 0.5) // stroke
-                                                        .background(RoundedRectangle(cornerRadius: 30).fill(.secondary.opacity(0.1)))
+                                                        .background(
+                                                            Rectangle()
+                                                                .fill(.secondary.opacity(0.1)))
                                                 )
                                             
                                             Text("Jumlah Produk :")
@@ -207,7 +217,9 @@ struct OrderDetailView: View {
                                                 .background(
                                                     RoundedRectangle(cornerRadius: 10)
                                                         .stroke(Color.gray, lineWidth: 0.5) // stroke
-                                                        .background(RoundedRectangle(cornerRadius: 30).fill(.secondary.opacity(0.1))) // fill
+                                                        .background(
+                                                            Rectangle()
+                                                                .fill(.secondary.opacity(0.1))) // fill
                                                 )
                                             
                                         }
@@ -219,45 +231,6 @@ struct OrderDetailView: View {
                             }
                         }
                         
-                        
-                        
-//                        VStack {
-//                            Text("Add On")
-//                                .bold()
-//                                .frame(maxWidth: .infinity, alignment: .leading)
-//                                .font(.headline)
-//                            
-//                            LazyVGrid(columns: columns, spacing: 10) {
-//                                Group {
-//                                    
-//                                    Text("Nama Produk :")
-//                                    Text("\(order.addOn?.isEmpty == true ? "-" : order.addOn!)")
-//                                        .frame(maxWidth: .infinity, alignment: .center)
-//                                        .padding(5)
-//                                        .lineLimit(10)
-//                                        .background(
-//                                            RoundedRectangle(cornerRadius: 10)
-//                                                .stroke(Color.gray, lineWidth: 0.5)
-//                                                .background(RoundedRectangle(cornerRadius: 30).fill(.secondary.opacity(0.1)))
-//                                        )
-//                                    
-//                                    Text("Jumlah Produk :")
-//                                    // CHANGE THIS WITH ADD ON AMOUNT
-//                                    Text("1")
-//                                        .padding(.vertical, 3)
-//                                        .frame(maxWidth: .infinity)
-//                                        .background(
-//                                            RoundedRectangle(cornerRadius: 10)
-//                                                .stroke(Color.gray, lineWidth: 0.5)
-//                                                .background(RoundedRectangle(cornerRadius: 30).fill(.secondary.opacity(0.1)))
-//                                        )
-//                                    
-//                                }
-//                            }
-//                        }
-//                        .padding()
-//                        .background(.secondary.opacity(0.1))
-//                        .cornerRadius(10)
                         
                         Text("Referensi Foto")
                             .bold()

@@ -148,6 +148,7 @@ struct OrderItemRecord: Codable, Identifiable {
     let subtotal: Decimal
     let createdAt: String?
     let updatedAt: String?
+    let productDiscount : Decimal
 
     enum CodingKeys: String, CodingKey {
         case id
@@ -159,5 +160,6 @@ struct OrderItemRecord: Codable, Identifiable {
         case quantity, subtotal
         case createdAt = "created_at"
         case updatedAt = "updated_at"
+        case productDiscount = "product_discount"
     }
 }

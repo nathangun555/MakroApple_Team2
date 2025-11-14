@@ -59,7 +59,7 @@ struct EditOrderView: View {
                                 products: $viewModel.products,
                                 onAdd: { viewModel.addProduct() },
                                 onDelete: { index in
-                                    deleteBus.request { viewModel.deleteProduct(at: index) }
+                                    viewModel.deleteProduct(at: index) 
                                 },
                                 fieldErrors: viewModel.fieldErrors
                             )

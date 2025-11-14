@@ -44,9 +44,9 @@ struct FormSection: View {
                                 get: { field.label },
                                 set: { fields[index].label = $0 }
                             ))
-                            .frame(width: 140, alignment: .trailing)
+                            .frame(maxWidth: .infinity, alignment: .leading)
                             .font(.body)
-                            .multilineTextAlignment(.trailing)
+                            .multilineTextAlignment(.leading)
                             .textFieldStyle(RoundedBorderTextFieldStyle())
                         
                         Text("")

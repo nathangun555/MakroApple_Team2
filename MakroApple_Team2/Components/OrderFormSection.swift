@@ -28,7 +28,7 @@ struct OrderFormSection: View {
                 VStack(alignment: .leading, spacing: 4) {
                     HStack(spacing: 12) {
                         Text(field.label)
-                            .frame(width: 140, alignment: .trailing)
+                            .frame(width: 140, alignment: .leading)
                             .font(.body)
                             .foregroundColor(.primary)
 

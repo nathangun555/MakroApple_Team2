@@ -71,7 +71,7 @@ struct AllOrdersView: View {
                 }
                 .padding(.horizontal)
                 
-                DeadlineCard(orders: viewModel.orders)
+                DeadlineCard(orders: viewModel.orders, hastemplates: viewModel.hasTemplates)
                 CustomTabBar(activeTab: $activeTab)
                 
                 GuideMessage(
@@ -139,6 +139,7 @@ struct AllOrdersView: View {
                                                     source: .allOrders,
                                                     activeTab: $activeTab
                                                 )
+                                                .toolbar(.hidden, for: .tabBar)
                                                 .environmentObject(session)
                                         ) {
                                             OrderCard(order: order, orderItem: orderItems.first!)

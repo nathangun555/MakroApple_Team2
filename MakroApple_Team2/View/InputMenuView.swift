@@ -124,7 +124,7 @@ struct InputMenuView: View {
                         .font(.body)
                         .foregroundColor(.blue)
                         .multilineTextAlignment(.center)
-                    Text("format PDF, JPEG, dan PNG, sampai dengan 25 MB.")
+                    Text("format PDF, sampai dengan 10 MB.")
                         .font(.caption)
                         .foregroundColor(.secondary)
                         .multilineTextAlignment(.center)
@@ -185,15 +185,17 @@ struct InputMenuView: View {
         Button(action: { submitFiles() }) {
             if submitState == .loading {
                 ProgressView()
-                    .frame(maxWidth: .infinity, minHeight: 55)
+                    .frame(maxWidth: .infinity)
                     .tint(.white)
             } else {
                 Text("Pindai Katalog")
-                    .font(.headline)
-                    .frame(maxWidth: .infinity, minHeight: 55)
+                    .font(.title3)
+                    .fontWeight(.bold)
+                    .frame(maxWidth: .infinity)
             }
         }
         .buttonStyle(.borderedProminent)
+        .tint(.primaryButton)
         .disabled(uploadedFiles.isEmpty || submitState == .loading)
         .padding(.horizontal)
     }

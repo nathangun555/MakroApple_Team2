@@ -137,7 +137,7 @@ class ConfirmInvoiceViewModel {
                 productPrice: item.productPrice,
                 productType: item.productType,
                 quantity: item.quantity,
-                discount: 0,
+                discount: item.productDiscount,
                 createdAt: item.createdAt ?? "",
                 updatedAt: item.updatedAt ?? ""
             )
@@ -179,7 +179,8 @@ class ConfirmInvoiceViewModel {
                 quantity: p.quantity,
                 subtotal: p.subtotalAfterDiscount,
                 createdAt: p.createdAt,
-                updatedAt: ISO8601DateFormatter().string(from: Date())
+                updatedAt: ISO8601DateFormatter().string(from: Date()),
+                productDiscount: p.discount
             )
             
         }
