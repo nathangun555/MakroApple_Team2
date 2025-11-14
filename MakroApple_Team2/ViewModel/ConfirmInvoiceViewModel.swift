@@ -176,6 +176,7 @@ class ConfirmInvoiceViewModel {
                 productName: p.productName,
                 productPrice: p.productPrice,
                 productType: p.productType,
+                productDiscount: p.discount,
                 quantity: p.quantity,
                 subtotal: p.subtotalAfterDiscount,
                 createdAt: p.createdAt,

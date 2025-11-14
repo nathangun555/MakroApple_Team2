@@ -74,7 +74,6 @@ extension SupabaseManager {
     
     func updateOrderItems(id: UUID, order: [OrderItemRecord]) async throws -> [OrderItemRecord] {
         
-        print("aoskaoks: \(order)")
         let response = try await client
             .from("order_items")
             .upsert(order, onConflict: "id")
