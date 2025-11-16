@@ -30,8 +30,9 @@ final class SessionManager: ObservableObject {
     // ✅ Dev mode setup - instant, synchronous
     private func setupDevSession() {
         self.isSignedIn = true
-        self.userId = "b04a9bce-5064-444a-ab69-2cb01ec44eff" // new
+//        self.userId = "94f7bbef-ecad-46ef-b926-7296ebd12ca3" // new
 //        self.userId = "ec7eea39-e2b6-4e46-b847-646019276f67" // has template
+        self.userId = "4ac0adbd-d949-4d40-a621-992942f86dfc" // nathan menu
         print("🧪 DEV MODE: Instant session loaded")
         print("🪪 userId:", userId ?? "nil")
     }
