@@ -1,79 +1,78 @@
-//
-//  Set_MenuDetailsView.swift
-//  MakroApple_Team2
-//
-//  Created by Nathan Gunawan on 17/10/25.
-//
-
 import SwiftUI
 import Combine
 
 struct Set_MenuDetailsView: View {
-    
+
     @EnvironmentObject var session: SessionManager
-    @EnvironmentObject var deleteBus: DeleteOverlayBus       // Global delete
-    @EnvironmentObject var unsavedBus: UnsavedOverlayBus     // Global unsaved
+    @EnvironmentObject var deleteBus: DeleteOverlayBus     // Global delete
+    @EnvironmentObject var unsavedBus: UnsavedOverlayBus   // Global unsaved
     @StateObject private var vm = Set_MenuDetailsViewModel()
     @Environment(\.dismiss) private var dismiss
-    
-    // ✅ Hanya untuk menyimpan konteks item yang dihapus (eksekusi via bus)
+
+    // Simpan konteks item yang dihapus (eksekusi via bus)
     @State private var itemToDelete: (type: DeleteType, sIndex: Int, pIndex: Int?)? = nil
-    
+
     enum DeleteType { case category, product }
-    
+
     var body: some View {
         ZStack {
             NavigationStack {
-                contentView
-                    .navigationBarTitleDisplayMode(.inline)
-                    .navigationBarBackButtonHidden(true)
-                    .toolbar {
-                        ToolbarItem(placement: .principal) {
-                            Text("Rincian Menu/Catalog")
-                                .font(.title2.bold())
-                        }
-                        ToolbarItem(placement: .navigationBarLeading) {
-                            Button {
-                                if vm.hasPendingChanges {
-                                    // ✅ Panggil overlay global UnsavedOverlayBus
-                                    unsavedBus.request(
-                                        onCancel: { /* tutup saja */ },
-                                        onConfirm: { dismiss() }
-                                    )
-                                } else {
-                                    dismiss()
-                                }
-                            } label: {
-                                Image(systemName: "chevron.left")
-                                    .font(.title3)
-                                    .foregroundColor(.primaryButton)
-                            }
-                        }
-                        
-                        ToolbarItem(placement: .navigationBarTrailing) {
-                            let button = Button {
-                                Task {
-                                    await vm.saveAll { dismiss() }
-                                }
-                            } label: {
-                                if vm.isLoading {
-                                    ProgressView()
-                                } else {
-                                    Image(systemName: "checkmark")
-                                        .font(.title2)
-                                        .foregroundColor(vm.hasPendingChanges ? .white : .gray)
-                                }
-                            }
-                            .disabled(!vm.hasPendingChanges || vm.isLoading)
-                            
+                VStack(spacing: 12) {
+                    // Header: search + plus di kanan
+                    searchHeader
+                    // Konten daftar produk
+                    contentFlatView
+                }
+                .navigationBarTitleDisplayMode(.inline)
+                .navigationBarBackButtonHidden(true)
+                .toolbar {
+                    ToolbarItem(placement: .principal) {
+                        Text("Rincian Menu / Katalog")
+                            .font(.title2.bold())
+                    }
+                    ToolbarItem(placement: .navigationBarLeading) {
+                        Button {
                             if vm.hasPendingChanges {
-                                button.buttonStyle(BorderedProminentButtonStyle()).tint(.primaryButton)
+                                // Overlay global UnsavedOverlayBus (tetap)
+                                unsavedBus.request(
+                                    onCancel: { /* tutup saja */ },
+                                    onConfirm: { dismiss() }
+                                )
                             } else {
-                                button.buttonStyle(BorderlessButtonStyle())
+                                dismiss()
                             }
+                        } label: {
+                            Image(systemName: "chevron.left")
+                                .font(.title3)
+                                .foregroundColor(.primaryButton)
                         }
                     }
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        let button = Button {
+                            Task {
+                                // Tetap panggil saveAll { dismiss() } → validasi lalu kembali
+                                await vm.saveAll { dismiss() }
+                            }
+                        } label: {
+                            if vm.isLoading {
+                                ProgressView()
+                            } else {
+                                Image(systemName: "checkmark")
+                                    .font(.title2)
+                                    .foregroundColor(vm.hasPendingChanges ? .white : .gray)
+                            }
+                        }
+                        .disabled(!vm.hasPendingChanges || vm.isLoading)
+
+                        if vm.hasPendingChanges {
+                            button.buttonStyle(BorderedProminentButtonStyle()).tint(.primaryButton)
+                        } else {
+                            button.buttonStyle(BorderlessButtonStyle())
+                        }
+                    }
+                }
             }
+            // Hilangkan .searchable bawaan agar tidak bentrok dengan header kustom
             .toolbar(.hidden, for: .tabBar)
         }
         .task {
@@ -81,192 +80,83 @@ struct Set_MenuDetailsView: View {
             await vm.load()
         }
     }
-    
-    private var contentView: some View {
-        ZStack(alignment: .bottom) {
-            ScrollView {
-                VStack(spacing: 20) {
-                    if let err = vm.errorMessage {
-                        Text(err)
-                            .foregroundColor(.red)
-                            .padding(.horizontal)
-                    }
-                    
-                    ForEach(vm.sections.indices, id: \.self) { sIndex in
-                        let section = vm.sections[sIndex]
-                        
-                        VStack(alignment: .leading, spacing: 12) {
-                            // Header kategori
-                            VStack(alignment: .leading, spacing: 4) {
-                                HStack {
-                                    if section.isEditing {
-                                        TextField(
-                                            "Nama Kategori",
-                                            text: Binding(
-                                                get: {
-                                                    let raw = section.title.trimmingCharacters(in: .whitespacesAndNewlines)
-                                                    if raw.isEmpty { return "" }
-                                                    if ["ZZZ", "Silakan isi nama kategori", "Nama Kategori"].contains(raw) {
-                                                        return ""
-                                                    }
-                                                    return raw
-                                                },
-                                                set: { newValue in
-                                                    vm.sections[sIndex].title = newValue
-                                                }
-                                            )
-                                        )
-                                        .font(.headline)
-                                        .padding(.horizontal, 10)
-                                        .padding(.vertical, 6)
-                                        .background(Color(.systemGray6))
-                                        .cornerRadius(10)
-                                        .textInputAutocapitalization(.words)
-                                        .autocorrectionDisabled(true)
-                                        
-                                    } else {
-                                        Text(section.title)
-                                            .font(.headline)
-                                            .padding(.horizontal, 10)
-                                            .padding(.vertical, 6)
-                                            .overlay(
-                                                RoundedRectangle(cornerRadius: 10)
-                                                    .stroke(Color(.systemGray4), lineWidth: 1)
-                                                    .allowsHitTesting(false)
-                                            )
-                                            .cornerRadius(10)
-                                    }
-                                    
-                                    Spacer()
-                                    
-                                    if section.isEditing {
-                                        Button {
-                                            handleDeleteCategory(sIndex: sIndex)
-                                        } label: {
-                                            Image(systemName: "trash")
-                                                .foregroundColor(.red)
-                                                .padding(.trailing, 6)
-                                        }
-                                    }
-                                    
-                                    Button {
-                                        withAnimation {
-                                            vm.toggleEdit(sectionIndex: sIndex)
-                                        }
-                                    } label: {
-                                        Text(section.isEditing ? "Done" : "Edit")
-                                            .font(.subheadline)
-                                            .foregroundColor(.primaryButton)
-                                            .padding(.vertical, 6)
-                                                    .padding(.horizontal, 12)
-                                            .background(
-                                                        Capsule().fill(Color(.systemGray6))  // light grey background
-                                                    )
-                                    }
-                                    
-                                }
-                                
-                                // Error nama kategori (UUID-based)
-                                if vm.validationErrors.contains("\(section.id.uuidString)-cat") {
-                                    HStack(spacing: 6) {
-                                        Image(systemName: "exclamationmark.triangle.fill")
-                                            .foregroundColor(.red)
-                                            .font(.system(size: 12, weight: .bold))
 
-                                        Text("Nama kategori tidak boleh kosong")
-                                            .font(.caption)
-                                            .foregroundColor(.red)
-
-                                        Spacer()
-                                    }
-                                    .padding(.leading, 3)
-                                    .fixedSize(horizontal: false, vertical: true)
-                                }
-
-                            }
-                            
-                            Divider()
-                            
-                            if section.isEditing {
-                                Button {
-                                    vm.addTemporaryProduct(to: sIndex)
-                                } label: {
-                                    HStack(spacing: 8) {
-                                        Image(systemName: "plus")
-                                        Text("Tambah Produk")
-                                            .fontWeight(.medium)
-                                    }
-                                    .foregroundColor(.primaryButton)
-                                    .padding(.vertical, 8)
-                                    .padding(.horizontal, 14)
-                                    .background(Capsule().fill(Color(.systemGray6)))
-                                }
-                            }
-                            
-                            VStack(spacing: 14) {
-                                ForEach(section.items.indices, id: \.self) { pIndex in
-                                    let item = section.items[pIndex]
-                                    HStack(alignment: .top) {
-                                        EditableProductRow(
-                                            viewModel: item,
-                                            isEditing: section.isEditing,
-                                            sectionIndex: sIndex,
-                                            productIndex: pIndex,
-                                            validationErrors: vm.validationErrors
-                                        )
-                                        if section.isEditing {
-                                            Button {
-                                                handleDeleteProduct(sIndex: sIndex, pIndex: pIndex)
-                                            } label: {
-                                                Image(systemName: "trash")
-                                                    .foregroundColor(.red)
-                                                    .padding(.top, 8)
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        .padding(14)
-                        .background(Color.white)
-                        .cornerRadius(16)
-                        .padding(.horizontal)
-                    }
-                    
-                    Spacer(minLength: 100)
-                }
-                .padding(.top)
+    // MARK: - Header Search + Plus di kanan
+    private var searchHeader: some View {
+        HStack(spacing: 10) {
+            HStack(spacing: 8) {
+                Image(systemName: "magnifyingglass")
+                    .foregroundColor(.gray)
+                TextField("Cari produk", text: $vm.searchText)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled(true)
             }
-            
+            .padding(.vertical, 10)
+            .padding(.horizontal, 12)
+            .background(Color(.systemGray6))
+            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+
             Button {
-                withAnimation {
-                    vm.addTemporaryCategory()
-                }
+                withAnimation { vm.addTemporaryProductFlat() }
             } label: {
-                HStack(spacing: 8) {
-                    Image(systemName: "plus")
-                        .font(.title3)
-                    Text("Tambah Kategori")
-                        .fontWeight(.bold)
-                }
-                .padding(.horizontal, 60)
-                .padding(.vertical, 14)
-                .background(Color.primaryButton)
-                .foregroundColor(.white)
-                .clipShape(Capsule())
-                .shadow(color: Color.black.opacity(0.25), radius: 6, x: 0, y: 3)
+                Image(systemName: "plus")
+                    .font(.title3.weight(.semibold))
+                    .frame(width: 36, height: 36)
+                    .background(Circle().fill(Color.primaryButton))
+                    .foregroundColor(.white)
             }
-            .padding(.bottom, 20)
+            .accessibilityLabel("Tambah Produk")
         }
+        .padding(.horizontal)
+        .padding(.top, 8)
     }
-    
+
+    // MARK: - Flat list tanpa kategori (filter mengacu ke vm.visibleFlat)
+    private var contentFlatView: some View {
+        ScrollView {
+            VStack(spacing: 16) {
+                if let err = vm.errorMessage {
+                    Text(err)
+                        .foregroundColor(.red)
+                        .padding(.horizontal)
+                }
+
+                // Tampilkan item dari vm.visibleFlat (sudah filter + sort di VM)
+                ForEach(vm.visibleFlat) { ref in
+                    HStack(alignment: .top) {
+                        EditableProductRow(
+                            viewModel: ref.item,
+                            isEditing: true,                 // tetap editable
+                            sectionIndex: ref.sectionIndex,  // indeks asli
+                            productIndex: ref.productIndex,  // indeks asli
+                            validationErrors: vm.validationErrors,
+                            onChanged: { vm.markChanged() }
+                        )
+
+                        Button {
+                            handleDeleteProduct(sIndex: ref.sectionIndex, pIndex: ref.productIndex)
+                        } label: {
+                            Image(systemName: "trash")
+                                .foregroundColor(.red)
+                                .padding(.top, 8)
+                        }
+                    }
+                    .padding(.horizontal)
+                }
+
+                Spacer(minLength: 100)
+            }
+            .padding(.top)
+        }
+        .scrollContentBackground(.hidden)
+        .background(Color.white)
+    }
+
+    // MARK: - Delete lewat bus global (pakai indeks asli)
     func handleDeleteProduct(sIndex: Int, pIndex: Int) {
-        // ✅ Trigger delete produk via bus global
         itemToDelete = (.product, sIndex, pIndex)
         deleteBus.request(message: "Apakah Anda yakin ingin menghapus produk ini?") {
-            if let item = itemToDelete,
-               item.type == .product,
-               let pIndex = item.pIndex {
+            if let item = itemToDelete, item.type == .product, let pIndex = item.pIndex {
                 withAnimation {
                     // ViewModel akan membersihkan validationErrors by UUID
                     vm.deleteTemporaryProduct(from: item.sIndex, at: pIndex)
@@ -275,32 +165,30 @@ struct Set_MenuDetailsView: View {
             itemToDelete = nil
         }
     }
-    
+
+    // (Opsional) Masih tersedia bila dibutuhkan oleh alur lama
     func handleDeleteCategory(sIndex: Int) {
-        // ✅ Trigger delete kategori via bus global
         itemToDelete = (.category, sIndex, nil)
         deleteBus.request(message: "Apakah Anda yakin ingin menghapus kategori ini?") {
             if let item = itemToDelete, item.type == .category {
                 withAnimation {
-                    // ViewModel akan membersihkan validationErrors by UUID
                     vm.deleteTemporaryCategory(at: item.sIndex)
                 }
             }
             itemToDelete = nil
         }
-        
     }
 }
-
 
 #Preview {
     let session = SessionManager()
     session.isSignedIn = true
     session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
-    
+
     return NavigationStack {
         Set_MenuDetailsView()
             .environmentObject(session)
             .environmentObject(DeleteOverlayBus())
+            .environmentObject(UnsavedOverlayBus())
     }
 }

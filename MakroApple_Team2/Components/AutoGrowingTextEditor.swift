@@ -69,7 +69,7 @@ public struct AutoGrowingTextEditor: View {
             ))
             .font(.subheadline)
             .disabled(!isEditing)
-            .padding(.horizontal, 8)
+            .padding(.horizontal, 6)
             .padding(.vertical, verticalPadding)
             .autocorrectionDisabled(true)
             .textInputAutocapitalization(.words)
