@@ -261,8 +261,9 @@ struct InputBusinessDetailsView: View {
             LabeledRow(label: "Nomor Rekening :", labelWidth: labelWidth) {
               PillTextField(placeholder: "Silakan isi no rekening anda",
                             text: $vm.bankAccountNumber,
-                            keyboard: .numbersAndPunctuation)
+                            keyboard: .phonePad)
                 .focused($focusedField, equals: .bankAccountNumber)
+                
             }
             if let error = vm.fieldErrors["bankAccountNumber"] {
               Text(error)

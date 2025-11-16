@@ -20,7 +20,7 @@ struct TotalSectionView : View {
                 Text("Subtotal")
                     .font(.system(size: 10))
                 Spacer()
-                Text(subtotal.formatted())
+                Text("Rp. \(subtotal.formatted())")
                     .font(.system(size: 10))
             }
             
@@ -30,7 +30,7 @@ struct TotalSectionView : View {
                 Text("Ongkir")
                     .font(.system(size: 10))
                 Spacer()
-                Text(shippingCost.formatted())
+                Text("Rp. \(shippingCost.formatted())")
                     .font(.system(size: 10))
             }
             
@@ -40,7 +40,7 @@ struct TotalSectionView : View {
                 Text("Total")
                     .font(.system(size: 10, weight: .bold))
                 Spacer()
-                Text(total.formatted())
+                Text("Rp. \(total.formatted())")
                     .font(.system(size: 10, weight: .bold))
             }
             
@@ -50,7 +50,7 @@ struct TotalSectionView : View {
                 Text("Down Payment")
                     .font(.system(size: 10))
                 Spacer()
-                Text(downPayment.formatted())
+                Text("Rp. \(downPayment.formatted())")
                     .font(.system(size: 10))
             }
         }

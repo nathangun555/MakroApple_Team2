@@ -9,7 +9,7 @@ import SwiftUI
 
 struct DeliveryDetailSectionView: View {
     
-    var orderDate :String
+    var orderDate : String
     
     
     var body: some View {
@@ -18,7 +18,7 @@ struct DeliveryDetailSectionView: View {
             HStack {
                 Text("Tanggal Kirim :")
                     .font(.system(size: 10))
-                Text(orderDate.isEmpty ? "" : orderDate)
+                Text(orderDate)
                     .font(.system(size: 10))
                     .underline()
             }
