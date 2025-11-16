@@ -224,8 +224,9 @@ struct OrderDetailView: View {
                                             
                                         }
                                     }
-                                }.padding()
-                                    .background(.secondary.opacity(0.1))
+                                }
+                                .padding()
+                                .background(.deadlineCard)
                                     .cornerRadius(10)
                                 
                             }

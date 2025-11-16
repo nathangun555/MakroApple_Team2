@@ -76,13 +76,13 @@ struct EditTemplateFormView: View {
                                     RoundedRectangle(cornerRadius: 12)
                                         .stroke(style: StrokeStyle(lineWidth: 2, dash: [5]))
                                         .foregroundColor(.gray.opacity(0.5))
-                                        .frame(width: 200, height: 200)
+                                        .frame(width: 115, height: 115)
                                         .background(Color(.systemGray6))
                                         .cornerRadius(12)
                                     
                                     VStack {
                                         Image(systemName: "photo.badge.plus")
-                                            .font(.system(size: 40))
+                                            .font(.title3)
                                             .foregroundColor(.gray)
                                     }
                                 }

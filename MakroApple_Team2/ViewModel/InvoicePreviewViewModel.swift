@@ -112,7 +112,8 @@ class InvoicePreviewViewModel {
         if let orderIdString = orderId, let orderUUID = UUID(uuidString: orderIdString) {
             // Load REAL data from database
             await loadRealOrderData(orderUUID: orderUUID)
-        } else {
+        }
+        else {
             // Load TEMPLATE/MOCK data for first-time users
             await loadTemplateData()
         }
@@ -174,8 +175,8 @@ class InvoicePreviewViewModel {
     // MARK: - Populate from Real Order
     private func populateFromOrder(order: OrderRecord, items: [OrderItemRecord], user: UserRecord) async {
         invoiceData.invoiceNumber = order.orderNumber
-        invoiceData.invoiceDate = order.invoiceDate ?? DateFormatterHelper.isoDateString(from: Date())
-        invoiceData.invoiceDueDate = order.invoiceDueDate ?? DateFormatterHelper.isoDateString(from: Calendar.current.date(byAdding: .day, value: 1, to: Date())!)
+        invoiceData.invoiceDate = order.invoiceDate ?? "DD/MM/YYYY"
+        invoiceData.invoiceDueDate = order.invoiceDueDate ?? "DD/MM/YYYY"
         
         invoiceData.businessName = user.businessName ?? "AIVA Bakery"
         invoiceData.businessAddress = user.businessAddress ?? "Orchard Road"
@@ -186,13 +187,9 @@ class InvoicePreviewViewModel {
         invoiceData.accountNumber = user.bankAccountNumber ?? "12345678910"
         invoiceData.bankName = user.bankName ?? "Bank Transfer - BCA"
         
-        invoiceData.customerName = order.customerOrderName
-        invoiceData.customerPhone = order.customerOrderPhone ?? ""
-        invoiceData.recipientName = order.customerReceiverName ?? ""
-        invoiceData.recipientPhone = order.customerReceiverPhone ?? ""
-        invoiceData.deliveryAddress = order.shippingAddress ?? ""
+       
         
-        invoiceData.orderDate = DateFormatterHelper.formattedDate(order.orderDdayDate ?? DateFormatterHelper.isoDateString(from: Date()), showTime: false)
+        invoiceData.orderDate = DateFormatterHelper.formattedDate(order.orderDdayDate ?? "DD/MM/YYYY")
         invoiceData.deliveryTime = DateFormatterHelper.formattedTime(order.orderDdayDate ?? "23:59")
         
         invoiceData.deliveryMethod = order.opsiPengiriman ?? ""
@@ -236,6 +233,15 @@ class InvoicePreviewViewModel {
         if invoiceData.deliveryAddress.isEmpty { invoiceData.deliveryAddress = "Alamat kirim" }
         if invoiceData.orderDate.isEmpty { invoiceData.orderDate = "DD/MM/YY" }
         if invoiceData.deliveryTime.isEmpty { invoiceData.deliveryTime = "DD/MM/YY" }
+        if invoiceData.invoiceDate.isEmpty { invoiceData.invoiceDate = "DD/MM/YY" }
+        if invoiceData.invoiceDueDate.isEmpty { invoiceData.invoiceDueDate = "DD/MM/YY" }
+        
+        if invoiceData.displayOrderItems.isEmpty {
+                invoiceData.displayOrderItems = [
+                    InvoiceOrderItem(description: "Product 1", unitPrice: 0, quantity: 1, discount: 0, total: 0),
+                    InvoiceOrderItem(description: "Product 2", unitPrice: 0, quantity: 1, discount: 0, total: 0)
+                ]
+            }
         
         // Mock invoice number for preview
         invoiceData.invoiceNumber = generateInvoiceCode()

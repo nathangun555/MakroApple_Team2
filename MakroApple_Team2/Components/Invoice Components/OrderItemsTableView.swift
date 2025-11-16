@@ -29,7 +29,7 @@ struct OrderItemsTableView: View {
                 
                 Text("Diskon")
                     .font(.system(size: 10, weight: .bold))
-                    .frame(width: 50)
+                    .frame(width: 70)
                 
                 Text("Total Harga")
                     .font(.system(size: 10, weight: .bold))
@@ -46,7 +46,7 @@ struct OrderItemsTableView: View {
                             .font(.system(size: 10))
                             .frame(maxWidth: .infinity, alignment: .leading)
                         
-                        Text(item.unitPrice.formatted())
+                        Text("Rp. \(item.unitPrice.formatted())")
                             .font(.system(size: 10))
                             .frame(width: 70)
                         
@@ -54,11 +54,11 @@ struct OrderItemsTableView: View {
                             .font(.system(size: 10))
                             .frame(width: 50)
                         
-                        Text("\(item.discount.formatted())")
+                        Text("Rp. \(item.discount.formatted())")
                             .font(.system(size: 10))
-                            .frame(width: 50)
+                            .frame(width: 70)
                         
-                        Text(item.total.formatted())
+                        Text("Rp. \(item.total.formatted())")
                             .font(.system(size: 10))
                             .frame(width: 70, alignment: .trailing)
                     }
@@ -70,4 +70,16 @@ struct OrderItemsTableView: View {
             }
         }
     }
+}
+
+#Preview {
+    let sampleItems = [
+        InvoiceOrderItem(description: "Produk A", unitPrice: 50000, quantity: 2, discount: 5000, total: 95000),
+        InvoiceOrderItem(description: "Produk B", unitPrice: 75000, quantity: 1, discount: 0, total: 75000),
+        InvoiceOrderItem(description: "Produk C", unitPrice: 100000, quantity: 3, discount: 15000, total: 285000)
+    ]
+    
+    OrderItemsTableView(displayOrderItem: sampleItems)
+        .padding()
+        .previewLayout(.sizeThatFits)
 }
