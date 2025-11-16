@@ -43,12 +43,20 @@ extension SupabaseManager {
     }
     
     func createOrder(
+        orderId: String,
         userId: UUID,
         parsedOrder: [String: Any],
         photoURLs: [String] = []
     ) async throws -> OrderRecord {
         var orderData: [String: AnyCodable?] = [:]
-        let newOrderId = UUID()
+        
+        var newOrderId: UUID
+        
+        if orderId != "" {
+            newOrderId = UUID(uuidString: orderId)!
+        } else {
+            newOrderId = UUID()
+        }
         
         orderData["id"] = AnyCodable(newOrderId.uuidString)
         orderData["user_id"] = AnyCodable(userId.uuidString)
@@ -63,12 +71,19 @@ extension SupabaseManager {
         orderData["customer_receiver_phone"] = AnyCodable(parsedOrder["No. Telp Penerima"] as? String ?? "")
         orderData["shipping_address"] = AnyCodable(parsedOrder["Alamat Kirim"] as? String ?? "")
         
-        let pesananDateRaw = parsedOrder["Tanggal Pesanan"] as? String ?? ""
-        let jamKirimRaw = parsedOrder["Jam Kirim"] as? String ?? ""
-        let pesananDateTimeISO = (!pesananDateRaw.isEmpty && !jamKirimRaw.isEmpty)
+        let now = ISO8601DateFormatter().string(from: Date())
+        
+        let pesananDateRaw = parsedOrder["Tanggal Pesanan"] as? String ?? DateFormatterHelper.formattedDate(now, showTime: false)
+        print(pesananDateRaw)
+        let jamKirimRaw = parsedOrder["Jam Kirim"] as? String ?? "00:00"
+        print(jamKirimRaw)
+
+        let pesananDateTimeISO = !pesananDateRaw.isEmpty
             ? DateFormatterHelper.dateTimeToISO(dateString: pesananDateRaw, timeString: jamKirimRaw)
             : nil
+
         orderData["order_dday_date"] = pesananDateTimeISO != nil ? AnyCodable(pesananDateTimeISO!) : nil
+
 
         let invoiceDueRaw = parsedOrder["Tanggal Jatuh Tempo"] as? String ?? ""
         let invoiceDueISO = (!invoiceDueRaw.isEmpty ? DateFormatterHelper.dateToISO(invoiceDueRaw) : nil)
@@ -95,25 +110,24 @@ extension SupabaseManager {
             "No Telp Penerima", "Alamat Kirim", "Tanggal Pesanan", "Jam Kirim", "Pesanan", "Adds-on",
             "Notes", "Pengiriman: Kurir / Pickup"
         ]
-        var customFields: [String: AnyCodable] = [:]
+        
+        var customFields: [String: Any] = [:]
         for (key, value) in parsedOrder {
             if !reservedKeys.contains(key) {
-                if let v = value as Any? {
-                    customFields[key] = AnyCodable(v)
-                } else {
-                    customFields[key] = AnyCodable(nil as Any? ?? "")
-                }
+                customFields[key] = value
             }
         }
-        orderData["custom_fields"] = customFields.isEmpty ? nil : AnyCodable(customFields)
 
-        let now = ISO8601DateFormatter().string(from: Date())
+        if !customFields.isEmpty {
+            orderData["custom_fields"] = AnyCodable(customFields)
+        }
+
         orderData["created_at"] = AnyCodable(now)
         orderData["updated_at"] = AnyCodable(now)
 
         let response = try await client
             .from("orders")
-            .insert(orderData)
+            .upsert(orderData, onConflict: "id")
             .select()
             .single()
             .execute()
@@ -127,24 +141,31 @@ extension SupabaseManager {
     
     func updateOrder(
             orderId: UUID,
+            invoiceDate: String,
+            invoiceDueDate: String,
             subtotal: Decimal,
             shippingCost: Decimal,
             totalAmount: Decimal,
             discountAmount: Decimal = 0,
-            customFields: [String: AnyCodable]? = nil
+            customFields: [String: AnyCodable]? = nil,
+            downPayment: Decimal?
         ) async throws -> OrderRecord {
             
             let subtotalDouble = NSDecimalNumber(decimal: subtotal).doubleValue
             let shippingDouble = NSDecimalNumber(decimal: shippingCost).doubleValue
             let totalDouble = NSDecimalNumber(decimal: totalAmount).doubleValue
             let discountDouble = NSDecimalNumber(decimal: discountAmount).doubleValue
+            let downDouble = NSDecimalNumber(decimal: downPayment ?? 0).doubleValue
             
             var updateData: [String: AnyCodable] = [
+                "invoice_date": AnyCodable(invoiceDate),
+                "invoice_due_date": AnyCodable(invoiceDueDate),
                 "subtotal": AnyCodable(subtotalDouble),
                 "shipping_cost": AnyCodable(shippingDouble),
                 "total_amount": AnyCodable(totalDouble),
                 "discount_amount": AnyCodable(discountDouble),
-                "updated_at": AnyCodable(ISO8601DateFormatter().string(from: Date()))
+                "updated_at": AnyCodable(ISO8601DateFormatter().string(from: Date())),
+                "down_payment": AnyCodable(downDouble)
             ]
             
             let response = try await client
@@ -178,4 +199,20 @@ extension SupabaseManager {
         
         return try JSONDecoder().decode(OrderRecord.self, from: response.data)
     }
+    
+    func updateOrderStatus(orderId: UUID, newStatus: String) async throws {
+            let response = try await client
+                .from("orders")
+                .update(["status": newStatus])
+                .eq("id", value: orderId)
+                .select()
+                .execute()
+            
+            // Optional: check if update actually succeeded
+            if response.status != 200 {
+                throw NSError(domain: "SupabaseError", code: response.status, userInfo: [
+                    NSLocalizedDescriptionKey: "Failed to update order status"
+                ])
+            }
+        }
 }

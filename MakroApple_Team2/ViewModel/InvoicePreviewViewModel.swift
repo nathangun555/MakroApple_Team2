@@ -16,29 +16,36 @@ class InvoicePreviewViewModel {
     var orderRecord: OrderRecord?
     var orderItems: [OrderItemRecord] = []
     
+    var invoiceData : InvoiceData = InvoiceData()
+    
     // ... all your display fields ...
-    var invoiceNumber: String = ""
-    var invoiceDate: String = ""
-    var invoiceDueDate: String = ""
-    var accountName: String = ""
-    var accountNumber: String = ""
-    var bankName: String = ""
-    var customerName: String = ""
-    var customerPhone: String = ""
-    var recipientName: String = ""
-    var recipientPhone: String = ""
-    var deliveryAddress: String = ""
-    var orderDate: String = ""
-    var deliveryTime: String = ""
-    var deliveryMethod: String = ""
-    var addOns: String = ""
-    var notes: String = ""
-    var subtotal: Decimal = 0
-    var shippingCost: Decimal = 0
-    var discountAmount: Decimal = 0
-    var total: Decimal = 0
-    var downPayment: Decimal = 0
-    var photoUrl1: String = ""
+//    var invoiceNumber: String = ""
+//    var invoiceDate: String = ""
+//    var invoiceDueDate: String = ""
+//    var accountName: String = ""
+//    var accountNumber: String = ""
+//    var bankName: String = ""
+//    var customerName: String = ""
+//    var customerPhone: String = ""
+//    var recipientName: String = ""
+//    var recipientPhone: String = ""
+//    var deliveryAddress: String = ""
+//    var orderDate: String = ""
+//    var deliveryTime: String = ""
+//    var deliveryMethod: String = ""
+//    var addOns: String = ""
+//    var notes: String = ""
+//    var subtotal: Decimal = 0
+//    var shippingCost: Decimal = 0
+//    var discountAmount: Decimal = 0
+//    var total: Decimal = 0
+//    var downPayment: Decimal = 0
+//    var photoUrl1: String = ""
+//    var businessName: String = ""
+//    var businessPhone: String = ""
+//    var businessAddress: String = ""
+//    var businessLogoUrl: String = ""
+//    var businessEmail: String = ""
     
     var isLoading = false
     var errorMessage: String?
@@ -54,6 +61,46 @@ class InvoicePreviewViewModel {
     func configure(userId: String?, orderId: String?) {
         self.userId = userId
         self.orderId = orderId
+    }
+    
+    
+    func tempPDFURL() -> URL? {
+        let invoiceView = InvoiceContentView(viewModel: invoiceData)
+            .padding(20)
+            .background(Color.white)
+            .frame(width: 595, height: 841)
+        
+        guard let pdfData = exportAsPDF(view: invoiceView) else { return nil }
+        
+        let invoiceCode = invoiceData.invoiceNumber.isEmpty ? "Invoice" : invoiceData.invoiceNumber
+        let tempURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent("\(invoiceCode.replacingOccurrences(of: "/", with: "_")).pdf")
+        
+        do {
+            try pdfData.write(to: tempURL)
+            return tempURL
+        } catch {
+            print("❌ Error saving PDF: \(error)")
+            return nil
+        }
+    }
+
+    func loadUserProfileData() async {
+        guard let userId, let uuid = UUID(uuidString: userId) else { return }
+        do {
+            let user = try await SupabaseManager.shared.fetchUser(by: uuid)
+            self.userRecord = user
+            self.invoiceData.businessName = user?.businessName ?? ""
+            self.invoiceData.businessPhone = user?.businessPhone ?? ""
+            self.invoiceData.businessAddress = user?.businessAddress ?? ""
+            self.invoiceData.bankName = user?.bankName ?? ""
+            self.invoiceData.accountNumber = user?.bankAccountNumber ?? ""
+            self.invoiceData.accountName = user?.bankAccountName ?? ""
+            self.invoiceData.businessLogoUrl = user?.businessLogoUrl ?? ""
+            self.invoiceData.businessEmail = user?.businessEmail ?? ""
+        } catch {
+            errorMessage = "No user found"
+        }
     }
     
     // MARK: - Load Data (Real or Mock)
@@ -74,13 +121,20 @@ class InvoicePreviewViewModel {
     // MARK: - Load Real Order Data
     private func loadRealOrderData(orderUUID: UUID) async {
         do {
-            let order = try await SupabaseManager.shared.fetchOrder(id: orderUUID)
-            let items = try await SupabaseManager.shared.fetchOrderItem(orderId: orderUUID)
-            
-            self.orderRecord = order
-            self.orderItems = items
-            
-            populateFromOrder(order: order, items: items)
+            if let userIdString = userId, let userUUID = UUID(uuidString: userIdString) {
+                if let user = try await SupabaseManager.shared.fetchUser(by: userUUID) {
+                    self.userRecord = user
+                    let order = try await SupabaseManager.shared.fetchOrder(id: orderUUID)
+                    let items = try await SupabaseManager.shared.fetchOrderItem(orderId: orderUUID)
+                    
+                    self.orderRecord = order
+                    self.orderItems = items
+                    
+                    await populateFromOrder(order: order, items: items, user: user)
+                } else {
+                    errorMessage = "User not found"
+                }
+            }
             
         } catch {
             errorMessage = "Gagal memuat data invoice: \(error.localizedDescription)"
@@ -109,6 +163,7 @@ class InvoicePreviewViewModel {
             }
             
             // Generate mock data for preview
+            await loadUserProfileData()
             generateMockInvoiceData()
             
         } catch {
@@ -117,67 +172,73 @@ class InvoicePreviewViewModel {
     }
     
     // MARK: - Populate from Real Order
-    private func populateFromOrder(order: OrderRecord, items: [OrderItemRecord]) {
-        invoiceNumber = order.orderNumber
-        invoiceDate = order.invoiceDueDate ?? DateFormatterHelper.isoDateString(from: Date())
-        invoiceDueDate = order.invoiceDueDate ?? DateFormatterHelper.isoDateString(from: Calendar.current.date(byAdding: .day, value: 1, to: Date())!)
+    private func populateFromOrder(order: OrderRecord, items: [OrderItemRecord], user: UserRecord) async {
+        invoiceData.invoiceNumber = order.orderNumber
+        invoiceData.invoiceDate = order.invoiceDate ?? DateFormatterHelper.isoDateString(from: Date())
+        invoiceData.invoiceDueDate = order.invoiceDueDate ?? DateFormatterHelper.isoDateString(from: Calendar.current.date(byAdding: .day, value: 1, to: Date())!)
         
-        accountName = order.customFields?["account_name"]?.value as? String ?? "Michelle Michiko"
-        accountNumber = order.customFields?["account_number"]?.value as? String ?? "12345678910"
-        bankName = order.customFields?["bank_name"]?.value as? String ?? "Bank Transfer - BCA"
+        invoiceData.businessName = user.businessName ?? "AIVA Bakery"
+        invoiceData.businessAddress = user.businessAddress ?? "Orchard Road"
+        invoiceData.businessPhone = user.businessPhone ?? "08123456789"
+        invoiceData.businessEmail = user.businessEmail ?? "hello@aivabakery.com"
+        invoiceData.businessLogoUrl = user.businessLogoUrl ?? ""
+        invoiceData.accountName = user.bankAccountName ?? "Michelle Michiko"
+        invoiceData.accountNumber = user.bankAccountNumber ?? "12345678910"
+        invoiceData.bankName = user.bankName ?? "Bank Transfer - BCA"
         
-        customerName = order.customerOrderName
-        customerPhone = order.customerOrderPhone ?? ""
-        recipientName = order.customerReceiverName ?? ""
-        recipientPhone = order.customerReceiverPhone ?? ""
-        deliveryAddress = order.shippingAddress ?? ""
+        invoiceData.customerName = order.customerOrderName
+        invoiceData.customerPhone = order.customerOrderPhone ?? ""
+        invoiceData.recipientName = order.customerReceiverName ?? ""
+        invoiceData.recipientPhone = order.customerReceiverPhone ?? ""
+        invoiceData.deliveryAddress = order.shippingAddress ?? ""
         
-        let (tanggalPesanan, jamKirim) = DateFormatterHelper.indonesianDateAndTime(from: order.orderDdayDate ?? "")
-        orderDate = tanggalPesanan
-        deliveryTime = jamKirim
+        invoiceData.orderDate = DateFormatterHelper.formattedDate(order.orderDdayDate ?? DateFormatterHelper.isoDateString(from: Date()), showTime: false)
+        invoiceData.deliveryTime = DateFormatterHelper.formattedTime(order.orderDdayDate ?? "23:59")
         
-        deliveryMethod = order.opsiPengiriman ?? ""
-        addOns = order.addOn ?? ""
-        notes = order.notes ?? ""
+        invoiceData.deliveryMethod = order.opsiPengiriman ?? ""
+        invoiceData.addOns = order.addOn ?? ""
+        invoiceData.notes = order.notes ?? ""
         
-        subtotal = order.subtotal
-        shippingCost = order.shippingCost
-        discountAmount = order.discountAmount
-        total = order.totalAmount
-        downPayment = Decimal(string: order.customFields?["down_payment"]?.value as? String ?? "") ?? 0
+        invoiceData.subtotal = order.subtotal
+        invoiceData.shippingCost = order.shippingCost
+        invoiceData.total = order.totalAmount
+        invoiceData.downPayment = order.downPayment ?? 0
         
-        photoUrl1 = order.photoUrl1 ?? ""
+        invoiceData.photoUrl1 = order.photoUrl1 ?? ""
+        
+        invoiceData.displayOrderItems = displayOrderItems
+
     }
     
     // MARK: - Parse Template Data
     private func parseTemplateData(from templateDict: [String: AnyCodable]) {
-        customerName = (templateDict["Nama Pemesan"]?.value as? String) ?? ""
-        customerPhone = (templateDict["No. Telp Pemesan"]?.value as? String) ?? ""
-        recipientName = (templateDict["Nama Penerima"]?.value as? String) ?? ""
-        recipientPhone = (templateDict["No. Telp Penerima"]?.value as? String) ?? ""
-        deliveryAddress = (templateDict["Alamat Kirim"]?.value as? String) ?? ""
-        orderDate = (templateDict["Tanggal Pesanan"]?.value as? String) ?? ""
-        deliveryTime = (templateDict["Jam Kirim"]?.value as? String) ?? ""
-        deliveryMethod = (templateDict["Pengiriman: Kurir / Pickup"]?.value as? String) ?? ""
-        notes = (templateDict["Notes"]?.value as? String) ?? ""
+        invoiceData.customerName = (templateDict["Nama Pemesan"]?.value as? String) ?? ""
+        invoiceData.customerPhone = (templateDict["No. Telp Pemesan"]?.value as? String) ?? ""
+        invoiceData.recipientName = (templateDict["Nama Penerima"]?.value as? String) ?? ""
+        invoiceData.recipientPhone = (templateDict["No. Telp Penerima"]?.value as? String) ?? ""
+        invoiceData.deliveryAddress = (templateDict["Alamat Kirim"]?.value as? String) ?? ""
+        invoiceData.orderDate = (templateDict["Tanggal Pesanan"]?.value as? String) ?? ""
+        invoiceData.deliveryTime = (templateDict["Jam Kirim"]?.value as? String) ?? ""
+        invoiceData.deliveryMethod = (templateDict["Pengiriman: Kurir / Pickup"]?.value as? String) ?? ""
+        invoiceData.notes = (templateDict["Notes"]?.value as? String) ?? ""
         
         if let addOnsArray = templateDict["Adds-on"]?.value as? [[String: Any]] {
-            addOns = addOnsArray.compactMap { $0["item"] as? String }.joined(separator: ", ")
+            invoiceData.addOns = addOnsArray.compactMap { $0["item"] as? String }.joined(separator: ", ")
         }
     }
     
     // MARK: - Generate Mock Data
     private func generateMockInvoiceData() {
-        if customerName.isEmpty { customerName = "Nama Customer" }
-        if customerPhone.isEmpty { customerPhone = "No Telp Customer" }
-        if recipientName.isEmpty { recipientName = "Nama Penerima" }
-        if recipientPhone.isEmpty { recipientPhone = "No telp" }
-        if deliveryAddress.isEmpty { deliveryAddress = "Alamat kirim" }
-        if orderDate.isEmpty { orderDate = "DD/MM/YY" }
-        if deliveryTime.isEmpty { deliveryTime = "DD/MM/YY" }
+        if invoiceData.customerName.isEmpty { invoiceData.customerName = "Nama Customer" }
+        if invoiceData.customerPhone.isEmpty { invoiceData.customerPhone = "No Telp Customer" }
+        if invoiceData.recipientName.isEmpty { invoiceData.recipientName = "Nama Penerima" }
+        if invoiceData.recipientPhone.isEmpty { invoiceData.recipientPhone = "No telp" }
+        if invoiceData.deliveryAddress.isEmpty { invoiceData.deliveryAddress = "Alamat kirim" }
+        if invoiceData.orderDate.isEmpty { invoiceData.orderDate = "DD/MM/YY" }
+        if invoiceData.deliveryTime.isEmpty { invoiceData.deliveryTime = "DD/MM/YY" }
         
         // Mock invoice number for preview
-        invoiceNumber = generateInvoiceCode()
+        invoiceData.invoiceNumber = generateInvoiceCode()
     }
     
     // MARK: - Get Invoice Items for Display
@@ -189,14 +250,16 @@ class InvoicePreviewViewModel {
                     description: item.productName,
                     unitPrice: item.productPrice,
                     quantity: item.quantity,
+                    discount: item.productDiscount,
                     total: item.subtotal
+                    
                 )
             }
         } else {
             // Mock data for preview
             return [
-                InvoiceOrderItem(description: "Product 1", unitPrice: 0, quantity: 1, total: 0),
-                InvoiceOrderItem(description: "Product 2", unitPrice: 0, quantity: 1, total: 0)
+                InvoiceOrderItem(description: "Product 1", unitPrice: 0, quantity: 1, discount: 0, total: 0),
+                InvoiceOrderItem(description: "Product 2", unitPrice: 0, quantity: 1, discount : 0,total: 0)
             ]
         }
     }
@@ -223,79 +286,106 @@ class InvoicePreviewViewModel {
     }
     
     // MARK: - Export as PDF
+    
     @MainActor
     func exportAsPDF(view: some View) -> Data? {
-        let renderer = ImageRenderer(content: view)
-        
-        let pageSize = CGSize(width: 595, height: 842) // A4
-        renderer.proposedSize = .init(pageSize)
-        
-        var pdfData = Data()
-        
-        guard let consumer = CGDataConsumer(data: pdfData as! CFMutableData),
-              let context = CGContext(consumer: consumer, mediaBox: nil, nil) else {
-            return nil
+        // Define A4 size in points (72 DPI)
+        let a4Size = CGSize(width: 595.2, height: 841.8) // A4 in points
+
+        // 1) Create the SwiftUI view sized to A4
+        let renderer = ImageRenderer(
+            content: view
+                .frame(width: a4Size.width, height: a4Size.height, alignment: .top)
+        )
+
+        // 2) Improve quality
+        renderer.scale = UIScreen.main.scale
+
+        // 3) Render to UIImage
+        guard let uiImage = renderer.uiImage else { return nil }
+
+        // 4) Create PDF context with A4 box
+        let pdfData = NSMutableData()
+        var mediaBox = CGRect(origin: .zero, size: a4Size)
+        guard
+            let consumer = CGDataConsumer(data: pdfData as CFMutableData),
+            let context = CGContext(consumer: consumer, mediaBox: &mediaBox, nil)
+        else { return nil }
+
+        context.beginPDFPage(nil)
+
+        // 5) Draw the SwiftUI-rendered image into A4
+        if let cgImage = uiImage.cgImage {
+            context.draw(cgImage, in: mediaBox)
         }
-        
-        renderer.render { size, renderer in
-            var mediaBox = CGRect(origin: .zero, size: pageSize)
-            
-            context.beginPage(mediaBox: &mediaBox)
-            renderer(context)
-            context.endPage()
-        }
-        
+
+        context.endPDFPage()
         context.closePDF()
-        
-        return pdfData
+
+        return pdfData as Data
     }
     
     // MARK: - Share Invoice
+
     func shareInvoice(items: [Any], completion: @escaping (Bool) -> Void) {
-        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-              let window = windowScene.windows.first,
-              let rootViewController = window.rootViewController else {
+        print("📤 shareInvoice() called with items: \(items)")
+
+        // 1️⃣ Find the topmost UIViewController — even inside SwiftUI sheet
+        guard let rootVC = topMostViewController() else {
+            print("❌ No root view controller found")
             completion(false)
             return
         }
-        
-        let activityVC = UIActivityViewController(
-            activityItems: items,
-            applicationActivities: nil
-        )
-        
-        // For iPad
+
+        // 2️⃣ Create activity VC
+        let activityVC = UIActivityViewController(activityItems: items, applicationActivities: nil)
+
+        // 3️⃣ iPad popover setup
         if let popover = activityVC.popoverPresentationController {
-            popover.sourceView = rootViewController.view
-            popover.sourceRect = CGRect(x: rootViewController.view.bounds.midX,
-                                       y: rootViewController.view.bounds.midY,
-                                       width: 0, height: 0)
+            popover.sourceView = rootVC.view
+            popover.sourceRect = CGRect(x: rootVC.view.bounds.midX, y: rootVC.view.bounds.midY, width: 0, height: 0)
             popover.permittedArrowDirections = []
         }
-        
-        rootViewController.present(activityVC, animated: true) {
+
+        // 4️⃣ Present
+        rootVC.present(activityVC, animated: true) {
+            print("🚀 Presented share sheet from \(rootVC)")
             completion(true)
         }
     }
+
+    // Helper to find the current visible UIViewController in SwiftUI
+    private func topMostViewController(base: UIViewController? = nil) -> UIViewController? {
+        let baseVC = base ?? UIApplication.shared.connectedScenes
+            .compactMap { ($0 as? UIWindowScene)?.keyWindow }
+            .first?.rootViewController
+
+        if let nav = baseVC as? UINavigationController {
+            return topMostViewController(base: nav.visibleViewController)
+        } else if let tab = baseVC as? UITabBarController {
+            return topMostViewController(base: tab.selectedViewController)
+        } else if let presented = baseVC?.presentedViewController {
+            return topMostViewController(base: presented)
+        }
+        return baseVC
+    }
+
+
     
     // MARK: - Save and Upload Invoice
-    func saveAndUploadInvoice(image: UIImage) async throws -> String {
+    func saveAndUploadInvoice(pdfData: Data) async throws -> String {
         guard let orderIdString = orderId,
-              let orderUUID = UUID(uuidString: orderIdString),
-              let imageData = image.pngData() else {
-            throw NSError(domain: "InvoiceError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Invalid order or image data"])
+              let orderUUID = UUID(uuidString: orderIdString) else {
+            throw NSError(domain: "InvoiceError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Invalid order ID"])
         }
         
-        // Generate filename
-        let fileName = "\(invoiceNumber.replacingOccurrences(of: "/", with: "_")).png"
-        
-        // Write image to temporary file
+        let fileName = "\(invoiceData.invoiceNumber.replacingOccurrences(of: "/", with: "_")).pdf"
+
         let tempURL = FileManager.default.temporaryDirectory
             .appendingPathComponent(fileName)
         
-        try imageData.write(to: tempURL)
+        try pdfData.write(to: tempURL)
         
-        // Upload using existing uploadFile function
         let publicURL = try await SupabaseManager.shared.uploadFile(
             tempURL,
             folder: "invoices"
@@ -310,7 +400,7 @@ class InvoicePreviewViewModel {
         // Clean up temp file
         try? FileManager.default.removeItem(at: tempURL)
         
-        print("✅ Invoice uploaded and order updated: \(publicURL)")
+        print("✅ Invoice PDF uploaded and order updated: \(publicURL)")
         return publicURL
     }
 
@@ -327,5 +417,6 @@ struct InvoiceOrderItem: Identifiable {
     let description: String
     let unitPrice: Decimal
     let quantity: Int
+    let discount : Decimal
     let total: Decimal
 }

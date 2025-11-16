@@ -8,101 +8,165 @@
 import SwiftUI
 import Supabase
 
-struct ContentView: View {
-    @EnvironmentObject var session: SessionManager   // ✅ Global session
-    @SceneStorage("selectedTab") var selectedTab = 0
-//    @State private var showNewOrder = false
-
-    var body: some View {
-        Group {
-            if session.isSignedIn {
-                // ✅ Main app after login
-                MainTabView(selectedTab: $selectedTab)
-            } else {
-                // 👇 Sign-in screen
-//                SignInWithAppleView()
-                MainTabView(selectedTab: $selectedTab)
-            }
-        }
-        .task {
-            await checkSession()
-        }
-    }
-
-    // MARK: - Auto-login check
-    private func checkSession() async {
-        do {
-            let sessionResult = try await SupabaseManager.shared.client.auth.session
-            let user = sessionResult.user
-            await MainActor.run {
-                session.userId = user.id.uuidString
-                session.isSignedIn = true
-            }
-            print("✅ Auto-login for user: \(user.email ?? "No email")")
-        } catch {
-            await MainActor.run {
-                session.isSignedIn = false
-                session.userId = nil
-            }
-            print("ℹ️ No active session: \(error.localizedDescription)")
-        }
-    }
-}
-
+//struct ContentView: View {
+//    @EnvironmentObject var session: SessionManager
+//    @SceneStorage("selectedTab") var selectedTab = 0
+//
+//    var body: some View {
+//        Group {
+//            if session.isSignedIn {
+//                // ✅ Main app after login
+//                MainTabView(selectedTab: $selectedTab, sharedText: .constant(""), hasNewSharedText: <#Binding<Bool>#>)
+//            } else {
+//                // 👇 Sign-in screen
+////                SignInWithAppleView()
+//                MainTabView(selectedTab: $selectedTab, sharedText: .constant(""))
+//            }
+//        }
+////        .task {
+////            await checkSession()
+////        }
+//    }
+//
+//    // MARK: - Auto-login check
+//    private func checkSession() async {
+//        do {
+//            let sessionResult = try await SupabaseManager.shared.client.auth.session
+//            let user = sessionResult.user
+//            await MainActor.run {
+//                session.userId = user.id.uuidString
+//                session.isSignedIn = true
+//            }
+//            print("✅ Auto-login for user: \(user.email ?? "No email")")
+//        } catch {
+//            await MainActor.run {
+//                session.isSignedIn = false
+//                session.userId = nil
+//            }
+//            print("ℹ️ No active session: \(error.localizedDescription)")
+//        }
+//    }
+//}
 struct MainTabView: View {
     @Binding var selectedTab: Int
-//    @Binding var showNewOrder: Bool
+    @Binding var sharedText: String
+    @Binding var hasNewObject: Bool
+    @Binding var sharedImages: [UIImage]
+    @EnvironmentObject var unsavedBus: UnsavedOverlayBus
+
+    @EnvironmentObject var deleteBus: DeleteOverlayBus
 
     var body: some View {
-        NavigationStack {
-            ZStack(alignment: .bottom) {
-                TabView(selection: $selectedTab) {
-                    AllOrdersView()
-                        .tabItem { Label("Pesanan", systemImage: "basket.fill") }
-                        .tag(0)
-
-                    ActiveOrdersView()
-                        .tabItem { Label("Jadwal", systemImage: "tray.full") }
-                        .tag(1)
-
-                    AnalyticsView()
-                        .tabItem { Label("Analitik", systemImage: "chart.bar") }
-                        .tag(2)
-
-                    SettingsView()
-                        .tabItem { Label("Pengaturan", systemImage: "gearshape") }
-                        .tag(3)
+        ZStack {
+            TabView(selection: $selectedTab) {
+                Tab("Pesanan", systemImage: "book.pages.fill", value: 0) {
+                    AllOrdersView(sharedImages: $sharedImages,
+                                  sharedText: $sharedText,
+                                  hasNewObject: $hasNewObject)
                 }
-
-//                if selectedTab == 0 {
-//                    Button(action: { showNewOrder = true }) {
-//                        HStack {
-//                            Image(systemName: "plus")
-//                            Text("Tambah Pesanan")
-//                        }
-//                        .frame(maxWidth: .infinity)
-//                        .padding()
-//                        .background(Color.blue)
-//                        .foregroundColor(.white)
-//                        .cornerRadius(12)
-//                        .shadow(radius: 4)
-//                    }
-//                    .padding(.horizontal)
-//                    .padding(.bottom, 8)
+                Tab("Jadwal", systemImage: "tray.full", value: 1) {
+                    ActiveOrdersView()
+                }
+//                Tab("Analitik", systemImage: "chart.bar", value: 2) {
+//                    AnalyticsView()
 //                }
+                Tab("Pengaturan", systemImage: "gearshape", value: 3) {
+                    SettingsView()
+                }
+                if selectedTab == 0 || selectedTab == 4 {
+                    Tab("Cari Nama atau Pesanan", systemImage: "magnifyingglass", value: 4, role: .search) {
+                        AllOrdersView(sharedImages: $sharedImages,
+                                      sharedText: $sharedText,
+                                      hasNewObject: $hasNewObject)
+                    }
+                }
             }
-//            .navigationDestination(isPresented: $showNewOrder) {
-//                NewOrderView()
-//                    .navigationBarBackButtonHidden(false)
-//            }
+            .disabled(deleteBus.show || unsavedBus.show)
+            
+            if unsavedBus.show {
+                Color.black.opacity(0.45).ignoresSafeArea().transition(.opacity).zIndex(996)
+
+                CustomUnsavedAlert(
+                  title: unsavedBus.title,
+                  message: unsavedBus.message,
+                  cancelTitle: unsavedBus.cancelTitle,
+                  confirmTitle: unsavedBus.confirmTitle,
+                  onCancel: { unsavedBus.close(false) },
+                  onConfirm: { unsavedBus.close(true) }
+                )
+                .transition(.scale.combined(with: .opacity))
+                .zIndex(997)
+              }
+            if deleteBus.show {
+                CustomDeleteAlertComponent(
+                    title: "Hapus",
+                    message: deleteBus.message,
+                    cancelTitle: "Tidak",
+                    confirmTitle: "Ya",
+                    onCancel: { deleteBus.closeConfirm(false) },
+                    onConfirm: { deleteBus.closeConfirm(true) }
+                )
+                .transition(.scale.combined(with: .opacity))
+                .zIndex(999)
+                .ignoresSafeArea()
+            }
         }
     }
 }
 
-#Preview {
-    ContentView()
-        .environmentObject(SessionManager())
-}
+
+        
+        
+//        NavigationStack {
+//            ZStack(alignment: .bottom) {
+//                TabView(selection: $selectedTab) {
+//                    AllOrdersView()
+//                        .tabItem { Label("Pesanan", systemImage: "basket.fill") }
+//                        .tag(0)
+//
+//                    ActiveOrdersView()
+//                        .tabItem { Label("Jadwal", systemImage: "tray.full") }
+//                        .tag(1)
+//
+//                    AnalyticsView()
+//                        .tabItem { Label("Analitik", systemImage: "chart.bar") }
+//                        .tag(2)
+//
+//                    SettingsView()
+//                        .tabItem { Label("Pengaturan", systemImage: "gearshape") }
+//                        .tag(3)
+//                    
+//                }
+//
+////                if selectedTab == 0 {
+////                    Button(action: { showNewOrder = true }) {
+////                        HStack {
+////                            Image(systemName: "plus")
+////                            Text("Tambah Pesanan")
+////                        }
+////                        .frame(maxWidth: .infinity)
+////                        .padding()
+////                        .background(Color.blue)
+////                        .foregroundColor(.white)
+////                        .cornerRadius(12)
+////                        .shadow(radius: 4)
+////                    }
+////                    .padding(.horizontal)
+////                    .padding(.bottom, 8)
+////                }
+//            }
+////            .navigationDestination(isPresented: $showNewOrder) {
+////                NewOrderView()
+////                    .navigationBarBackButtonHidden(false)
+////            }
+//        }
+//    }
+//}
+//
+//#Preview {
+//    ContentView()
+//        .environmentObject(SessionManager())
+//}
 
 
 
@@ -180,6 +244,3 @@ struct MainTabView: View {
 //    }
 //}
 //
-#Preview {
-    ContentView()
-}

@@ -19,12 +19,10 @@ final class SessionManager: ObservableObject {
     
     init() {
         // ✅ Immediate dev session
-        #if DEBUG
         if useDevMode {
             setupDevSession()
             return  // Skip auth listener in dev mode
         }
-        #endif
         
         startAuthListener()
     }
@@ -32,19 +30,18 @@ final class SessionManager: ObservableObject {
     // ✅ Dev mode setup - instant, synchronous
     private func setupDevSession() {
         self.isSignedIn = true
-        self.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
+        self.userId = "b04a9bce-5064-444a-ab69-2cb01ec44eff" // new
+//        self.userId = "ec7eea39-e2b6-4e46-b847-646019276f67" // has template
         print("🧪 DEV MODE: Instant session loaded")
         print("🪪 userId:", userId ?? "nil")
     }
     
     // Production: restore session from Supabase
     func restoreSessionIfAvailable() async {
-        #if DEBUG
         if useDevMode {
             print("🧪 DEV MODE: Skipping Supabase auth")
             return
         }
-        #endif
         
         do {
             if let current = try? await SupabaseManager.shared.client.auth.currentSession {
@@ -63,12 +60,10 @@ final class SessionManager: ObservableObject {
     
     // Production: listen for auth changes
     func startAuthListener() {
-        #if DEBUG
         if useDevMode {
             print("🧪 DEV MODE: Auth listener disabled")
             return
         }
-        #endif
         
         authListenerTask?.cancel()
         authListenerTask = Task { [weak self] in
@@ -95,12 +90,10 @@ final class SessionManager: ObservableObject {
     }
     
     func signOut() async {
-        #if DEBUG
         if useDevMode {
             print("🧪 DEV MODE: Sign out disabled")
             return
         }
-        #endif
         
         do { try await SupabaseManager.shared.client.auth.signOut() } catch { }
         isSignedIn = false

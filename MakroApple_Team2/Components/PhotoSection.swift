@@ -11,6 +11,7 @@ import PhotosUI
 struct PhotoSection: View {
     @Binding var selectedItems: [PhotosPickerItem?]
     @Binding var selectedImages: [UIImage?]
+    private let maxPhotos = 3
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -19,7 +20,7 @@ struct PhotoSection: View {
                 .fontWeight(.bold)
             
             HStack(spacing: 12) {
-                ForEach(0..<3, id: \.self) { index in
+                ForEach(0..<selectedImages.count, id: \.self) { index in
                     VStack {
                         if let image = selectedImages[index] {
                             ZStack(alignment: .topTrailing) {
@@ -31,8 +32,7 @@ struct PhotoSection: View {
                                     .cornerRadius(10)
                                 
                                 Button(action: {
-                                    selectedImages[index] = nil
-                                    selectedItems[index] = nil
+                                    removePhoto(at: index)
                                 }) {
                                     Image(systemName: "xmark.circle.fill")
                                         .foregroundColor(.white)
@@ -44,16 +44,19 @@ struct PhotoSection: View {
                         } else {
                             PhotosPicker(
                                 selection: Binding(
-                                    get: { selectedItems[index] },
+                                    get: { index < selectedItems.count ? selectedItems[index] : nil },
                                     set: { newValue in
-                                        selectedItems[index] = newValue
-                                        Task {
-                                            await loadImage(for: index)
+                                        if index < selectedItems.count {
+                                            selectedItems[index] = newValue
+                                        } else {
+                                            selectedItems.append(newValue)
                                         }
+                                        Task { await loadImage(for: index) }
                                     }
                                 ),
                                 matching: .images
-                            ) {
+                            )
+                            {
                                 VStack {
                                     Image(systemName: "photo.badge.plus")
                                         .font(.title)
@@ -73,15 +76,48 @@ struct PhotoSection: View {
                 }
             }
         }
+        .onChange(of: selectedImages) { _ in
+            updatePhotoSlots()
+        }
     }
     
     private func loadImage(for index: Int) async {
         guard let item = selectedItems[index] else { return }
-        
         if let data = try? await item.loadTransferable(type: Data.self),
            let uiImage = UIImage(data: data) {
             selectedImages[index] = uiImage
             print("✅ Photo \(index + 1) loaded")
         }
     }
+    
+    private func removePhoto(at index: Int) {
+        selectedImages[index] = nil
+        selectedItems[index] = nil
+        updatePhotoSlots()
+    }
+    
+    private func updatePhotoSlots() {
+        // Keep only the real photos and items (non-nil)
+        let realPhotos = selectedImages.compactMap { $0 }
+        let realItems = selectedItems.enumerated().compactMap { index, item in
+            selectedImages[index] != nil ? item : nil
+        }
+        
+        // Convert back to optional arrays
+        selectedImages = realPhotos
+        selectedItems = realItems
+        
+        // Ensure there is exactly one empty slot at the end if max not reached
+        if selectedImages.count < maxPhotos {
+            selectedImages.append(nil)
+            selectedItems.append(nil)
+        }
+        
+        // If all deleted, ensure only one slot remains
+        if selectedImages.isEmpty {
+            selectedImages = [nil]
+            selectedItems = [nil]
+        }
+    }
 }
+

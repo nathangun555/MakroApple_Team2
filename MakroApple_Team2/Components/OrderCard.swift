@@ -7,22 +7,6 @@
 
 import SwiftUI
 
-// MARK: - Order Status Color Extension
-import SwiftUI
-
-extension OrderRecord {
-    var statusColor: Color {
-        switch status {
-        case "Belum Terbayar": return .orange
-        case "Diproses": return .blue
-        case "Terkirim": return .purple
-        case "Selesai": return .green
-        case "Dibatalkan": return .red
-        default: return .gray
-        }
-    }
-}
-
 struct OrderCard: View {
     
     let order: OrderRecord
@@ -31,12 +15,14 @@ struct OrderCard: View {
     
 //    let order : Order
     var body: some View {
+        
+        
         HStack{
 
             // Indikator
             RoundedRectangle(cornerRadius: 10)
                 .frame(width: 6)
-                .foregroundColor(order.statusColor)
+                .foregroundColor(statusColors[order.status] )
                 .padding(.vertical, 3)
             
             // Card
@@ -51,7 +37,7 @@ struct OrderCard: View {
                     Spacer()
                     
                     // Tanggal Pesan
-                    Text(DateFormatterHelper.formattedDate(order.orderDdayDate!, showTime: true))
+                    Text(DateFormatterHelper.formattedDate(order.orderDdayDate ?? "g", showTime: true))
                     
                     
                     Image(systemName: "chevron.right")
@@ -60,28 +46,46 @@ struct OrderCard: View {
                 .font(.subheadline)
                 .foregroundColor(.secondary)
                 
-                // Pesanan
-                Text(orderItem.productName)
-                    .font(Font.body.bold())
+                Spacer()
                 
+                HStack {
+                    // Pesanan
+                    Text(orderItem.productName)
+                        .font(Font.title3.bold())
+                    
+                    Spacer()
+                    
+                    if order.downPayment != nil && (order.downPayment!) > 0 {
+                        Text("DP")
+                            .font(.caption)
+                            .bold()
+                            .foregroundColor(.white)
+                            .frame(width: 24, height: 24)
+                            .background(Circle().fill(statusColors[order.status] ?? .gray .opacity(0.7)))
+                    }
+                }
+                
+               
                 // Tambahan
-                Text("+ 3 more")
-                    .font(Font.subheadline)
-                    .foregroundColor(.secondary)
+//                Text("+ 3 more")
+//                    .font(Font.subheadline)
+//                    .foregroundColor(.secondary)
                 
             }
             .padding()
         }
-        
+        .onAppear{
+            
+        }
         .background(
             LinearGradient(
-                gradient: Gradient(colors: [Color.white.opacity(0.15), order.statusColor.opacity(0.15)]),
+                gradient: Gradient(colors: [Color.white.opacity(0.15),  (statusColors[order.status] ?? .gray).opacity(0.15)]),
                 startPoint: .leading,
                 endPoint: .trailing
             )
         )
         .cornerRadius(10)
-        .frame(height: 100)
+        .frame(height: 85)
         .padding(.horizontal, 20)
         
         
@@ -90,15 +94,15 @@ struct OrderCard: View {
     }
 }
 
-#Preview {
-    // Create a stub session
-    let session = SessionManager()
-    session.isSignedIn = true
-    session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
-    
-    // Create the view
-    let view = AllOrdersView()
-    
-    // Inject the environment object
-    return view.environmentObject(session)
-}
+//#Preview {
+//    // Create a stub session
+//    let session = SessionManager()
+//    session.isSignedIn = true
+//    session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
+//    
+//    // Create the view
+//    let view = AllOrdersView()
+//    
+//    // Inject the environment object
+//    return view.environmentObject(session)
+//}

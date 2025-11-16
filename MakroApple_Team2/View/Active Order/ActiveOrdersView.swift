@@ -48,9 +48,9 @@ struct ActiveOrdersView: View {
                           }
 
                           Button {
-                              sortOption = "Nama"
+                              sortOption = "Nama Produk"
                           } label: {
-                              Label("Nama", systemImage: sortOption == "Nama" ? "checkmark" : "")
+                              Label("Nama Produk", systemImage: sortOption == "Nama Produk" ? "checkmark" : "")
                           }
                       }
                   } label: {
@@ -103,7 +103,6 @@ struct ActiveOrdersView: View {
             .coordinateSpace(name: "ordersSpace")
           }
           .task {
-              // Pastikan user sudah login
               if let userIdString = session.userId,
                  let userId = UUID(uuidString: userIdString) {
                   await viewModel.fetchBusinessName(for: userId)

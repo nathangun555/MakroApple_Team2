@@ -44,8 +44,9 @@ class EditTemplateViewModel {
                 errorMessage = "Template tidak ditemukan"
                 return
             }
-
-            parseTemplate(templateDict)
+            if customerFields.isEmpty{
+                parseTemplate(templateDict)
+            }
         } catch {
             errorMessage = "Gagal memuat template: \(error.localizedDescription)"
         }
@@ -54,9 +55,9 @@ class EditTemplateViewModel {
     private func parseTemplate(_ dict: [String: AnyCodable]) {
         // Define field categories based on common keys
         let customerKeys = ["Nama Pemesan", "No. Telp Pemesan", "Nama Penerima", "No. Telp Penerima", "Alamat Kirim"]
-        let scheduleKeys = ["Tanggal Pesanan", "Jam Kirim"]
-        let orderKeys = ["Pesanan", "Adds-on", "Wish / Greeting"]
-        let otherKeys = ["Pengiriman: Kurir / Pickup", "Notes", "Foto Referensi (optional)"]
+        let scheduleKeys = ["Tanggal Pesanan"]
+        let orderKeys = ["Pesanan"]
+        let otherKeys = ["Foto Referensi (optional)"]
         
         for (key, anyValue) in dict {
             let stringValue: String

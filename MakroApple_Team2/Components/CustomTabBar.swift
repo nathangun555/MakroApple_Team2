@@ -42,31 +42,14 @@ enum TabModel: String, CaseIterable {
             "xmark.bin.fill"
         }
     }
-    var color: Color {
-        switch self {
-        case .belumBayar:
-            return .orange
-            
-        case .diproses:
-            return .blue
-            
-        case .terkirim:
-            return .purple
-            
-        case .selesai:
-            return .green
-            
-        case .dibatalkan:
-            return .red
-        }
-    }
+    
+    
 }
 
 
 struct CustomTabBar: View {
     
     @Binding var activeTab: TabModel
-    @State private var showEkor = false
     
     var body: some View {
         GeometryReader { geo in
@@ -99,10 +82,10 @@ struct CustomTabBar: View {
                     .lineLimit(1)
             }
         }
-        .padding(.horizontal, activeTab == tab ? 5 : 20)
-        .foregroundStyle(activeTab == tab ? .white : .black)
+        .padding(.horizontal, activeTab == tab ? 5 : 15)
+        .foregroundStyle(activeTab == tab ? .black : .gray)
         .frame(maxWidth: activeTab == tab ? .infinity : nil, maxHeight: .infinity)
-        .background(activeTab == tab ? tab.color : .clear)
+        .background(activeTab == tab ? statusColors[tab.dbValue] : .clear)
         .cornerRadius(30)
         .shadow(
             color: Color.black.opacity(0.2),
@@ -115,7 +98,7 @@ struct CustomTabBar: View {
                 activeTab = tab
             }
         }
-        .glassEffect()
+        .glassEffect(.clear.tint(.gray.opacity(0.1)))
     }
 }
 

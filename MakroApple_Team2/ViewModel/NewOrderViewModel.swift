@@ -115,6 +115,7 @@ class NewOrderViewModel {
                     print("==============================\n")
                     self.parsedOrderData = parsedOrder
                     self.navigateToConfirm = true
+                    print("HASIL NAVIGATE : \(navigateToConfirm)")
                 } else {
                     print("❌ No 'parsedOrder' key in response")
                     print("Available keys: \(json.keys)")

@@ -11,7 +11,14 @@ class AllOrdersViewModel {
     var errorMessage: String?
     var orders: [OrderRecord] = []
     var orderItems: [OrderItemRecord] = []
+    var hasTemplates: Bool = false
+    var isCheckingTemplates: Bool = false
     
+    private(set) var userId: String?
+    
+    func configure(userId: String?) {
+        self.userId = userId
+    }
     
 
     // MARK: - Fetch Business Name
@@ -81,7 +88,6 @@ class AllOrdersViewModel {
 //    }
     
     func hasOrders(for date: Date) -> Bool {
-       
         return orders.contains { order in
             guard let orderDate = DateFormatterHelper.toDate(order.orderDdayDate ?? "") else {
                 return false
@@ -130,15 +136,52 @@ class AllOrdersViewModel {
     }
     
     func updateOrderStatus(for order: OrderRecord) async {
+        print("🟡 updateOrderStatus() called for order id: \(order.id)")
+        print("🔹 Current status:", order.status)
+
         var nextStatus: String
-        
-        switch order.status {
-        case "belum terbayar": nextStatus = "diproses"
-        case "diproses": nextStatus = "dikirim"
-        case "dikirim": nextStatus = "selesai"
-        default: return
+
+        switch order.status.lowercased() {
+        case "belum terbayar":
+            nextStatus = "Diproses"
+        case "diproses":
+            nextStatus = "Terkirim"
+        case "terkirim":
+            nextStatus = "Selesai"
+        default:
+            print("⚠️ No next status for:", order.status)
+            return
         }
+
+        print("🔸 Next status should be:", nextStatus)
+
+        do {
+            // Example: Update to Supabase or your backend
+            try await SupabaseManager.shared.updateOrderStatus(orderId: order.id, newStatus: nextStatus)
+            print("✅ Status successfully updated to:", nextStatus)
+        } catch {
+            print("❌ Failed to update status:", error.localizedDescription)
+        }
+    }
+    
+    func checkIfUserHasTemplates(for userId: UUID) async {
+        isCheckingTemplates = true
+        defer { isCheckingTemplates = false }
         
+        do {
+            
+            let template = try await SupabaseManager.shared.fetchUser(by: userId)
+            
+            if let temp = template, let format = temp.templateFormat, format.isEmpty || template?.templateFormat == nil{
+                hasTemplates = false
+            } else {
+                hasTemplates = true
+            }
+            print(hasTemplates ? "✅ User has templates" : "⚠️ User has no templates")
+        } catch {
+            print("❌ Error checking templates: \(error)")
+            hasTemplates = false
+        }
     }
 
 }

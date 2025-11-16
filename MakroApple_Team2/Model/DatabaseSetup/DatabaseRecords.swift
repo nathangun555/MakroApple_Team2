@@ -82,6 +82,7 @@ struct OrderRecord: Codable, Identifiable {
     let orderNumber: String
     let status: String
     let orderDdayDate: String?
+    let invoiceDate: String?
     let invoiceDueDate: String?
     let customerOrderName: String
     let customerOrderPhone: String?
@@ -102,6 +103,7 @@ struct OrderRecord: Codable, Identifiable {
     let customFields: [String: AnyCodable]?
     let createdAt: String?
     let updatedAt: String?
+    let downPayment: Decimal?
 
     enum CodingKeys: String, CodingKey {
         case id
@@ -109,6 +111,7 @@ struct OrderRecord: Codable, Identifiable {
         case orderNumber = "order_number"
         case status
         case orderDdayDate = "order_dday_date"
+        case invoiceDate = "invoice_date"
         case invoiceDueDate = "invoice_due_date"
         case customerOrderName = "customer_order_name"
         case customerOrderPhone = "customer_order_phone"
@@ -129,6 +132,7 @@ struct OrderRecord: Codable, Identifiable {
         case customFields = "custom_fields"
         case createdAt = "created_at"
         case updatedAt = "updated_at"
+        case downPayment = "down_payment"
     }
 }
 
@@ -140,6 +144,7 @@ struct OrderItemRecord: Codable, Identifiable {
     let productName: String
     let productPrice: Decimal
     let productType: String
+    let productDiscount: Decimal
     let quantity: Int
     let subtotal: Decimal
     let createdAt: String?
@@ -152,6 +157,7 @@ struct OrderItemRecord: Codable, Identifiable {
         case productName = "product_name"
         case productPrice = "product_price"
         case productType = "product_type"
+        case productDiscount = "product_discount"
         case quantity, subtotal
         case createdAt = "created_at"
         case updatedAt = "updated_at"

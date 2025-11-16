@@ -11,8 +11,8 @@ struct FormSection: View {
     let title: String
     @Binding var fields: [FormFieldItem]
     let onAddColumn: () -> Void
-//    var showDelete: Bool = false
-//    var onDelete: ((Int) -> Void)? = nil
+    var showDelete: Bool = false
+    var onDelete: ((Int) -> Void)? = nil
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -23,11 +23,17 @@ struct FormSection: View {
                 
                 Spacer()
                 
-                Button(action: onAddColumn) {
-                    Label("Tambahkan Kolom", systemImage: "plus")
-                        .font(.subheadline)
-                        .foregroundColor(.blue)
+                if title == "Lain - Lain"{
+                    Button(action: onAddColumn) {
+                        Label("Tambahkan Kolom", systemImage: "plus")
+                            .font(.subheadline)
+                            .foregroundColor(.primaryButton)
+//                            .background(.gray)
+                    }
+                    .buttonStyle(.bordered)
+                    .tint(.gray)
                 }
+                
             }
             .padding(.horizontal)
             
@@ -38,9 +44,9 @@ struct FormSection: View {
                                 get: { field.label },
                                 set: { fields[index].label = $0 }
                             ))
-                            .frame(width: 140, alignment: .trailing)
+                            .frame(maxWidth: .infinity, alignment: .leading)
                             .font(.body)
-                            .multilineTextAlignment(.trailing)
+                            .multilineTextAlignment(.leading)
                             .textFieldStyle(RoundedBorderTextFieldStyle())
                         
                         Text("")
@@ -55,16 +61,30 @@ struct FormSection: View {
                             )
                             .foregroundColor(.secondary)
                         
-//                        if showDelete, let onDelete = onDelete {
-//                            Button(action: { onDelete(index) }) {
-//                                Image(systemName: "trash")
-//                                    .foregroundColor(.red)
-//                            }
-//                        }
+                        if showDelete, let onDelete = onDelete {
+                            Button(action: { onDelete(index) }) {
+                                Image(systemName: "trash")
+                                    .foregroundColor(.red)
+                            }
+                        }
                     }
                     .padding(.horizontal)
                 }
             }
         }
+    }
+}
+
+#Preview {
+    // Dummy binding
+    @State var isDismissed = false
+
+    // Dummy environment object
+    let session = SessionManager()
+    session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
+
+    return NavigationStack {
+        EditTemplateFormView(isDismissed: $isDismissed)
+            .environmentObject(session)
     }
 }

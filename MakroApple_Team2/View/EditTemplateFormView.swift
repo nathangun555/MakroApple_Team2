@@ -13,6 +13,8 @@ struct EditTemplateFormView: View {
     @EnvironmentObject var session: SessionManager
     @Environment(\.dismiss) var dismiss
     
+    @Binding var isDismissed: Bool
+    
     var body: some View {
         ZStack {
             if viewModel.isLoading {
@@ -47,7 +49,7 @@ struct EditTemplateFormView: View {
                         FormSection(
                             title: "Rincian Pesanan",
                             fields: $viewModel.orderFields,
-                            onAddColumn: { viewModel.addOrderField() },
+                            onAddColumn: { viewModel.addOrderField() }
 //                                showDelete: true,
 //                                onDelete: { index in viewModel.deleteOrderField(at: index) }
                         )
@@ -57,8 +59,8 @@ struct EditTemplateFormView: View {
                             title: "Lain - Lain",
                             fields: $viewModel.otherFields,
                             onAddColumn: { viewModel.addOtherField() },
-//                                showDelete: true,
-//                                onDelete: { index in viewModel.deleteOtherField(at: index) }
+                            showDelete: true,
+                            onDelete: { index in viewModel.deleteOtherField(at: index) }
                         )
                         
                         // Referensi Foto Section
@@ -80,8 +82,15 @@ struct EditTemplateFormView: View {
                                     
                                     VStack {
                                         Image(systemName: "photo.badge.plus")
-                                            .font(.system(size: 40))
-                                            .foregroundColor(.gray)
+                                            .foregroundColor(.black)
+                                            .frame(width: 115, height: 115)
+                                            .overlay(
+                                                RoundedRectangle(cornerRadius: 10)
+                                                    .strokeBorder(style: StrokeStyle(lineWidth: 1, dash: [5]))
+                                                    .foregroundStyle(Color.secondary)
+                                                    .background(.gray.opacity(0.1))
+                                                    .cornerRadius(10)
+                                            )
                                     }
                                 }
                             }
@@ -97,28 +106,26 @@ struct EditTemplateFormView: View {
         .navigationTitle("Formulir Pesanan")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            ToolbarItemGroup(placement: .topBarTrailing) {
-                Button(action: {
-                    print("")
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
                     Task {
                         await viewModel.saveTemplate()
                     }
-                }) {
-                    if viewModel.isSaving {
-                        ProgressView()
-                    } else {
-                        Image(systemName: "arrow.right")
-                            .foregroundColor(.white)
-                            .padding(8)
-                            .background(Color.blue)
-                            .clipShape(Circle())
-                    }
+                } label: {
+                    Image(systemName: "chevron.right")
+                        .font(.title3)
+                        .foregroundColor(.white)
+                        
                 }
+                .buttonStyle(.glassProminent)
                 .disabled(viewModel.isSaving)
+                .tint(.primaryButton)
             }
+            
+            
         }
         .navigationDestination(isPresented: $viewModel.didSave) {
-            InvoicePreviewView(orderId: nil)
+            InvoicePreviewView(isDismissed: $isDismissed)
         }
         .task {
             viewModel.configure(userId: session.userId)
@@ -128,11 +135,25 @@ struct EditTemplateFormView: View {
 }
 
 #Preview {
+    // Dummy binding
+    @State var isDismissed = false
+
+    // Dummy environment object
     let session = SessionManager()
-    session.isSignedIn = true
     session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
-    
-    let view = EditTemplateFormView()
-    
-    return view.environmentObject(session)
+
+    return NavigationStack {
+        EditTemplateFormView(isDismissed: $isDismissed)
+            .environmentObject(session)
+    }
 }
+
+//#Preview {
+//    let session = SessionManager()
+//    session.isSignedIn = true
+//    session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
+//    
+//    let view = EditTemplateFormView()
+//    
+//    return view.environmentObject(session)
+//}

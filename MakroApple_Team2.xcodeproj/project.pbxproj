@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		2B21CFC52EB36D09003EEB61 /* ShareExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 2B21CFBB2EB36D09003EEB61 /* ShareExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		2B41C5AC2EB9FEAB004E99AD /* MakroApple-Team2-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 2B41C5AB2EB9FEAB004E99AD /* MakroApple-Team2-Info.plist */; };
 		351655F92EA62B3E004AD28D /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 351655F82EA62B3E004AD28D /* Supabase */; };
 		35AD8ADF2EA626A9007F83D5 /* Auth in Frameworks */ = {isa = PBXBuildFile; productRef = 35AD8ADE2EA626A9007F83D5 /* Auth */; };
 		35AD8AE12EA626A9007F83D5 /* Functions in Frameworks */ = {isa = PBXBuildFile; productRef = 35AD8AE02EA626A9007F83D5 /* Functions */; };
@@ -16,24 +18,52 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		35E69F7F2EB49E6100E3F33A /* PBXContainerItemProxy */ = {
+		2B21CFC32EB36D09003EEB61 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 7C98DB4B2E93CAD400F06C20 /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = 7C98DB522E93CAD400F06C20;
-			remoteInfo = MakroApple_Team2;
+			remoteGlobalIDString = 2B21CFBA2EB36D09003EEB61;
+			remoteInfo = ShareExtension;
 		};
 /* End PBXContainerItemProxy section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		2B21CFCA2EB36D09003EEB61 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				2B21CFC52EB36D09003EEB61 /* ShareExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
-		35E69F7B2EB49E6100E3F33A /* MakroApple_Team2Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MakroApple_Team2Tests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		2B21CFBB2EB36D09003EEB61 /* ShareExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ShareExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		2B41C5AB2EB9FEAB004E99AD /* MakroApple-Team2-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "MakroApple-Team2-Info.plist"; sourceTree = "<group>"; };
 		7C98DB532E93CAD400F06C20 /* MakroApple_Team2.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MakroApple_Team2.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		2B21CFC62EB36D09003EEB61 /* Exceptions for "ShareExtension" folder in "ShareExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 2B21CFBA2EB36D09003EEB61 /* ShareExtension */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		35E69F7C2EB49E6100E3F33A /* MakroApple_Team2Tests */ = {
+		2B21CFBC2EB36D09003EEB61 /* ShareExtension */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = MakroApple_Team2Tests;
+			exceptions = (
+				2B21CFC62EB36D09003EEB61 /* Exceptions for "ShareExtension" folder in "ShareExtension" target */,
+			);
+			path = ShareExtension;
 			sourceTree = "<group>";
 		};
 		7C98DB552E93CAD400F06C20 /* MakroApple_Team2 */ = {
@@ -44,7 +74,7 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		35E69F782EB49E6100E3F33A /* Frameworks */ = {
+		2B21CFB82EB36D09003EEB61 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -77,8 +107,9 @@
 		7C98DB4A2E93CAD400F06C20 = {
 			isa = PBXGroup;
 			children = (
+				2B41C5AB2EB9FEAB004E99AD /* MakroApple-Team2-Info.plist */,
 				7C98DB552E93CAD400F06C20 /* MakroApple_Team2 */,
-				35E69F7C2EB49E6100E3F33A /* MakroApple_Team2Tests */,
+				2B21CFBC2EB36D09003EEB61 /* ShareExtension */,
 				351655F72EA62B3E004AD28D /* Frameworks */,
 				7C98DB542E93CAD400F06C20 /* Products */,
 			);
@@ -88,7 +119,7 @@
 			isa = PBXGroup;
 			children = (
 				7C98DB532E93CAD400F06C20 /* MakroApple_Team2.app */,
-				35E69F7B2EB49E6100E3F33A /* MakroApple_Team2Tests.xctest */,
+				2B21CFBB2EB36D09003EEB61 /* ShareExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -96,28 +127,27 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		35E69F7A2EB49E6100E3F33A /* MakroApple_Team2Tests */ = {
+		2B21CFBA2EB36D09003EEB61 /* ShareExtension */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 35E69F832EB49E6100E3F33A /* Build configuration list for PBXNativeTarget "MakroApple_Team2Tests" */;
+			buildConfigurationList = 2B21CFC72EB36D09003EEB61 /* Build configuration list for PBXNativeTarget "ShareExtension" */;
 			buildPhases = (
-				35E69F772EB49E6100E3F33A /* Sources */,
-				35E69F782EB49E6100E3F33A /* Frameworks */,
-				35E69F792EB49E6100E3F33A /* Resources */,
+				2B21CFB72EB36D09003EEB61 /* Sources */,
+				2B21CFB82EB36D09003EEB61 /* Frameworks */,
+				2B21CFB92EB36D09003EEB61 /* Resources */,
 			);
 			buildRules = (
 			);
 			dependencies = (
-				35E69F802EB49E6100E3F33A /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
-				35E69F7C2EB49E6100E3F33A /* MakroApple_Team2Tests */,
+				2B21CFBC2EB36D09003EEB61 /* ShareExtension */,
 			);
-			name = MakroApple_Team2Tests;
+			name = ShareExtension;
 			packageProductDependencies = (
 			);
-			productName = MakroApple_Team2Tests;
-			productReference = 35E69F7B2EB49E6100E3F33A /* MakroApple_Team2Tests.xctest */;
-			productType = "com.apple.product-type.bundle.unit-test";
+			productName = ShareExtension;
+			productReference = 2B21CFBB2EB36D09003EEB61 /* ShareExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 		7C98DB522E93CAD400F06C20 /* MakroApple_Team2 */ = {
 			isa = PBXNativeTarget;
@@ -126,10 +156,12 @@
 				7C98DB4F2E93CAD400F06C20 /* Sources */,
 				7C98DB502E93CAD400F06C20 /* Frameworks */,
 				7C98DB512E93CAD400F06C20 /* Resources */,
+				2B21CFCA2EB36D09003EEB61 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				2B21CFC42EB36D09003EEB61 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				7C98DB552E93CAD400F06C20 /* MakroApple_Team2 */,
@@ -157,9 +189,8 @@
 				LastSwiftUpdateCheck = 2600;
 				LastUpgradeCheck = 2600;
 				TargetAttributes = {
-					35E69F7A2EB49E6100E3F33A = {
+					2B21CFBA2EB36D09003EEB61 = {
 						CreatedOnToolsVersion = 26.0.1;
-						TestTargetID = 7C98DB522E93CAD400F06C20;
 					};
 					7C98DB522E93CAD400F06C20 = {
 						CreatedOnToolsVersion = 26.0.1;
@@ -184,13 +215,13 @@
 			projectRoot = "";
 			targets = (
 				7C98DB522E93CAD400F06C20 /* MakroApple_Team2 */,
-				35E69F7A2EB49E6100E3F33A /* MakroApple_Team2Tests */,
+				2B21CFBA2EB36D09003EEB61 /* ShareExtension */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		35E69F792EB49E6100E3F33A /* Resources */ = {
+		2B21CFB92EB36D09003EEB61 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -201,13 +232,14 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2B41C5AC2EB9FEAB004E99AD /* MakroApple-Team2-Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		35E69F772EB49E6100E3F33A /* Sources */ = {
+		2B21CFB72EB36D09003EEB61 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -224,57 +256,73 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		35E69F802EB49E6100E3F33A /* PBXTargetDependency */ = {
+		2B21CFC42EB36D09003EEB61 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 7C98DB522E93CAD400F06C20 /* MakroApple_Team2 */;
-			targetProxy = 35E69F7F2EB49E6100E3F33A /* PBXContainerItemProxy */;
+			target = 2B21CFBA2EB36D09003EEB61 /* ShareExtension */;
+			targetProxy = 2B21CFC32EB36D09003EEB61 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
-		35E69F812EB49E6100E3F33A /* Debug */ = {
+		2B21CFC82EB36D09003EEB61 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_ENTITLEMENTS = ShareExtension/ShareExtension.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 382P7XX6KL;
+				DEVELOPMENT_TEAM = R6CU6N8W65;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = ShareExtension/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = ShareExtension;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "alfred.MakroApple-Team2Tests";
+				PRODUCT_BUNDLE_IDENTIFIER = "MakroApple-Team2.ShareExtension";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
-				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/MakroApple_Team2.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/MakroApple_Team2";
 			};
 			name = Debug;
 		};
-		35E69F822EB49E6100E3F33A /* Release */ = {
+		2B21CFC92EB36D09003EEB61 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_ENTITLEMENTS = ShareExtension/ShareExtension.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 382P7XX6KL;
+				DEVELOPMENT_TEAM = R6CU6N8W65;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = ShareExtension/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = ShareExtension;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "alfred.MakroApple-Team2Tests";
+				PRODUCT_BUNDLE_IDENTIFIER = "MakroApple-Team2.ShareExtension";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
-				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/MakroApple_Team2.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/MakroApple_Team2";
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
@@ -407,6 +455,7 @@
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "MakroApple-Team2-Info.plist";
+				INFOPLIST_KEY_LSApplicationCategoryType = "";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -422,8 +471,9 @@
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				MARKETING_VERSION = 1.0;
+				NEW_SETTING = "";
 				OTHER_SWIFT_FLAGS = "-DDEV_STUB_SESSION";
-				PRODUCT_BUNDLE_IDENTIFIER = "MakroApple-Team2.MakroApple-Team2";
+				PRODUCT_BUNDLE_IDENTIFIER = "MakroApple-Team2";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = auto;
@@ -454,6 +504,7 @@
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "MakroApple-Team2-Info.plist";
+				INFOPLIST_KEY_LSApplicationCategoryType = "";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -469,7 +520,8 @@
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "MakroApple-Team2.MakroApple-Team2";
+				NEW_SETTING = "";
+				PRODUCT_BUNDLE_IDENTIFIER = "MakroApple-Team2";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = auto;
@@ -489,11 +541,11 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		35E69F832EB49E6100E3F33A /* Build configuration list for PBXNativeTarget "MakroApple_Team2Tests" */ = {
+		2B21CFC72EB36D09003EEB61 /* Build configuration list for PBXNativeTarget "ShareExtension" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				35E69F812EB49E6100E3F33A /* Debug */,
-				35E69F822EB49E6100E3F33A /* Release */,
+				2B21CFC82EB36D09003EEB61 /* Debug */,
+				2B21CFC92EB36D09003EEB61 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
