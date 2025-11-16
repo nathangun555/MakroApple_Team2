@@ -73,7 +73,16 @@ struct InputMenuView: View {
                 headerSection
                 uploadSection
                 Spacer().frame(height: 40)
-                submitButton
+                VStack(alignment: .center, spacing: 12) {
+                    submitButton
+                    if viewModel.isLoading {
+                        Text("Harap menunggu, AI sedang memindai katalog Anda..")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                            .multilineTextAlignment(.center)
+                    }
+                }
+                .frame(maxWidth: .infinity)
             }
             .padding(.vertical)
         }

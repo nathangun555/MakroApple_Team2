@@ -201,7 +201,7 @@ struct ProductsSection: View {
 //                        Text(product.category.isEmpty ? "Kategori Produk" : product.category)
 //                            .font(.headline)
 //                            .foregroundColor(product.category.isEmpty ? .secondary : .primary)
-//                        Spacer()
+                        Spacer()
                         if products.count > 1 {
                             Button { onDelete(index) } label: {
                                 Image(systemName: "trash").foregroundColor(.red)
