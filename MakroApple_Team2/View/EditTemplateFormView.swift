@@ -82,8 +82,15 @@ struct EditTemplateFormView: View {
                                     
                                     VStack {
                                         Image(systemName: "photo.badge.plus")
-                                            .font(.system(size: 40))
-                                            .foregroundColor(.gray)
+                                            .foregroundColor(.black)
+                                            .frame(width: 115, height: 115)
+                                            .overlay(
+                                                RoundedRectangle(cornerRadius: 10)
+                                                    .strokeBorder(style: StrokeStyle(lineWidth: 1, dash: [5]))
+                                                    .foregroundStyle(Color.secondary)
+                                                    .background(.gray.opacity(0.1))
+                                                    .cornerRadius(10)
+                                            )
                                     }
                                 }
                             }

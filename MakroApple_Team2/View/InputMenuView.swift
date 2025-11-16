@@ -73,7 +73,16 @@ struct InputMenuView: View {
                 headerSection
                 uploadSection
                 Spacer().frame(height: 40)
-                submitButton
+                VStack(alignment: .center, spacing: 12) {
+                    submitButton
+                    if viewModel.isLoading {
+                        Text("Harap menunggu, AI sedang memindai katalog Anda..")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                            .multilineTextAlignment(.center)
+                    }
+                }
+                .frame(maxWidth: .infinity)
             }
             .padding(.vertical)
         }
@@ -103,7 +112,7 @@ struct InputMenuView: View {
     private var emptyStateView: some View {
         RoundedRectangle(cornerRadius: 12)
             .strokeBorder(style: StrokeStyle(lineWidth: 2, dash: [8]))
-            .foregroundColor(.blue)
+            .foregroundColor(.gray)
             .frame(height: 200)
             .overlay(
                 VStack(spacing: 12) {
@@ -123,6 +132,7 @@ struct InputMenuView: View {
             )
             .padding(.horizontal)
             .onTapGesture { showUploadOptions = true }
+            .background(Color.gray.opacity(0.05))
     }
     
     private var uploadedFilesView: some View {
@@ -138,12 +148,12 @@ struct InputMenuView: View {
         HStack(spacing: 12) {
             ZStack {
                 RoundedRectangle(cornerRadius: 8)
-                    .fill(Color.red.opacity(0.1))
+                    .fill(Color.gray.opacity(0.1))
                     .frame(width: 50, height: 50)
                 Text(file.isPDF ? "PDF" : "IMG")
                     .font(.caption)
                     .bold()
-                    .foregroundColor(.red)
+                    .foregroundColor(.gray)
             }
             
             VStack(alignment: .leading, spacing: 4) {
