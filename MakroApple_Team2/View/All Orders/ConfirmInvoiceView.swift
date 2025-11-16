@@ -322,20 +322,20 @@
     //                .padding()
 
                     // MARK: - Referensi Foto
-                    if !viewModel.photoUrl1.isEmpty {
-                        InvoiceSectionHeader(title: "Referensi Foto")
-                        
-                        AsyncImage(url: URL(string: viewModel.photoUrl1)) { image in
-                            image
-                                .resizable()
-                                .aspectRatio(contentMode: .fill)
-                        } placeholder: {
-                            Color.gray.opacity(0.2)
-                        }
-                        .frame(height: 200)
-                        .cornerRadius(12)
-                        .padding(.horizontal)
-                    }
+//                    if !viewModel.photoUrl1.isEmpty {
+//                        InvoiceSectionHeader(title: "Referensi Foto")
+//                        
+//                        AsyncImage(url: URL(string: viewModel.photoUrl1)) { image in
+//                            image
+//                                .resizable()
+//                                .aspectRatio(contentMode: .fill)
+//                        } placeholder: {
+//                            Color.gray.opacity(0.2)
+//                        }
+//                        .frame(height: 200)
+//                        .cornerRadius(12)
+//                        .padding(.horizontal)
+//                    }
                 }
                 .padding(.horizontal)
             }

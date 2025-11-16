@@ -19,6 +19,8 @@ class InputMenuViewModel {
     var scannedCategories: [MenuCategory] = []
     var scanResponseRaw: String?
     
+    var isLoading = false
+    
     private(set) var userId: String?
     
     func configure(userId: String?) {
@@ -179,6 +181,7 @@ class InputMenuViewModel {
     
     // MARK: - Scan single batch (detail: low, timeout besar)
     func menuScanBatch(imageUrls: [String], completion: @escaping (String?) -> Void) {
+        isLoading = true
         guard let url = URL(string: "https://ynxrqdbpovgmhhoobfjt.supabase.co/functions/v1/menu-parser") else {
             print("❌ URL is invalid.")
             completion(nil)
@@ -294,6 +297,7 @@ class InputMenuViewModel {
                     print("  - \(product.name): Rp\(product.price)")
                 }
             }
+            isLoading = false
         } catch {
             print("❌ Failed to decode scan result: \(error)")
             errorMessage = "Failed to parse menu data: \(error.localizedDescription)"
