@@ -35,21 +35,24 @@ struct EditTemplateFormView: View {
                         FormSection(
                             title: "Rincian Pelanggan",
                             fields: $viewModel.customerFields,
-                            onAddColumn: { viewModel.addCustomerField() }
+                            onAddColumn: { viewModel.addCustomerField() },
+                            isEditable: false
                         )
                         
                         // Jadwal Pesanan Section
                         FormSection(
                             title: "Jadwal Pesanan",
                             fields: $viewModel.scheduleFields,
-                            onAddColumn: { viewModel.addScheduleField() }
+                            onAddColumn: { viewModel.addScheduleField() },
+                            isEditable: false
                         )
                         
                         // Rincian Pesanan Section
                         FormSection(
                             title: "Rincian Pesanan",
                             fields: $viewModel.orderFields,
-                            onAddColumn: { viewModel.addOrderField() }
+                            onAddColumn: { viewModel.addOrderField() },
+                            isEditable: false
 //                                showDelete: true,
 //                                onDelete: { index in viewModel.deleteOrderField(at: index) }
                         )

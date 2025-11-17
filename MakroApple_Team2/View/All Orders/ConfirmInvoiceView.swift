@@ -40,8 +40,8 @@
                     InvoiceSectionHeader(title: "Rincian Invoice")
                     
                     VStack(alignment: .leading, spacing: 12) {
-                        InvoiceRowField(label: "No. Invoice", value: $viewModel.invoiceNumber)
-                        InvoiceRowField(label: "Tanggal", value: $viewModel.invoiceDate)
+                        InvoiceRowField(label: "No. Invoice", value: $viewModel.invoiceNumber, isEditable: false)
+                        InvoiceRowField(label: "Tanggal", value: $viewModel.invoiceDate, isEditable: false)
                         
                         // Date Picker for Due Date
                         HStack {
@@ -74,9 +74,9 @@
                     InvoiceSectionHeader(title: "Informasi Pembayaran")
                     
                     VStack(alignment: .leading, spacing: 12) {
-                        InvoiceRowField(label: "Nama Akun", value: $viewModel.accountName)
-                        InvoiceRowField(label: "Nomor Rekening", value: $viewModel.accountNumber)
-                        InvoiceRowField(label: "Nama Bank", value: $viewModel.bankName)
+                        InvoiceRowField(label: "Nama Akun", value: $viewModel.accountName, isEditable: false)
+                        InvoiceRowField(label: "Nomor Rekening", value: $viewModel.accountNumber, isEditable: false)
+                        InvoiceRowField(label: "Nama Bank", value: $viewModel.bankName, isEditable: false)
                     }
                     .padding(.horizontal)
 
@@ -84,8 +84,8 @@
                     InvoiceSectionHeader(title: "Tagihan Untuk")
                     
                     VStack(alignment: .leading, spacing: 12) {
-                        InvoiceRowField(label: "Nama Pemesan", value: $viewModel.customerName)
-                        InvoiceRowField(label: "No Telp Pemesan", value: $viewModel.customerPhone)
+                        InvoiceRowField(label: "Nama Pemesan", value: $viewModel.customerName, isEditable: false)
+                        InvoiceRowField(label: "No Telp Pemesan", value: $viewModel.customerPhone, isEditable: false)
                     }
                     .padding(.horizontal)
 
@@ -270,9 +270,9 @@
                     InvoiceSectionHeader(title: "Rincian Tambahan")
                     
                     VStack(alignment: .leading, spacing: 12) {
-                        InvoiceRowField(label: "Nama Penerima", value: $viewModel.receiverName)
-                        InvoiceRowField(label: "No Telp Penerima", value: $viewModel.receiverPhone)
-                        InvoiceRowField(label: "Alamat Kirim", value: $viewModel.shippingAddress)
+                        InvoiceRowField(label: "Nama Penerima", value: $viewModel.receiverName, isEditable: false)
+                        InvoiceRowField(label: "No Telp Penerima", value: $viewModel.receiverPhone, isEditable: false)
+                        InvoiceRowField(label: "Alamat Kirim", value: $viewModel.shippingAddress, isEditable: false)
                     }
                     .padding(.horizontal)
 
@@ -280,8 +280,8 @@
                     InvoiceSectionHeader(title: "Jadwal Pesanan")
                     
                     VStack(alignment: .leading, spacing: 12) {
-                        InvoiceRowField(label: "Tanggal Pesanan", value: $viewModel.orderDate)
-    //                    InvoiceRowField(label: "Jam Kirim", value: $viewModel.deliveryTime)
+                        InvoiceRowField(label: "Tanggal Pesanan", value: $viewModel.orderDate, isEditable: false)
+                        InvoiceRowField(label: "Jam Kirim", value: $viewModel.deliveryTime, isEditable: false)
                     }
                     .padding(.horizontal)
 
@@ -370,6 +370,7 @@
         @Binding var value: String
         var keyboardType: UIKeyboardType = .default
         var hasError: Bool = false
+        var isEditable: Bool = true
         
         var body: some View {
             VStack(alignment: .leading) {
@@ -378,13 +379,17 @@
                         .frame(width: 140, alignment: .leading)
                         .font(.body)
                         .foregroundColor(.primary)
-                    
+
                     TextField("Silakan isi kolom", text: $value)
                         .font(.body)
                         .multilineTextAlignment(.leading)
                         .padding(.horizontal, 12)
                         .padding(.vertical, 8)
-                        .background(Color(.white))
+                        .background(
+                            isEditable
+                                ? Color.white
+                                : Color(.systemGray5)
+                        )
                         .cornerRadius(8)
                         .overlay(
                             RoundedRectangle(cornerRadius: 8)
@@ -393,9 +398,11 @@
                                     lineWidth: hasError ? 2 : 1
                                 )
                         )
+                        .foregroundColor(isEditable ? .primary : .gray)
                         .keyboardType(keyboardType)
+                        .disabled(!isEditable)
                 }
-                
+
                 if hasError {
                     HStack {
                         Spacer().frame(width: 140)
@@ -407,9 +414,10 @@
                     }
                 }
             }
-    //        .padding(.horizontal)
         }
     }
+
+
 
 
     #Preview {

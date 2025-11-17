@@ -71,7 +71,7 @@ class EditOrderViewModel {
         }
         
         // 2. Schedule fields
-        let scheduleKeys = ["Tanggal Pesanan"]
+        let scheduleKeys = ["Tanggal Pesanan", "Jam Kirim"]
         for key in scheduleKeys {
             if let value = data[key] as? String {
                 scheduleFields.append(OrderField(label: "\(key) :", value: value))

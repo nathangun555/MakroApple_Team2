@@ -107,19 +107,49 @@ struct DateFormatterHelper {
         return formatter.string(from: date)
     }
     
-    static func indonesianDateAndTime(from isoString: String) -> (tanggal: String, jam: String) {
-        let isoFormatter = ISO8601DateFormatter()
-        isoFormatter.formatOptions = [.withInternetDateTime]
-        guard let date = isoFormatter.date(from: isoString) else {
-            return (isoString, "")
-        }
-        let dateFormatter = DateFormatter()
-        dateFormatter.locale = Locale(identifier: "id_ID")
-        dateFormatter.dateFormat = "d MMMM yyyy"
-        let timeFormatter = DateFormatter()
-        timeFormatter.locale = Locale(identifier: "id_ID")
-        timeFormatter.dateFormat = "HH:mm"
-        return (dateFormatter.string(from: date), timeFormatter.string(from: date))
+//    static func indonesianDateAndTime(from isoString: String) -> (tanggal: String, jam: String) {
+//        let isoFormatter = ISO8601DateFormatter()
+//        isoFormatter.formatOptions = [.withInternetDateTime]
+//        guard let date = isoFormatter.date(from: isoString) else {
+//            return (isoString, "")
+//        }
+//        let dateFormatter = DateFormatter()
+//        dateFormatter.locale = Locale(identifier: "id_ID")
+//        dateFormatter.dateFormat = "d MMMM yyyy"
+//        let timeFormatter = DateFormatter()
+//        timeFormatter.locale = Locale(identifier: "id_ID")
+//        timeFormatter.dateFormat = "HH:mm"
+//        return (dateFormatter.string(from: date), timeFormatter.string(from: date))
+//    }
+    
+    // For Date and Time Picker
+    func parseIndonesianDate(_ text: String) -> Date? {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "id_ID")
+        formatter.dateFormat = "dd MMMM yyyy"
+        return formatter.date(from: text)
     }
+
+    func formatIndonesianDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "id_ID")
+        formatter.dateFormat = "dd MMMM yyyy"
+        return formatter.string(from: date)
+    }
+
+    func parseTime(_ text: String) -> Date? {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "id_ID")
+        formatter.dateFormat = "HH:mm"
+        return formatter.date(from: text)
+    }
+
+    func formatTime(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "id_ID")
+        formatter.dateFormat = "HH:mm"
+        return formatter.string(from: date)
+    }
+
 }
 
