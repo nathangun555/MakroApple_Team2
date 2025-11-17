@@ -1,14 +1,14 @@
 //
-//  Set_ConfirmMenuView.swift
+//  Set_ManualInputView.swift
 //  MakroApple_Team2
 //
-//  Created for Settings flow - Confirm scanned menu
+//  Created for Settings flow - Manual menu input
 //
 
 import SwiftUI
 import Combine
 
-struct Set_ConfirmMenuView: View {
+struct Set_ManualInputView: View {
     
     @EnvironmentObject var session: SessionManager
     @EnvironmentObject var deleteBus: DeleteOverlayBus
@@ -17,7 +17,6 @@ struct Set_ConfirmMenuView: View {
     @Environment(\.dismiss) private var dismiss
     
     @Binding var isDismissed: Bool
-    let scannedCategories: [MenuCategory]
     
     // Simpan konteks item yang dihapus (eksekusi via bus)
     @State private var itemToDelete: (type: DeleteType, sIndex: Int, pIndex: Int?)? = nil
@@ -27,11 +26,6 @@ struct Set_ConfirmMenuView: View {
         ZStack {
             NavigationStack {
                 VStack(spacing: 12) {
-                    // Info banner hasil scan (di atas search)
-                    if vm.isLoadedFromScan {
-                        scanInfoBanner
-                    }
-                    
                     // Header: search + plus di kanan
                     searchHeader
                     
@@ -42,7 +36,7 @@ struct Set_ConfirmMenuView: View {
                 .navigationBarBackButtonHidden(true)
                 .toolbar {
                     ToolbarItem(placement: .principal) {
-                        Text("Konfirmasi Hasil Scan")
+                        Text("Rincian Menu / Katalog")
                             .font(.title2.bold())
                     }
                     ToolbarItem(placement: .navigationBarLeading) {
@@ -94,7 +88,7 @@ struct Set_ConfirmMenuView: View {
                 }
             }
 
-            // ⬇️ Overlay UNSAVED (di atas fullScreenCover ini)
+            // ⬇️ Overlay UNSAVED di atas fullScreenCover ini
             if unsavedBus.show {
                 Color.black.opacity(0.45)
                     .ignoresSafeArea()
@@ -137,39 +131,16 @@ struct Set_ConfirmMenuView: View {
         }
         .task {
             vm.configure(userId: session.userId)
-            await vm.loadFromScan(categories: scannedCategories)
+            // Langsung tambahkan 3 produk kosong
+            initializeEmptyProducts()
         }
     }
     
-    // MARK: - Info Banner
-    private var scanInfoBanner: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Image(systemName: "checkmark.circle.fill")
-                    .foregroundColor(.green)
-                Text("Katalog berhasil dipindai")
-                    .font(.headline)
-                Spacer()
-            }
-            
-            HStack(spacing: 16) {
-                Label("\(vm.sections.count) kategori", systemImage: "folder.fill")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                
-                Label("\(vm.sections.flatMap { $0.items }.count) produk", systemImage: "tag.fill")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-            }
-            
-            Text("Periksa dan edit jika ada kesalahan sebelum menyimpan")
-                .font(.caption)
-                .foregroundColor(.secondary)
+    // MARK: - Initialize 3 empty products
+    private func initializeEmptyProducts() {
+        for _ in 0..<3 {
+            vm.addTemporaryProductFlat()
         }
-        .padding()
-        .background(Color.green.opacity(0.1))
-        .cornerRadius(12)
-        .padding(.horizontal)
     }
     
     // MARK: - Header Search + Plus
@@ -246,7 +217,7 @@ struct Set_ConfirmMenuView: View {
     func handleDeleteProduct(sIndex: Int, pIndex: Int) {
         itemToDelete = (.product, sIndex, pIndex)
         deleteBus.request(message: "Apakah Anda yakin ingin menghapus produk ini?") {
-            // Eksekusi actual delete di executeDelete()
+            // Eksekusi nyata di executeDelete()
         }
     }
     
@@ -265,14 +236,7 @@ struct Set_ConfirmMenuView: View {
     session.isSignedIn = true
     session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
     
-    let mockCategories = [
-        MenuCategory(categoryName: "Custom Cake", products: [
-            MenuProduct(name: "Custom Cake 12cm", price: 110000, notes: nil, productType: "Custom Cake"),
-            MenuProduct(name: "Custom Cake 16cm", price: 190000, notes: nil, productType: "Custom Cake")
-        ])
-    ]
-    
-    return Set_ConfirmMenuView(isDismissed: .constant(false), scannedCategories: mockCategories)
+    return Set_ManualInputView(isDismissed: .constant(false))
         .environmentObject(session)
         .environmentObject(DeleteOverlayBus())
         .environmentObject(UnsavedOverlayBus())

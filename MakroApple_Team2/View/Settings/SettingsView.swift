@@ -4,7 +4,6 @@
 //
 //  Created by Nathan Gunawan on 17/10/25.
 //
-
 import SwiftUI
 
 struct SettingsView: View {
@@ -21,11 +20,14 @@ struct SettingsView: View {
     @State private var isCheckingTemplate = false
     @State private var checkError: String?
 
-    // Navigasi dinamis (menu katalog)
-    @State private var goToInputMenu = false
-    @State private var goToMenuDetails = false
+    // Navigasi dinamis (menu katalog) - untuk fullScreenCover
+    @State private var showInputMenu = false
+    @State private var showMenuDetails = false
     @State private var isCheckingProducts = false
     @State private var productCheckError: String?
+    
+    // Binding untuk dismiss all sheets (dipakai Set_InputMenuView / Set_ConfirmMenuView / Set_ManualInputView)
+    @State private var isDismissedFromMenu = false
 
     var body: some View {
         NavigationStack {
@@ -174,23 +176,25 @@ struct SettingsView: View {
                     .environmentObject(session)
             }
 
-            // Destinasi dinamis Katalog/Menu
-            .navigationDestination(isPresented: $goToInputMenu) {
-                Set_InputMenuView(isDismissed: .constant(false))
+            // fullScreenCover untuk Menu flows
+            .fullScreenCover(isPresented: $showInputMenu) {
+                Set_InputMenuView(isDismissed: $isDismissedFromMenu)
                     .environmentObject(session)
-//                    .environmentObject(DeleteOverlayBus())
-//                    .environmentObject(UnsavedOverlayBus())
+                // DeleteOverlayBus & UnsavedOverlayBus ikut turun dari root, tidak dibuat ulang di sini
             }
-            .navigationDestination(isPresented: $goToMenuDetails) {
+            .fullScreenCover(isPresented: $showMenuDetails) {
                 Set_MenuDetailsView()
                     .environmentObject(session)
-//                    .environmentObject(DeleteOverlayBus())
-//                    .environmentObject(UnsavedOverlayBus())
+                // Bus juga ikut dari root
             }
-            
+            .onChange(of: isDismissedFromMenu) { oldValue, newValue in
+                if newValue {
+                    showInputMenu = false
+                    showMenuDetails = false
+                    isDismissedFromMenu = false
+                }
+            }
         }
-        .environmentObject(DeleteOverlayBus())
-               .environmentObject(UnsavedOverlayBus())
     }
 
     // MARK: - Logic cek template_format dan navigasi
@@ -226,13 +230,11 @@ struct SettingsView: View {
         defer { isCheckingProducts = false }
 
         do {
-            // Implementasikan helper ini di SupabaseManager Anda.
-            // Efisien: head + count(.exact) atau select("id").limit(1)
             let hasAny = try await SupabaseManager.shared.hasAnyProduct(for: uuid)
             if hasAny {
-                goToMenuDetails = true
+                showMenuDetails = true
             } else {
-                goToInputMenu = true
+                showInputMenu = true
             }
         } catch {
             productCheckError = "Gagal memeriksa produk: \(error.localizedDescription)"
