@@ -47,8 +47,12 @@ struct Set_ManualInputView: View {
                                     message: "Apakah Anda yakin ingin membatalkan?",
                                     cancelTitle: "Tidak",
                                     confirmTitle: "Ya",
-                                    onCancel: { /* stay */ },
-                                    onConfirm: { dismiss() }
+                                    onCancel: { /* stay */
+                                        unsavedBus.close(false)
+                                    },
+                                    onConfirm: {
+                                        unsavedBus.close(false)        
+                                        dismiss() }
                                 )
                             } else {
                                 dismiss()
