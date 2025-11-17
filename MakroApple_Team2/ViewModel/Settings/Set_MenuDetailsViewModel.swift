@@ -644,7 +644,7 @@ struct EditableProductRow: View {
             }
         }
         .padding(12)
-        .background(Color(.systemGray6))
+        .background(Color.primaryButton.opacity(0.1))
         .cornerRadius(14)
         .shadow(color: Color.black.opacity(0.05), radius: 3, x: 0, y: 1)
         .frame(maxWidth: .infinity)
