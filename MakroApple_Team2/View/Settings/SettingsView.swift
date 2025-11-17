@@ -99,15 +99,15 @@ struct SettingsView: View {
                             .lineLimit(2)
                     }
 
-                    NavigationLink(destination: Set_LanguageSettingsView()) {
-                        HStack {
-                            Image(systemName: "globe")
-                                .symbolRenderingMode(.palette)
-                                .foregroundStyle(.primaryButton)
-                                .imageScale(.large)
-                            Text("Pilih Bahasa")
-                        }
-                    }
+                    // NavigationLink(destination: Set_LanguageSettingsView()) {
+                    //     HStack {
+                    //         Image(systemName: "globe")
+                    //             .symbolRenderingMode(.palette)
+                    //             .foregroundStyle(.primaryButton)
+                    //             .imageScale(.large)
+                    //         Text("Pilih Bahasa")
+                    //     }
+                    // }
                 }
 
                 // Hapus akun
