@@ -55,7 +55,7 @@ class EditTemplateViewModel {
     private func parseTemplate(_ dict: [String: AnyCodable]) {
         // Define field categories based on common keys
         let customerKeys = ["Nama Pemesan", "No. Telp Pemesan", "Nama Penerima", "No. Telp Penerima", "Alamat Kirim"]
-        let scheduleKeys = ["Tanggal Pesanan"]
+        let scheduleKeys = ["Tanggal Pesanan", "Jam Kirim"]
         let orderKeys = ["Pesanan"]
         let otherKeys = ["Foto Referensi (optional)"]
         
