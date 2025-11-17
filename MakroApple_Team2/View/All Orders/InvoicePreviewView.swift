@@ -26,11 +26,6 @@ struct InvoicePreviewView: View {
     
     var body: some View {
         NavigationStack{
-//            InvoiceContentView(viewModel: invoiceData)
-//                .padding(20)
-//                .background(Color.white)
-//                .scaleEffect(0.35)
-            
             
             ZStack {
                 if viewModel.isLoading {

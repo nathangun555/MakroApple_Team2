@@ -187,7 +187,10 @@ class InvoicePreviewViewModel {
         invoiceData.accountNumber = user.bankAccountNumber ?? "12345678910"
         invoiceData.bankName = user.bankName ?? "Bank Transfer - BCA"
         
-       
+        invoiceData.customerName = order.customerOrderName ?? "Customer Name"
+        invoiceData.customerPhone = order.customerOrderPhone ?? "08123456789"
+        invoiceData.recipientName = order.customerReceiverName ?? "Recipient Name"
+        invoiceData.recipientPhone = order.customerReceiverPhone ?? "08123456789"
         
         invoiceData.orderDate = DateFormatterHelper.formattedDate(order.orderDdayDate ?? "DD/MM/YYYY")
         invoiceData.deliveryTime = DateFormatterHelper.formattedTime(order.orderDdayDate ?? "23:59")
