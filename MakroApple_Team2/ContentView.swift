@@ -81,35 +81,35 @@ struct MainTabView: View {
                     }
                 }
             }
-            .disabled(deleteBus.show || unsavedBus.show)
+//            .disabled(deleteBus.show || unsavedBus.show)
             
-            if unsavedBus.show {
-                Color.black.opacity(0.45).ignoresSafeArea().transition(.opacity).zIndex(996)
-
-                CustomUnsavedAlert(
-                  title: unsavedBus.title,
-                  message: unsavedBus.message,
-                  cancelTitle: unsavedBus.cancelTitle,
-                  confirmTitle: unsavedBus.confirmTitle,
-                  onCancel: { unsavedBus.close(false) },
-                  onConfirm: { unsavedBus.close(true) }
-                )
-                .transition(.scale.combined(with: .opacity))
-                .zIndex(997)
-              }
-            if deleteBus.show {
-                CustomDeleteAlertComponent(
-                    title: "Hapus",
-                    message: deleteBus.message,
-                    cancelTitle: "Tidak",
-                    confirmTitle: "Ya",
-                    onCancel: { deleteBus.closeConfirm(false) },
-                    onConfirm: { deleteBus.closeConfirm(true) }
-                )
-                .transition(.scale.combined(with: .opacity))
-                .zIndex(999)
-                .ignoresSafeArea()
-            }
+//            if unsavedBus.show {
+//                Color.black.opacity(0.45).ignoresSafeArea().transition(.opacity).zIndex(996)
+//
+//                CustomUnsavedAlert(
+//                  title: unsavedBus.title,
+//                  message: unsavedBus.message,
+//                  cancelTitle: unsavedBus.cancelTitle,
+//                  confirmTitle: unsavedBus.confirmTitle,
+//                  onCancel: { unsavedBus.close(false) },
+//                  onConfirm: { unsavedBus.close(true) }
+//                )
+//                .transition(.scale.combined(with: .opacity))
+//                .zIndex(997)
+//              }
+//            if deleteBus.show {
+//                CustomDeleteAlertComponent(
+//                    title: "Hapus",
+//                    message: deleteBus.message,
+//                    cancelTitle: "Tidak",
+//                    confirmTitle: "Ya",
+//                    onCancel: { deleteBus.closeConfirm(false) },
+//                    onConfirm: { deleteBus.closeConfirm(true) }
+//                )
+//                .transition(.scale.combined(with: .opacity))
+//                .zIndex(999)
+//                .ignoresSafeArea()
+//            }
         }
     }
 }
@@ -135,7 +135,7 @@ struct MainTabView: View {
 //                    SettingsView()
 //                        .tabItem { Label("Pengaturan", systemImage: "gearshape") }
 //                        .tag(3)
-//                    
+//
 //                }
 //
 ////                if selectedTab == 0 {
@@ -185,18 +185,18 @@ struct MainTabView: View {
 //import Foundation
 //
 //struct ContentView: View {
-//    
+//
 //    @SceneStorage("selectedTab") var selectedTab = 0
 //    @State private var showNewOrder = false
 //    @Environment(\.colorScheme) private var scheme
 //    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
-//    
+//
 //    @State private var searchText: String = ""
 //
 //    var body: some View {
-//        
+//
 //        GeometryReader { geometry in
-//            
+//
 //            NavigationStack {
 //                TabView(selection: $selectedTab) {
 //                    Tab("Pesanan", systemImage: "basket.fill", value: 0) {
@@ -218,7 +218,7 @@ struct MainTabView: View {
 //                    }
 //                }
 //
-//                
+//
 ////                            .tabBarMinimizeBehavior(.onScrollDown)
 //                .tabViewBottomAccessory {
 //                    if selectedTab == 0 {

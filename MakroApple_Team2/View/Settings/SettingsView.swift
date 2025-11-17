@@ -12,13 +12,22 @@ struct SettingsView: View {
     @State private var showLogoutDialog = false
     @State private var isLoggingOut = false
 
-    // Navigasi dinamis
+    // Navigasi dinamis (template form)
     @State private var navigateToNewTemplate = false
     @State private var navigateToEditTemplate = false
 
     // State loading & error saat cek template_format
     @State private var isCheckingTemplate = false
     @State private var checkError: String?
+
+    // Navigasi dinamis (menu katalog) - untuk fullScreenCover
+    @State private var showInputMenu = false
+    @State private var showMenuDetails = false
+    @State private var isCheckingProducts = false
+    @State private var productCheckError: String?
+    
+    // Binding untuk dismiss all sheets (dipakai Set_InputMenuView / Set_ConfirmMenuView / Set_ManualInputView)
+    @State private var isDismissedFromMenu = false
 
     var body: some View {
         NavigationStack {
@@ -34,13 +43,32 @@ struct SettingsView: View {
                         }
                     }
 
-                    NavigationLink(destination: Set_MenuDetailsView()) {
+                    // Tombol dengan pengecekan produk sebelum navigasi
+                    Button {
+                        Task { await decideMenuDestination() }
+                    } label: {
                         HStack {
-                            Image(systemName: "list.bullet.rectangle.portrait")
+                            Image(systemName: "menucard")
                                 .foregroundStyle(.primaryButton)
                                 .imageScale(.large)
                             Text("Rincian Menu / Katalog")
+                            Spacer()
+                            if isCheckingProducts {
+                                ProgressView().scaleEffect(0.8)
+                            } else {
+                                Image(systemName: "chevron.right")
+                                    .foregroundColor(Color(.systemGray2))
+                                    .imageScale(.small)
+                            }
                         }
+                    }
+                    .disabled(isCheckingProducts)
+
+                    if let err = productCheckError {
+                        Text(err)
+                            .font(.caption)
+                            .foregroundColor(.red)
+                            .lineLimit(2)
                     }
 
                     // Template Formulir Bisnis (cek Supabase dulu)
@@ -62,7 +90,6 @@ struct SettingsView: View {
                             }
                         }
                     }
-
                     .disabled(isCheckingTemplate)
 
                     if let err = checkError {
@@ -72,15 +99,15 @@ struct SettingsView: View {
                             .lineLimit(2)
                     }
 
-                    NavigationLink(destination: Set_LanguageSettingsView()) {
-                        HStack {
-                            Image(systemName: "globe")
-                                .symbolRenderingMode(.palette)
-                                .foregroundStyle(.primaryButton)
-                                .imageScale(.large)
-                            Text("Pilih Bahasa")
-                        }
-                    }
+                    // NavigationLink(destination: Set_LanguageSettingsView()) {
+                    //     HStack {
+                    //         Image(systemName: "globe")
+                    //             .symbolRenderingMode(.palette)
+                    //             .foregroundStyle(.primaryButton)
+                    //             .imageScale(.large)
+                    //         Text("Pilih Bahasa")
+                    //     }
+                    // }
                 }
 
                 // Hapus akun
@@ -132,18 +159,14 @@ struct SettingsView: View {
                         await session.signOut()
                     }
                 }
-                Button("Cancel", role: .cancel) {
-                    showLogoutDialog = false
-                }
+                Button("Cancel", role: .cancel) { showLogoutDialog = false }
             } message: {
                 Text("Anda bisa masuk kembali kapan saja.")
             }
 
-            // Destinasi dinamis
+            // Destinasi dinamis Template
             .navigationDestination(isPresented: $navigateToNewTemplate) {
                 Set_NewTemplateFormView(onAfterSave: {
-                    // Setelah autosave, pengguna bisa kembali ke Settings.
-                    // Cek ulang saat masuk lagi → akan diarahkan ke Edit.
                     navigateToNewTemplate = false
                 })
                 .environmentObject(session)
@@ -151,6 +174,25 @@ struct SettingsView: View {
             .navigationDestination(isPresented: $navigateToEditTemplate) {
                 Set_EditTemplateFormView()
                     .environmentObject(session)
+            }
+
+            // fullScreenCover untuk Menu flows
+            .fullScreenCover(isPresented: $showInputMenu) {
+                Set_InputMenuView(isDismissed: $isDismissedFromMenu)
+                    .environmentObject(session)
+                // DeleteOverlayBus & UnsavedOverlayBus ikut turun dari root, tidak dibuat ulang di sini
+            }
+            .fullScreenCover(isPresented: $showMenuDetails) {
+                Set_MenuDetailsView()
+                    .environmentObject(session)
+                // Bus juga ikut dari root
+            }
+            .onChange(of: isDismissedFromMenu) { oldValue, newValue in
+                if newValue {
+                    showInputMenu = false
+                    showMenuDetails = false
+                    isDismissedFromMenu = false
+                }
             }
         }
     }
@@ -166,25 +208,44 @@ struct SettingsView: View {
         defer { isCheckingTemplate = false }
 
         do {
-            
             let template = try await SupabaseManager.shared.fetchUser(by: uuid)
-            
             if let temp = template, let format = temp.templateFormat, format.isEmpty || template?.templateFormat == nil {
                 navigateToNewTemplate = true
             } else {
                 navigateToEditTemplate = true
             }
-
         } catch {
-            checkError = "Gagal memeriksa template: $$error.localizedDescription)"
+            checkError = "Gagal memeriksa template: \(error.localizedDescription)"
+        }
+    }
+
+    // MARK: - Logic cek jumlah produk dan navigasi
+    private func decideMenuDestination() async {
+        guard let userId = session.userId, let uuid = UUID(uuidString: userId) else {
+            productCheckError = "User belum login atau UID tidak valid."
+            return
+        }
+        isCheckingProducts = true
+        productCheckError = nil
+        defer { isCheckingProducts = false }
+
+        do {
+            let hasAny = try await SupabaseManager.shared.hasAnyProduct(for: uuid)
+            if hasAny {
+                showMenuDetails = true
+            } else {
+                showInputMenu = true
+            }
+        } catch {
+            productCheckError = "Gagal memeriksa produk: \(error.localizedDescription)"
         }
     }
 }
 
 #Preview {
-let session = SessionManager()
-session.isSignedIn = true
-session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
-return NavigationStack { SettingsView() }
-.environmentObject(session)
+    let session = SessionManager()
+    session.isSignedIn = true
+    session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
+    return NavigationStack { SettingsView() }
+        .environmentObject(session)
 }

@@ -1,53 +1,64 @@
 //
-//  Set_MenuDetailsView.swift
+//  Set_ConfirmMenuView.swift
 //  MakroApple_Team2
 //
-//  Created by Nathan Gunawan on 17/10/25.
+//  Created for Settings flow - Confirm scanned menu
 //
 
 import SwiftUI
 import Combine
 
-struct Set_MenuDetailsView: View {
-
+struct Set_ConfirmMenuView: View {
+    
     @EnvironmentObject var session: SessionManager
-    @EnvironmentObject var deleteBus: DeleteOverlayBus     // Global delete (shared instance)
-    @EnvironmentObject var unsavedBus: UnsavedOverlayBus   // Global unsaved (shared instance)
+    @EnvironmentObject var deleteBus: DeleteOverlayBus
+    @EnvironmentObject var unsavedBus: UnsavedOverlayBus
     @StateObject private var vm = Set_MenuDetailsViewModel()
     @Environment(\.dismiss) private var dismiss
     
+    @Binding var isDismissed: Bool
+    let scannedCategories: [MenuCategory]
+    
     // Simpan konteks item yang dihapus (eksekusi via bus)
     @State private var itemToDelete: (type: DeleteType, sIndex: Int, pIndex: Int?)? = nil
-
     enum DeleteType { case category, product }
-
+    
     var body: some View {
         ZStack {
             NavigationStack {
                 VStack(spacing: 12) {
+                    // Info banner hasil scan (di atas search)
+                    if vm.isLoadedFromScan {
+                        scanInfoBanner
+                    }
+                    
                     // Header: search + plus di kanan
                     searchHeader
-                    // Konten daftar produk
+                    
+                    // Konten daftar produk flat
                     contentFlatView
                 }
                 .navigationBarTitleDisplayMode(.inline)
                 .navigationBarBackButtonHidden(true)
                 .toolbar {
                     ToolbarItem(placement: .principal) {
-                        Text("Rincian Menu / Katalog")
+                        Text("Konfirmasi Hasil Scan")
                             .font(.title2.bold())
                     }
                     ToolbarItem(placement: .navigationBarLeading) {
                         Button {
                             if vm.hasPendingChanges {
-                                // Minta konfirmasi lewat UnsavedOverlayBus
                                 unsavedBus.request(
                                     title: "Perubahan Belum Disimpan",
-                                    message: "Apakah Anda yakin ingin membatalkan perubahan?",
+                                    message: "Apakah Anda yakin ingin membatalkan?",
                                     cancelTitle: "Tidak",
                                     confirmTitle: "Ya",
-                                    onCancel: { /* tutup saja */ },
-                                    onConfirm: { dismiss() }
+                                    onCancel: { /* stay */
+                                    unsavedBus.close(false)
+                                    },
+                                    onConfirm: {
+                                        unsavedBus.close(false)        
+                                        dismiss() }
                                 )
                             } else {
                                 dismiss()
@@ -62,6 +73,8 @@ struct Set_MenuDetailsView: View {
                         let button = Button {
                             Task {
                                 await vm.saveAll {
+                                    // Dismiss semua sheet (kembali ke SettingsView)
+                                    isDismissed = true
                                     dismiss()
                                 }
                             }
@@ -84,9 +97,8 @@ struct Set_MenuDetailsView: View {
                     }
                 }
             }
-            .toolbar(.hidden, for: .tabBar)
 
-            // ⬇️ Overlay UNSAVED khusus view ini (supaya muncul di atas fullScreenCover)
+            // ⬇️ Overlay UNSAVED (di atas fullScreenCover ini)
             if unsavedBus.show {
                 Color.black.opacity(0.45)
                     .ignoresSafeArea()
@@ -105,7 +117,7 @@ struct Set_MenuDetailsView: View {
                 .zIndex(997)
             }
 
-            // ⬇️ Overlay DELETE khusus view ini
+            // ⬇️ Overlay DELETE
             if deleteBus.show {
                 Color.black.opacity(0.45)
                     .ignoresSafeArea()
@@ -120,7 +132,7 @@ struct Set_MenuDetailsView: View {
                     onCancel: { deleteBus.closeConfirm(false) },
                     onConfirm: {
                         deleteBus.closeConfirm(true)
-                        executeDeleteIfNeeded()
+                        executeDelete()
                     }
                 )
                 .transition(.scale.combined(with: .opacity))
@@ -129,11 +141,42 @@ struct Set_MenuDetailsView: View {
         }
         .task {
             vm.configure(userId: session.userId)
-            await vm.load()
+            await vm.loadFromScan(categories: scannedCategories)
         }
     }
-
-    // MARK: - Header Search + Plus di kanan
+    
+    // MARK: - Info Banner
+    private var scanInfoBanner: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Image(systemName: "checkmark.circle.fill")
+                    .foregroundColor(.green)
+                Text("Katalog berhasil dipindai")
+                    .font(.headline)
+                Spacer()
+            }
+            
+            HStack(spacing: 16) {
+                Label("\(vm.sections.count) kategori", systemImage: "folder.fill")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                
+                Label("\(vm.sections.flatMap { $0.items }.count) produk", systemImage: "tag.fill")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+            
+            Text("Periksa dan edit jika ada kesalahan sebelum menyimpan")
+                .font(.caption)
+                .foregroundColor(.secondary)
+        }
+        .padding()
+        .background(Color.green.opacity(0.1))
+        .cornerRadius(12)
+        .padding(.horizontal)
+    }
+    
+    // MARK: - Header Search + Plus
     private var searchHeader: some View {
         HStack(spacing: 10) {
             HStack(spacing: 8) {
@@ -162,8 +205,8 @@ struct Set_MenuDetailsView: View {
         .padding(.horizontal)
         .padding(.top, 8)
     }
-
-    // MARK: - Flat list tanpa kategori (filter mengacu ke vm.visibleFlat)
+    
+    // MARK: - Flat list (filter dari vm.visibleFlat)
     private var contentFlatView: some View {
         ScrollView {
             VStack(spacing: 16) {
@@ -202,42 +245,19 @@ struct Set_MenuDetailsView: View {
         .scrollContentBackground(.hidden)
         .background(Color.white)
     }
-
-    // MARK: - Delete lewat bus global (pakai indeks asli)
+    
+    // MARK: - Delete handlers
     func handleDeleteProduct(sIndex: Int, pIndex: Int) {
         itemToDelete = (.product, sIndex, pIndex)
         deleteBus.request(message: "Apakah Anda yakin ingin menghapus produk ini?") {
-            // Eksekusi delete dilakukan di executeDeleteIfNeeded()
+            // Eksekusi actual delete di executeDelete()
         }
     }
-
-    // (Opsional) Masih tersedia bila dibutuhkan oleh alur lama
-    func handleDeleteCategory(sIndex: Int) {
-        itemToDelete = (.category, sIndex, nil)
-        deleteBus.request(message: "Apakah Anda yakin ingin menghapus kategori ini?") {
-            if let item = itemToDelete, item.type == .category {
-                withAnimation {
-                    vm.deleteTemporaryCategory(at: item.sIndex)
-                }
-            }
-            itemToDelete = nil
-        }
-    }
-
-    // MARK: - Eksekusi delete setelah user konfirmasi di alert
-    private func executeDeleteIfNeeded() {
-        if let item = itemToDelete {
-            switch item.type {
-            case .product:
-                if let pIndex = item.pIndex {
-                    withAnimation {
-                        vm.deleteTemporaryProduct(from: item.sIndex, at: pIndex)
-                    }
-                }
-            case .category:
-                withAnimation {
-                    vm.deleteTemporaryCategory(at: item.sIndex)
-                }
+    
+    func executeDelete() {
+        if let item = itemToDelete, item.type == .product, let pIndex = item.pIndex {
+            withAnimation {
+                vm.deleteTemporaryProduct(from: item.sIndex, at: pIndex)
             }
         }
         itemToDelete = nil
@@ -248,11 +268,16 @@ struct Set_MenuDetailsView: View {
     let session = SessionManager()
     session.isSignedIn = true
     session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
-
-    return NavigationStack {
-        Set_MenuDetailsView()
-            .environmentObject(session)
-            .environmentObject(DeleteOverlayBus())
-            .environmentObject(UnsavedOverlayBus())
-    }
+    
+    let mockCategories = [
+        MenuCategory(categoryName: "Custom Cake", products: [
+            MenuProduct(name: "Custom Cake 12cm", price: 110000, notes: nil, productType: "Custom Cake"),
+            MenuProduct(name: "Custom Cake 16cm", price: 190000, notes: nil, productType: "Custom Cake")
+        ])
+    ]
+    
+    return Set_ConfirmMenuView(isDismissed: .constant(false), scannedCategories: mockCategories)
+        .environmentObject(session)
+        .environmentObject(DeleteOverlayBus())
+        .environmentObject(UnsavedOverlayBus())
 }

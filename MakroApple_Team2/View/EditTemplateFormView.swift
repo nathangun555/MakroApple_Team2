@@ -55,7 +55,7 @@ struct EditTemplateFormView: View {
                         )
                         
                         // Lain-Lain Section
-                        FormSection(
+                        DraggableFormSection(
                             title: "Lain - Lain",
                             fields: $viewModel.otherFields,
                             onAddColumn: { viewModel.addOtherField() },
