@@ -57,9 +57,20 @@ struct AllOrdersView: View {
             VStack {
                 // 🏷️ Header
                 HStack {
-                    Text("Pesanan")
-                        .font(.largeTitle)
-                        .fontWeight(.bold)
+                    
+                    Button {
+                        showBelumBayarGuide = true
+                        showDiprosesGuide = true
+                        showDikirimGuide = true
+                        showSelesaiGuide = true
+                        showDibatalkanGuide = true
+                    } label: {
+                        Text("Pesanan")
+                            .font(.largeTitle)
+                            .fontWeight(.bold)
+                            .foregroundStyle(Color(.black))
+                    }
+                    
                     Spacer()
                     Button {
                         handleAddNewOrder()
@@ -84,16 +95,6 @@ struct AllOrdersView: View {
                 )
                 .padding(.vertical, 5)
                 
-                Button("Tampilkan Panduan Lagi") {
-                    showBelumBayarGuide = true
-                    showDiprosesGuide = true
-                    showDikirimGuide = true
-                    showSelesaiGuide = true
-                    showDibatalkanGuide = true
-                }
-                .font(.caption2)
-                .background(Color.blue.opacity(0.2))
-                .cornerRadius(8)
                 
                 
 
