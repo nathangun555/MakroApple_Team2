@@ -1,21 +1,26 @@
+//
+//  Set_MenuDetailsView.swift
+//  MakroApple_Team2
+//
+//  Created by Nathan Gunawan on 17/10/25.
+//
+
 import SwiftUI
 import Combine
 
 struct Set_MenuDetailsView: View {
 
     @EnvironmentObject var session: SessionManager
-    @EnvironmentObject var deleteBus: DeleteOverlayBus     // Global delete
-    @EnvironmentObject var unsavedBus: UnsavedOverlayBus   // Global unsaved
+    @EnvironmentObject var deleteBus: DeleteOverlayBus     // Global delete (shared instance)
+    @EnvironmentObject var unsavedBus: UnsavedOverlayBus   // Global unsaved (shared instance)
     @StateObject private var vm = Set_MenuDetailsViewModel()
     @Environment(\.dismiss) private var dismiss
     
-
     // Simpan konteks item yang dihapus (eksekusi via bus)
     @State private var itemToDelete: (type: DeleteType, sIndex: Int, pIndex: Int?)? = nil
 
     enum DeleteType { case category, product }
 
-    
     var body: some View {
         ZStack {
             NavigationStack {
@@ -35,8 +40,12 @@ struct Set_MenuDetailsView: View {
                     ToolbarItem(placement: .navigationBarLeading) {
                         Button {
                             if vm.hasPendingChanges {
-                                // Overlay global UnsavedOverlayBus (tetap)
+                                // Minta konfirmasi lewat UnsavedOverlayBus
                                 unsavedBus.request(
+                                    title: "Perubahan Belum Disimpan",
+                                    message: "Apakah Anda yakin ingin membatalkan perubahan?",
+                                    cancelTitle: "Tidak",
+                                    confirmTitle: "Ya",
                                     onCancel: { /* tutup saja */ },
                                     onConfirm: { dismiss() }
                                 )
@@ -52,8 +61,9 @@ struct Set_MenuDetailsView: View {
                     ToolbarItem(placement: .navigationBarTrailing) {
                         let button = Button {
                             Task {
-                                // Tetap panggil saveAll { dismiss() } → validasi lalu kembali
-                                await vm.saveAll { dismiss() }
+                                await vm.saveAll {
+                                    dismiss()
+                                }
                             }
                         } label: {
                             if vm.isLoading {
@@ -74,8 +84,48 @@ struct Set_MenuDetailsView: View {
                     }
                 }
             }
-            // Hilangkan .searchable bawaan agar tidak bentrok dengan header kustom
             .toolbar(.hidden, for: .tabBar)
+
+            // ⬇️ Overlay UNSAVED khusus view ini (supaya muncul di atas fullScreenCover)
+            if unsavedBus.show {
+                Color.black.opacity(0.45)
+                    .ignoresSafeArea()
+                    .transition(.opacity)
+                    .zIndex(996)
+
+                CustomUnsavedAlert(
+                    title: unsavedBus.title,
+                    message: unsavedBus.message,
+                    cancelTitle: unsavedBus.cancelTitle,
+                    confirmTitle: unsavedBus.confirmTitle,
+                    onCancel: { unsavedBus.close(false) },
+                    onConfirm: { unsavedBus.close(true) }
+                )
+                .transition(.scale.combined(with: .opacity))
+                .zIndex(997)
+            }
+
+            // ⬇️ Overlay DELETE khusus view ini
+            if deleteBus.show {
+                Color.black.opacity(0.45)
+                    .ignoresSafeArea()
+                    .transition(.opacity)
+                    .zIndex(998)
+
+                CustomDeleteAlertComponent(
+                    title: "Hapus",
+                    message: deleteBus.message,
+                    cancelTitle: "Tidak",
+                    confirmTitle: "Ya",
+                    onCancel: { deleteBus.closeConfirm(false) },
+                    onConfirm: {
+                        deleteBus.closeConfirm(true)
+                        executeDeleteIfNeeded()
+                    }
+                )
+                .transition(.scale.combined(with: .opacity))
+                .zIndex(999)
+            }
         }
         .task {
             vm.configure(userId: session.userId)
@@ -123,14 +173,13 @@ struct Set_MenuDetailsView: View {
                         .padding(.horizontal)
                 }
 
-                // Tampilkan item dari vm.visibleFlat (sudah filter + sort di VM)
                 ForEach(vm.visibleFlat) { ref in
                     HStack(alignment: .top) {
                         EditableProductRow(
                             viewModel: ref.item,
-                            isEditing: true,                 // tetap editable
-                            sectionIndex: ref.sectionIndex,  // indeks asli
-                            productIndex: ref.productIndex,  // indeks asli
+                            isEditing: true,
+                            sectionIndex: ref.sectionIndex,
+                            productIndex: ref.productIndex,
                             validationErrors: vm.validationErrors,
                             onChanged: { vm.markChanged() }
                         )
@@ -158,13 +207,7 @@ struct Set_MenuDetailsView: View {
     func handleDeleteProduct(sIndex: Int, pIndex: Int) {
         itemToDelete = (.product, sIndex, pIndex)
         deleteBus.request(message: "Apakah Anda yakin ingin menghapus produk ini?") {
-            if let item = itemToDelete, item.type == .product, let pIndex = item.pIndex {
-                withAnimation {
-                    // ViewModel akan membersihkan validationErrors by UUID
-                    vm.deleteTemporaryProduct(from: item.sIndex, at: pIndex)
-                }
-            }
-            itemToDelete = nil
+            // Eksekusi delete dilakukan di executeDeleteIfNeeded()
         }
     }
 
@@ -179,6 +222,25 @@ struct Set_MenuDetailsView: View {
             }
             itemToDelete = nil
         }
+    }
+
+    // MARK: - Eksekusi delete setelah user konfirmasi di alert
+    private func executeDeleteIfNeeded() {
+        if let item = itemToDelete {
+            switch item.type {
+            case .product:
+                if let pIndex = item.pIndex {
+                    withAnimation {
+                        vm.deleteTemporaryProduct(from: item.sIndex, at: pIndex)
+                    }
+                }
+            case .category:
+                withAnimation {
+                    vm.deleteTemporaryCategory(at: item.sIndex)
+                }
+            }
+        }
+        itemToDelete = nil
     }
 }
 
