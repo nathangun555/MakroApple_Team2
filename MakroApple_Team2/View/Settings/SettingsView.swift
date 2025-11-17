@@ -178,14 +178,19 @@ struct SettingsView: View {
             .navigationDestination(isPresented: $goToInputMenu) {
                 Set_InputMenuView(isDismissed: .constant(false))
                     .environmentObject(session)
+//                    .environmentObject(DeleteOverlayBus())
+//                    .environmentObject(UnsavedOverlayBus())
             }
             .navigationDestination(isPresented: $goToMenuDetails) {
                 Set_MenuDetailsView()
                     .environmentObject(session)
-                    .environmentObject(DeleteOverlayBus())
-                    .environmentObject(UnsavedOverlayBus())
+//                    .environmentObject(DeleteOverlayBus())
+//                    .environmentObject(UnsavedOverlayBus())
             }
+            
         }
+        .environmentObject(DeleteOverlayBus())
+               .environmentObject(UnsavedOverlayBus())
     }
 
     // MARK: - Logic cek template_format dan navigasi

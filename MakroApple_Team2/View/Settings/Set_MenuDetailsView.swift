@@ -8,12 +8,14 @@ struct Set_MenuDetailsView: View {
     @EnvironmentObject var unsavedBus: UnsavedOverlayBus   // Global unsaved
     @StateObject private var vm = Set_MenuDetailsViewModel()
     @Environment(\.dismiss) private var dismiss
+    
 
     // Simpan konteks item yang dihapus (eksekusi via bus)
     @State private var itemToDelete: (type: DeleteType, sIndex: Int, pIndex: Int?)? = nil
 
     enum DeleteType { case category, product }
 
+    
     var body: some View {
         ZStack {
             NavigationStack {

@@ -283,6 +283,26 @@ final class Set_MenuDetailsViewModel: ObservableObject {
         hasPendingChanges = true
     }
 
+    // Non-breaking helper untuk delete by ID (dipakai Confirm)
+    func deleteTemporaryProductById(_ id: UUID) {
+        print("🧨 VM delete id =", id)
+        // Bersihkan error terkait produk
+        validationErrors = validationErrors.filter { !$0.hasPrefix(id.uuidString) }
+        // Hapus dari urutan stabil visibleFlat
+        flatOrder.removeAll { $0 == id }
+        // Cari dan hapus dari sections
+        for s in sections.indices {
+            if let p = sections[s].items.firstIndex(where: { $0.id == id }) {
+                let product = sections[s].items.remove(at: p)
+                deletedProducts.append(product)
+                hasPendingChanges = true
+                return
+            }
+        }
+        
+    }
+
+    
     // MARK: - Hapus Kategori Sementara — tidak diubah
     func deleteTemporaryCategory(at index: Int) {
         guard index < sections.count else { return }

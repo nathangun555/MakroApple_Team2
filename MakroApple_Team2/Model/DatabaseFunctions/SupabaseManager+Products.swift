@@ -11,22 +11,22 @@ import Supabase
 extension SupabaseManager {
     
     func hasAnyProduct(for userId: UUID) async throws -> Bool {
-           let response = try await client
-               .from("products")
-               .select("id")
-               .eq("user_id", value: userId.uuidString)
-               .limit(1)
-               .execute()
+            let response = try await client
+                .from("products")
+                .select()
+                .eq("user_id", value: userId.uuidString)
+                .limit(1)
+                .execute()
 
-           // Jika SDK Anda punya decoding helper:
-           // let rows: [ProductRecord] = try JSONDecoder().decode([ProductRecord].self, from: response.data)
-           // return !rows.isEmpty
-
-           // Tanpa decode, cukup cek data JSON length > 2 (bukan "[]")
-           // Namun lebih baik decode agar robust:
-           let rows = try JSONDecoder().decode([ProductRecord].self, from: response.data)
-           return !rows.isEmpty
-       }
+            do {
+                let rows = try JSONDecoder().decode([ProductRecord].self, from: response.data)
+                return !rows.isEmpty
+            } catch {
+                // For extra robustness, log and return false instead of throwing
+                print("Decode error: \(error)")
+                return false
+            }
+        }
     
     // MARK: - Insert Product
     func insertProduct(name: String, price: Double, productType: String, userId: UUID) async throws -> ProductRecord {

@@ -31,7 +31,6 @@ struct Set_InputMenuView: View {
     @State private var isFileImporterPresented = false
     @State private var isPhotoPickerPresented = false
     @State private var showUploadOptions = false
-    @State private var navigateToConfirm = false
 
     @EnvironmentObject var session: SessionManager
     @Environment(\.dismiss) private var dismiss
@@ -40,6 +39,9 @@ struct Set_InputMenuView: View {
     @State private var showErrorAlert = false
     @State private var errorMessage = ""
     @State private var scannedCategories: [MenuCategory] = []
+
+    // Navigasi ke Confirm (bukan ke MenuDetails)
+    @State private var navigateToConfirm = false
 
     @Binding var isDismissed: Bool
 
@@ -73,7 +75,20 @@ struct Set_InputMenuView: View {
                 Text(errorMessage)
             }
             .navigationDestination(isPresented: $navigateToConfirm) {
-                ConfirmMenuView(isDismissed: $isDismissed, scannedCategories: scannedCategories)
+                Set_ConfirmMenuView(
+                    scannedCategories: scannedCategories,
+                    onAfterSave: {
+                        // Pop Confirm
+                        dismiss()
+                        // Pop Input (kembali ke Settings)
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                            dismiss()
+                        }
+                    }
+                )
+                .environmentObject(session)
+//                .environmentObject(DeleteOverlayBus())
+//                .environmentObject(UnsavedOverlayBus())
             }
     }
 
@@ -253,7 +268,7 @@ struct Set_InputMenuView: View {
         }
     }
 
-    // MARK: - Submit (upload -> scan per-batch 1 URL)
+    // MARK: - Submit (upload -> scan per-batch 1 URL) → lanjut ke Confirm
     private func submitFiles() {
         submitState = .loading
         Task {
@@ -264,7 +279,10 @@ struct Set_InputMenuView: View {
                         let images = viewModel.pdfToImages(pdfUrl: file.url)
                         for (index, image) in images.enumerated() {
                             let temp = FileManager.default.temporaryDirectory.appendingPathComponent("\(file.id)_page\(index).jpg")
-                            if let data = image.jpegData(compressionQuality: 0.8) { try? data.write(to: temp); convertedUrls.append(temp) }
+                            if let data = image.jpegData(compressionQuality: 0.8) {
+                                try? data.write(to: temp)
+                                convertedUrls.append(temp)
+                            }
                         }
                     } else {
                         convertedUrls.append(file.url)
@@ -285,7 +303,13 @@ struct Set_InputMenuView: View {
                     let scanJson = try await withCheckedThrowingContinuation { cont in
                         viewModel.menuScanBatch(imageUrls: [publicUrl]) { json in
                             if let json { cont.resume(returning: json) }
-                            else { cont.resume(throwing: NSError(domain: "scan", code: -1, userInfo: [NSLocalizedDescriptionKey: "Scan failed"])) }
+                            else {
+                                cont.resume(throwing: NSError(
+                                    domain: "scan",
+                                    code: -1,
+                                    userInfo: [NSLocalizedDescriptionKey: "Scan failed"]
+                                ))
+                            }
                         }
                     }
 
@@ -297,8 +321,8 @@ struct Set_InputMenuView: View {
                     print("Progress \(i+1)/\(convertedUrls.count)")
                 }
 
-                navigateToConfirm = true
                 submitState = .success
+                navigateToConfirm = true
             } catch {
                 submitState = .failure(error.localizedDescription)
                 errorMessage = error.localizedDescription
