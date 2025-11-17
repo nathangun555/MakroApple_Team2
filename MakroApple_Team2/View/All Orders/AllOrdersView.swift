@@ -241,8 +241,8 @@ struct AllOrdersView: View {
         orderDataCache[id] = ["sharedText": sharedText]
 
         if viewModel.hasTemplates {
-//            showNewOrderView = true
-            showTutorial = true
+            showNewOrderView = true
+//            showTutorial = true
         } else {
             showTutorial = true
         }
