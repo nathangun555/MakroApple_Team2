@@ -15,6 +15,8 @@ struct EditTemplateFormView: View {
     
     @Binding var isDismissed: Bool
     
+    @FocusState private var focusedOtherField: Int?
+    
     var body: some View {
         ZStack {
             if viewModel.isLoading {
@@ -36,7 +38,8 @@ struct EditTemplateFormView: View {
                             title: "Rincian Pelanggan",
                             fields: $viewModel.customerFields,
                             onAddColumn: { viewModel.addCustomerField() },
-                            isEditable: false
+                            isEditable: false,
+                            focusedIndex: $focusedOtherField
                         )
                         
                         // Jadwal Pesanan Section
@@ -44,7 +47,8 @@ struct EditTemplateFormView: View {
                             title: "Jadwal Pesanan",
                             fields: $viewModel.scheduleFields,
                             onAddColumn: { viewModel.addScheduleField() },
-                            isEditable: false
+                            isEditable: false,
+                            focusedIndex: $focusedOtherField
                         )
                         
                         // Rincian Pesanan Section
@@ -52,7 +56,8 @@ struct EditTemplateFormView: View {
                             title: "Rincian Pesanan",
                             fields: $viewModel.orderFields,
                             onAddColumn: { viewModel.addOrderField() },
-                            isEditable: false
+                            isEditable: false,
+                            focusedIndex: $focusedOtherField  
 //                                showDelete: true,
 //                                onDelete: { index in viewModel.deleteOrderField(at: index) }
                         )
@@ -68,10 +73,16 @@ struct EditTemplateFormView: View {
                         FormSection(
                             title: "Lain - Lain",
                             fields: $viewModel.otherFields,
-                            onAddColumn: { viewModel.addOtherField() },
+                            onAddColumn: {
+                                viewModel.addOtherField()
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                                    focusedOtherField = 0
+                                }
+                            },
                             showDelete: true,
                             onDelete: { index in viewModel.deleteOtherField(at: index) },
-                            isEditable: true
+                            isEditable: true,
+                            focusedIndex: $focusedOtherField   
                         )
                         
                         

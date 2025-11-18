@@ -102,7 +102,7 @@ class EditTemplateViewModel {
     }
     
     func addOtherField() {
-        otherFields.append(FormFieldItem(label: "New Field", value: ""))
+        otherFields.insert(FormFieldItem(label: "New Field", value: ""), at: 0)
     }
     
     func deleteOrderField(at index: Int) {

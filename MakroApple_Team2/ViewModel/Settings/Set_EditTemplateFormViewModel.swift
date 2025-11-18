@@ -94,7 +94,9 @@ class Set_EditTemplateFormViewModel {
     func addCustomerField() { customerFields.append(FormFieldItem(label: "New Field", value: "")) }
     func addScheduleField() { scheduleFields.append(FormFieldItem(label: "New Field", value: "")) }
     func addOrderField() { orderFields.append(FormFieldItem(label: "New Field", value: "")) }
-    func addOtherField() { otherFields.append(FormFieldItem(label: "New Field", value: "")) }
+    func addOtherField() {
+        otherFields.insert(FormFieldItem(label: "New Field", value: ""), at: 0)
+    }
 
     func deleteOrderField(at index: Int) { orderFields.remove(at: index) }
     func deleteOtherField(at index: Int) { otherFields.remove(at: index) }
