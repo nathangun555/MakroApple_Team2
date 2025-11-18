@@ -14,15 +14,25 @@ struct DeadlineCard: View {
     private var todayDeadlineCount: Int {
         let today = Calendar.current.startOfDay(for: Date())
         
-        return orders.filter {
-            guard let date = DateFormatterHelper.toDate($0.orderDdayDate) else {
+        let validStatuses = ["diproses", "terkirim", "selesai"]
+
+        return orders.filter { order in
+            // Filter berdasarkan status valid
+            let status = order.status.lowercased()
+            guard validStatuses.contains(status) else {
                 return false
             }
-            // Normalize parsed date to start of the same day
+            
+            // Konversi dan bandingkan tanggal
+            guard let date = DateFormatterHelper.toDate(order.orderDdayDate) else {
+                return false
+            }
             let parsedDayStart = Calendar.current.startOfDay(for: date)
             return parsedDayStart == today
         }.count
     }
+
+
 
     
     var body: some View {
