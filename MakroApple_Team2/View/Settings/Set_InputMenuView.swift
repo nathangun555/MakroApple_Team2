@@ -65,21 +65,11 @@ struct Set_InputMenuView: View {
                 }
                 .task { viewModel.configure(userId: session.userId) }
                 .fileImporter(
-                    isPresented: $isFileImporterPresented,
-                    allowedContentTypes: [.pdf, .image],
+                    isPresented: $showUploadOptions,
+                    allowedContentTypes: [.pdf],
                     allowsMultipleSelection: true
                 ) { result in
                     handleFileImport(result)
-                }
-                .sheet(isPresented: $isPhotoPickerPresented) {
-                    ImagePicker(sourceType: .photoLibrary) { url in
-                        if let url = url { addFile(url: url) }
-                    }
-                }
-                .confirmationDialog("Pilih Sumber File", isPresented: $showUploadOptions, titleVisibility: .visible) {
-                    Button("Pilih File PDF") { isFileImporterPresented = true }
-                    Button("Pilih Gambar dari Galeri") { isPhotoPickerPresented = true }
-                    Button("Batal", role: .cancel) {}
                 }
                 .alert("Error", isPresented: $showErrorAlert) {
                     Button("OK", role: .cancel) { }
@@ -157,11 +147,11 @@ struct Set_InputMenuView: View {
     private var emptyStateView: some View {
         RoundedRectangle(cornerRadius: 12)
             .strokeBorder(style: StrokeStyle(lineWidth: 2, dash: [8]))
-            .foregroundColor(.primaryButton)
+            .foregroundColor(.gray)
             .frame(height: 200)
             .overlay(
                 VStack(spacing: 12) {
-                    Image(systemName: "arrow.up.doc.fill")
+                    Image(systemName: "square.and.arrow.up.fill")
                         .font(.system(size: 50))
                         .foregroundColor(.primaryButton)
                     Text("Unggah katalog bisnis anda di sini untuk\nmenyimpan daftar produk dan harga.")
@@ -177,6 +167,7 @@ struct Set_InputMenuView: View {
             )
             .padding(.horizontal)
             .onTapGesture { showUploadOptions = true }
+            .background(Color.gray.opacity(0.05))
     }
     
     private var uploadedFilesView: some View {
@@ -207,9 +198,6 @@ struct Set_InputMenuView: View {
                 Text(file.fileSize)
                     .font(.caption)
                     .foregroundColor(.secondary)
-                ProgressView(value: 1.0)
-                    .progressViewStyle(.linear)
-                    .tint(.primaryButton)
             }
             
             Spacer()

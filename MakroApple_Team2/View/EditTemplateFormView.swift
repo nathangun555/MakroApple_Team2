@@ -58,13 +58,22 @@ struct EditTemplateFormView: View {
                         )
                         
                         // Lain-Lain Section
-                        DraggableFormSection(
+//                        DraggableFormSection(
+//                            title: "Lain - Lain",
+//                            fields: $viewModel.otherFields,
+//                            onAddColumn: { viewModel.addOtherField() },
+//                            showDelete: true,
+//                            onDelete: { index in viewModel.deleteOtherField(at: index) }
+//                        )
+                        FormSection(
                             title: "Lain - Lain",
                             fields: $viewModel.otherFields,
                             onAddColumn: { viewModel.addOtherField() },
                             showDelete: true,
-                            onDelete: { index in viewModel.deleteOtherField(at: index) }
+                            onDelete: { index in viewModel.deleteOtherField(at: index) },
+                            isEditable: true
                         )
+                        
                         
                         // Referensi Foto Section
                         VStack(alignment: .leading, spacing: 12) {

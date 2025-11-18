@@ -31,7 +31,7 @@ struct NewTemplateFormView: View {
                                     .padding(8)
                                     .labelStyle(.titleAndIcon)
                                     .foregroundColor(.white)
-                                    .background(.blue)
+                                    .background(.primaryButton)
                                     .cornerRadius(20)
                             }
                         }
@@ -99,37 +99,41 @@ struct NewTemplateFormView: View {
                     .padding()
                 }
                 
-                // ✅ Simplified button
-                Button(action: {
-                    Task {
-                        await viewModel.generateTemplate(from: formPesanan)
-                    }
-                }) {
-                    if viewModel.isLoading {
-                        ProgressView()
-                            .tint(.white)
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color.blue)
-                            .cornerRadius(30)
-                            .padding(.horizontal)
-                    } else {
-                        Text("Tinjau Formulir Pesanan")
-                            .fontWeight(.semibold)
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color.blue)
-                            .foregroundColor(.white)
-                            .cornerRadius(30)
-                            .padding(.horizontal)
-                            .shadow(radius: 5)
+                .toolbar {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button {
+                            Task {
+                                await viewModel.generateTemplate(from: formPesanan)
+                            }
+                        } label: {
+                            if viewModel.isLoading {
+                                ProgressView()
+                                    .tint(.white)
+                                    .frame(width: 32, height: 32)
+                                    .background(
+                                        Circle().fill(Color.blue)
+                                    )
+                            } else {
+                                Image(systemName: "chevron.right")
+                                    .font(.title3)
+                                    .foregroundColor(.white)
+                                    .frame(width: 32, height: 32)
+                                    .background(
+                                        Circle().fill(Color.blue)
+                                    )
+                            }
+                        }
+                        .buttonStyle(.glassProminent)
+                        .tint(.primaryButton)
+                        .disabled(formPesanan.isEmpty || viewModel.isLoading)
                     }
                 }
-                .disabled(formPesanan.isEmpty || viewModel.isLoading)
+
             }
             .navigationDestination(isPresented: $viewModel.didSave) {
                 EditTemplateFormView(isDismissed: $isDismissed)
             }
+            
         }
         .task {
             viewModel.configure(userId: session.userId)

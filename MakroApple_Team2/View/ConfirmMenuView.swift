@@ -25,9 +25,9 @@ struct ConfirmMenuView: View {
         ZStack {
             NavigationStack {
                 VStack(spacing: 12) {
-//                    if vm.isLoadedFromScan {
-//                        scanInfoBanner
-//                    }
+                    if vm.isLoadedFromScan {
+                        scanInfoBanner
+                    }
                     
                     searchHeader
                     
