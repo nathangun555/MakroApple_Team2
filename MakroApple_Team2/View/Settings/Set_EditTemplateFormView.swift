@@ -91,7 +91,10 @@ struct Set_EditTemplateFormView: View {
         .toolbar {
             ToolbarItemGroup(placement: .topBarTrailing) {
                 Button(action: {
-                    Task { await viewModel.saveTemplate() }
+                    Task {
+                        await viewModel.saveTemplate()
+                        dismiss()
+                    }
                 }) {
                     if viewModel.isSaving {
                         ProgressView()
