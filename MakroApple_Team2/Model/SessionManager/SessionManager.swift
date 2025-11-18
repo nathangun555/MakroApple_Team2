@@ -32,7 +32,7 @@ final class SessionManager: ObservableObject {
         self.isSignedIn = true
 //        self.userId = "94f7bbef-ecad-46ef-b926-7296ebd12ca3" // new
 //        self.userId = "ec7eea39-e2b6-4e46-b847-646019276f67" // has template
-        self.userId = "f4c00649-2639-4d1f-84c3-aff5f8f4d781" // nathan menu
+        self.userId = "c4ed1a29-692d-4c8c-a9a5-5b74559b9629" // nathan menu
         print("🧪 DEV MODE: Instant session loaded")
         print("🪪 userId:", userId ?? "nil")
     }

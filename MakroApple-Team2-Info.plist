@@ -10,7 +10,7 @@
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
 			<key>CFBundleURLName</key>
-			<string>MakroApple-Team2</string>
+			<string>com.jowdohmu.aiva</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>makroa2</string>
