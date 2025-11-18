@@ -36,7 +36,7 @@ struct Set_NewTemplateFormView: View {
                                     .padding(8)
                                     .labelStyle(.titleAndIcon)
                                     .foregroundColor(.white)
-                                    .background(.blue)
+                                    .background(.primaryButton)
                                     .cornerRadius(20)
                             }
                         }
@@ -101,36 +101,39 @@ Foto Referensi (optional):
                     .padding()
                 }
 
-                Button {
-                    Task {
-                        await viewModel.generateTemplate(from: formPesanan)
-                        if viewModel.didSave {
-                            onAfterSave?()
-                            dismiss()
+                .toolbar {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button {
+                            Task {
+                                await viewModel.generateTemplate(from: formPesanan)
+                                if viewModel.didSave {
+                                    onAfterSave?()
+                                    dismiss()
+                                }
+                            }
+                        } label: {
+                            if viewModel.isLoading {
+                                ProgressView()
+                                    .tint(.white)
+                                    .frame(width: 32, height: 32)
+                                    .background(
+                                        Circle().fill(Color.blue)
+                                    )
+                            } else {
+                                Image(systemName: "chevron.right")
+                                    .font(.title3)
+                                    .foregroundColor(.white)
+                                    .frame(width: 32, height: 32)
+                                    .background(
+                                        Circle().fill(Color.blue)
+                                    )
+                            }
                         }
-                    }
-                } label: {
-                    if viewModel.isLoading {
-                        ProgressView()
-                            .tint(.white)
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color.blue)
-                            .cornerRadius(30)
-                            .padding(.horizontal)
-                    } else {
-                        Text("Tinjau Formulir Pesanan")
-                            .fontWeight(.semibold)
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color.blue)
-                            .foregroundColor(.white)
-                            .cornerRadius(30)
-                            .padding(.horizontal)
-                            .shadow(radius: 5)
+                        .buttonStyle(.glassProminent)
+                        .tint(.primaryButton)
+                        .disabled(formPesanan.isEmpty || viewModel.isLoading)
                     }
                 }
-                .disabled(formPesanan.isEmpty || viewModel.isLoading)
             }
         }
         .task { viewModel.configure(userId: session.userId) }
