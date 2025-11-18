@@ -92,8 +92,8 @@ struct OrderListView: View {
                                 VStack(alignment: .leading, spacing: 8) {
                                     
                                     HStack {
-                                        Text(type.uppercased())
-                                            .font(.title3.bold())
+                                        Text(type)
+                                            .font(.headline.bold())
                                         
                                         Spacer()
                                         

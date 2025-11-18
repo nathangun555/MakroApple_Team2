@@ -13,17 +13,17 @@ struct DeadlineCard: View {
     
     private var todayDeadlineCount: Int {
         let today = Calendar.current.startOfDay(for: Date())
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "yyyy-MM-dd" // adjust to your actual format
         
         return orders.filter {
-            guard let dateString = $0.orderDdayDate, // String
-                  let date = dateFormatter.date(from: dateString) else {
+            guard let date = DateFormatterHelper.toDate($0.orderDdayDate) else {
                 return false
             }
-            return Calendar.current.isDate(date, inSameDayAs: today)
+            // Normalize parsed date to start of the same day
+            let parsedDayStart = Calendar.current.startOfDay(for: date)
+            return parsedDayStart == today
         }.count
     }
+
     
     var body: some View {
         

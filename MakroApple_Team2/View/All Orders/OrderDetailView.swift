@@ -645,6 +645,8 @@ struct OrderDetailView: View {
             DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
                 withAnimation { showSuccessToast = false }
             }
+            
+            dismiss()
 
         } catch {
             print("❌ Failed to update status:", error.localizedDescription)
