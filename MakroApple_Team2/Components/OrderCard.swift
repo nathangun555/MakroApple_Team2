@@ -51,7 +51,7 @@ struct OrderCard: View {
                 HStack {
                     // Pesanan
                     Text(orderItem.productName)
-                        .font(Font.title3.bold())
+                        .font(Font.body.bold())
                     
                     Spacer()
                     
@@ -94,15 +94,3 @@ struct OrderCard: View {
     }
 }
 
-//#Preview {
-//    // Create a stub session
-//    let session = SessionManager()
-//    session.isSignedIn = true
-//    session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
-//    
-//    // Create the view
-//    let view = AllOrdersView()
-//    
-//    // Inject the environment object
-//    return view.environmentObject(session)
-//}

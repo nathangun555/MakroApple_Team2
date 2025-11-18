@@ -83,6 +83,7 @@ struct AllOrdersView: View {
                 .padding(.horizontal)
                 
                 DeadlineCard(orders: viewModel.orders, hastemplates: viewModel.hasTemplates)
+                
                 CustomTabBar(activeTab: $activeTab)
                 
                 GuideMessage(

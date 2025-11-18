@@ -56,21 +56,24 @@ struct OrderListView: View {
                         }
                         
                         ForEach(sortedOrders) { order in
-                            if let firstItem = viewModel.orderItems.first(where: { $0.orderId == order.id }) {
+                            let items = viewModel.orderItems.filter { $0.orderId == order.id }
+                            if !items.isEmpty {
                                 NavigationLink(
                                     destination:
                                         OrderDetailView(
                                             order: order,
-                                            orderItem: [firstItem],
+                                            orderItem: items,
                                             source: .allOrders,
                                             activeTab: .constant(.belumBayar)
                                         )
-                                        .environmentObject(session) ) {
-                                            OrderCard(order: order, orderItem: firstItem)
-                                        }
-                                        .buttonStyle(PlainButtonStyle())
+                                        .environmentObject(session)
+                                ) {
+                                    OrderCard(order: order, orderItem: items.first!)
+                                }
+                                .buttonStyle(PlainButtonStyle())
                             }
                         }
+
                         
                     }
                     else {
