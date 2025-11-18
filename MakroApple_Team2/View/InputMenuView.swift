@@ -116,12 +116,12 @@ struct InputMenuView: View {
             .frame(height: 200)
             .overlay(
                 VStack(spacing: 12) {
-                    Image(systemName: "arrow.up.doc.fill")
+                    Image(systemName: "square.and.arrow.up.fill")
                         .font(.system(size: 50))
-                        .foregroundColor(.blue)
+                        .foregroundColor(.primaryButton)
                     Text("Unggah katalog bisnis anda di sini untuk\nmenyimpan daftar produk dan harga.")
                         .font(.body)
-                        .foregroundColor(.blue)
+                        .foregroundColor(.primaryButton)
                         .multilineTextAlignment(.center)
                     Text("format PDF, sampai dengan 10 MB.")
                         .font(.caption)

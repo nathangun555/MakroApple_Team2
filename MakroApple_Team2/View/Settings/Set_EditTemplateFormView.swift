@@ -50,7 +50,10 @@ struct Set_EditTemplateFormView: View {
                         FormSection(
                             title: "Lain - Lain",
                             fields: $viewModel.otherFields,
-                            onAddColumn: { viewModel.addOtherField() }
+                            onAddColumn: { viewModel.addOtherField() },
+                            showDelete: true,
+                            onDelete: { index in viewModel.deleteOtherField(at: index) },
+                            isEditable: true
                         )
 
                         // Referensi Foto (nonaktif dulu)
@@ -88,18 +91,21 @@ struct Set_EditTemplateFormView: View {
         .toolbar {
             ToolbarItemGroup(placement: .topBarTrailing) {
                 Button(action: {
-                    Task { await viewModel.saveTemplate() }
+                    Task {
+                        await viewModel.saveTemplate()
+                        dismiss()
+                    }
                 }) {
                     if viewModel.isSaving {
                         ProgressView()
                     } else {
-                        Image(systemName: "arrow.right")
+                        Image(systemName: "checkmark")
+                            .font(.title3)
                             .foregroundColor(.white)
-                            .padding(8)
-                            .background(Color.blue)
-                            .clipShape(Circle())
                     }
                 }
+                .buttonStyle(.glassProminent)
+                .tint(.primaryButton)
                 .disabled(viewModel.isSaving)
             }
         }

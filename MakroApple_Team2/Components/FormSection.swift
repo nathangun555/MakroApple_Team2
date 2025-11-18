@@ -14,6 +14,8 @@ struct FormSection: View {
     var showDelete: Bool = false
     var onDelete: ((Int) -> Void)? = nil
     
+    var isEditable: Bool = true
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
@@ -23,31 +25,41 @@ struct FormSection: View {
                 
                 Spacer()
                 
-                if title == "Lain - Lain"{
+                if title == "Lain - Lain" {
                     Button(action: onAddColumn) {
                         Label("Tambahkan Kolom", systemImage: "plus")
                             .font(.subheadline)
-                            .foregroundColor(.primaryButton)
-//                            .background(.gray)
+                            .foregroundColor(isEditable ? .primaryButton : .gray)
                     }
                     .buttonStyle(.bordered)
                     .tint(.gray)
+                    .disabled(!isEditable)
                 }
-                
             }
             .padding(.horizontal)
             
             ForEach(Array(fields.enumerated()), id: \.offset) { index, field in
                 if field.label != "Foto Referensi (optional)" {
                     HStack(spacing: 12) {
+                        
                         TextField("", text: Binding(
-                                get: { field.label },
-                                set: { fields[index].label = $0 }
-                            ))
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .font(.body)
-                            .multilineTextAlignment(.leading)
-                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            get: { field.label },
+                            set: { fields[index].label = $0 }
+                        ))
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .font(.body)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
+                        .background(
+                            isEditable ? Color.white : Color(.systemGray5)
+                        )
+                        .cornerRadius(8)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(Color(.systemGray4), lineWidth: 1)
+                        )
+                        .foregroundColor(isEditable ? .primary : .gray)
+                        .disabled(!isEditable)   // <-- NEW
                         
                         Text("")
                             .frame(maxWidth: .infinity, alignment: .leading)
@@ -61,10 +73,11 @@ struct FormSection: View {
                             )
                             .foregroundColor(.secondary)
                         
+                        
                         if showDelete, let onDelete = onDelete {
                             Button(action: { onDelete(index) }) {
                                 Image(systemName: "trash")
-                                    .foregroundColor(.red)
+                                    .foregroundColor(.red.opacity(isEditable ? 1 : 0.4))
                             }
                         }
                     }
@@ -74,6 +87,7 @@ struct FormSection: View {
         }
     }
 }
+
 
 #Preview {
     // Dummy binding

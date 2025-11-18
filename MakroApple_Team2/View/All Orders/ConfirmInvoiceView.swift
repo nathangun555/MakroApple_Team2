@@ -40,8 +40,8 @@
                     InvoiceSectionHeader(title: "Rincian Invoice")
                     
                     VStack(alignment: .leading, spacing: 12) {
-                        InvoiceRowField(label: "No. Invoice", value: $viewModel.invoiceNumber)
-                        InvoiceRowField(label: "Tanggal", value: $viewModel.invoiceDate)
+                        InvoiceRowField(label: "No. Invoice", value: $viewModel.invoiceNumber, isEditable: false)
+                        InvoiceRowField(label: "Tanggal", value: $viewModel.invoiceDate, isEditable: false)
                         
                         // Date Picker for Due Date
                         HStack {
@@ -74,9 +74,9 @@
                     InvoiceSectionHeader(title: "Informasi Pembayaran")
                     
                     VStack(alignment: .leading, spacing: 12) {
-                        InvoiceRowField(label: "Nama Akun", value: $viewModel.accountName)
-                        InvoiceRowField(label: "Nomor Rekening", value: $viewModel.accountNumber)
-                        InvoiceRowField(label: "Nama Bank", value: $viewModel.bankName)
+                        InvoiceRowField(label: "Nama Akun", value: $viewModel.accountName, isEditable: false)
+                        InvoiceRowField(label: "Nomor Rekening", value: $viewModel.accountNumber, isEditable: false)
+                        InvoiceRowField(label: "Nama Bank", value: $viewModel.bankName, isEditable: false)
                     }
                     .padding(.horizontal)
 
@@ -84,8 +84,8 @@
                     InvoiceSectionHeader(title: "Tagihan Untuk")
                     
                     VStack(alignment: .leading, spacing: 12) {
-                        InvoiceRowField(label: "Nama Pemesan", value: $viewModel.customerName)
-                        InvoiceRowField(label: "No Telp Pemesan", value: $viewModel.customerPhone)
+                        InvoiceRowField(label: "Nama Pemesan", value: $viewModel.customerName, isEditable: false)
+                        InvoiceRowField(label: "No Telp Pemesan", value: $viewModel.customerPhone, isEditable: false)
                     }
                     .padding(.horizontal)
 
@@ -95,115 +95,88 @@
                     VStack(alignment: .leading, spacing: 12) {
                         ForEach($viewModel.products) { $item in
                             VStack(alignment: .leading, spacing: 0) {
-                                // Collapsible Header
-                                Button(action: {
-                                    withAnimation {
-                                        if expandedProducts.contains(item.id) {
-                                            expandedProducts.remove(item.id)
-                                        } else {
-                                            expandedProducts.insert(item.id)
-                                        }
-                                    }
-                                }) {
-                                    HStack {
-                                        Text($item.productName.wrappedValue)
-                                            .font(.body)
-                                            .fontWeight(.medium)
-                                            .foregroundColor(.primary)
-                                        
-                                        
-                                        Spacer()
-                                        
-                                        Image(systemName: expandedProducts.contains(item.id) ? "chevron.up" : "chevron.down")
-                                            .foregroundColor(.gray)
-                                    }
-                                    .padding()
-                                    .background(Color(.systemGray6))
+
+                                HStack {
+                                    Text($item.productName.wrappedValue)
+                                        .font(.body)
+                                        .fontWeight(.medium)
+                                        .foregroundColor(.primary)
+
+                                    Spacer()
                                 }
+                                .padding()
+                                .background(.deadlineCard)
                                 
-                                // Expanded Content
-                                if expandedProducts.contains(item.id) {
-                                    VStack(alignment: .leading, spacing: 12) {
-                                        InvoiceRowField(
-                                            label: "Jumlah Produk",
-                                            value: Binding(
-                                                get: {
-                                                    // kalau sedang fokus dan nilai 0, tampilkan string kosong
-                                                    if focusedField == .quantity(item.id), $item.quantity.wrappedValue == 0 {
-                                                        return ""
-                                                    }
-                                                    return String($item.quantity.wrappedValue)
-                                                },
-                                                set: { newValue in
-                                                    $item.quantity.wrappedValue = Int(newValue) ?? 0
-                                                }
-                                            ),
-                                            keyboardType: .numberPad
-                                        )
-                                        .focused($focusedField, equals: .quantity(item.id))
-                                        .onTapGesture { focusedField = .quantity(item.id) }
-                                        
-                                        
-                                        // Harga
-                                        InvoiceRowField(
-                                            label: "Harga",
-                                            value: Binding(
-                                                get: {
-                                                    let val = $item.productPrice.wrappedValue
-                                                    if focusedField == .price(item.id) {
-                                                        return val == 0 ? " Rp " : " \(val.formatted(.currency(code: "IDR")))"
-                                                    } else {
-                                                        return " \(val.formatted(.currency(code: "IDR")))"
-                                                    }
-                                                },
-                                                set: { newValue in
-                                                    let clean = newValue.filter("0123456789".contains)
-                                                    $item.productPrice.wrappedValue = Decimal(string: clean) ?? 0
-                                                }
-                                            ),
-                                            keyboardType: .numberPad
-                                        )
-                                        .focused($focusedField, equals: .price(item.id))
-                                        .onTapGesture { focusedField = .price(item.id) }
+                                Divider()
+                                // Always-expanded content
+                                VStack(alignment: .leading, spacing: 12) {
 
-                                        // Diskon
-                                        InvoiceRowField(
-                                            label: "Diskon",
-                                            value: Binding(
-                                                get: {
-                                                    let val = $item.discount.wrappedValue
-                                                    if focusedField == .discount(item.id) {
-                                                        return val == 0 ? " Rp " : " \(val.formatted(.currency(code: "IDR")))"
-                                                    } else {
-                                                        return " \(val.formatted(.currency(code: "IDR")))"
-                                                       
-                                                    }
-                                                },
-                                                set: { newValue in
-                                                    let clean = newValue.filter("0123456789".contains)
-                                                    $item.discount.wrappedValue = Decimal(string: clean) ?? 0
+                                    InvoiceRowField(
+                                        label: "Jumlah Produk",
+                                        value: Binding(
+                                            get: {
+                                                if focusedField == .quantity(item.id), $item.quantity.wrappedValue == 0 {
+                                                    return ""
                                                 }
-                                            ),
-                                            keyboardType: .numberPad
-                                        )
-                                        .focused($focusedField, equals: .discount(item.id))
-                                        .onTapGesture { focusedField = .discount(item.id) }
+                                                return String($item.quantity.wrappedValue)
+                                            },
+                                            set: { newValue in
+                                                $item.quantity.wrappedValue = Int(newValue) ?? 0
+                                            }
+                                        ),
+                                        keyboardType: .numberPad
+                                    )
+                                    .focused($focusedField, equals: .quantity(item.id))
+                                    .onTapGesture { focusedField = .quantity(item.id) }
 
+                                    // Harga
+                                    InvoiceRowField(
+                                        label: "Harga",
+                                        value: Binding(
+                                            get: {
+                                                let val = $item.productPrice.wrappedValue
+                                                return focusedField == .price(item.id)
+                                                    ? (val == 0 ? " Rp " : " \(val.formatted(.currency(code: "IDR")))") :
+                                                      " \(val.formatted(.currency(code: "IDR")))"
+                                            },
+                                            set: { newValue in
+                                                let clean = newValue.filter("0123456789".contains)
+                                                $item.productPrice.wrappedValue = Decimal(string: clean) ?? 0
+                                            }
+                                        ),
+                                        keyboardType: .numberPad
+                                    )
+                                    .focused($focusedField, equals: .price(item.id))
+                                    .onTapGesture { focusedField = .price(item.id) }
 
-                                        
-                                        
-                                    }
-                                    .padding()
-                                    .background(Color(.systemGray5))
+                                    // Diskon
+                                    InvoiceRowField(
+                                        label: "Diskon",
+                                        value: Binding(
+                                            get: {
+                                                let val = $item.discount.wrappedValue
+                                                return focusedField == .discount(item.id)
+                                                    ? (val == 0 ? " Rp " : " \(val.formatted(.currency(code: "IDR")))") :
+                                                      " \(val.formatted(.currency(code: "IDR")))"
+                                            },
+                                            set: { newValue in
+                                                let clean = newValue.filter("0123456789".contains)
+                                                $item.discount.wrappedValue = Decimal(string: clean) ?? 0
+                                            }
+                                        ),
+                                        keyboardType: .numberPad
+                                    )
+                                    .focused($focusedField, equals: .discount(item.id))
+                                    .onTapGesture { focusedField = .discount(item.id) }
+
                                 }
+                                .padding()
+                                .background(.deadlineCard)
                             }
-                            .background(Color(.systemGray6))
-                            .cornerRadius(12)
                         }
                     }
     //                .padding()
-                    .background(Color(.systemGray6))
-                    .cornerRadius(12)
+                    .cornerRadius(10)
                     .padding(.horizontal)
 
                     // MARK: - Rincian Biaya
@@ -297,9 +270,9 @@
                     InvoiceSectionHeader(title: "Rincian Tambahan")
                     
                     VStack(alignment: .leading, spacing: 12) {
-                        InvoiceRowField(label: "Nama Penerima", value: $viewModel.receiverName)
-                        InvoiceRowField(label: "No Telp Penerima", value: $viewModel.receiverPhone)
-                        InvoiceRowField(label: "Alamat Kirim", value: $viewModel.shippingAddress)
+                        InvoiceRowField(label: "Nama Penerima", value: $viewModel.receiverName, isEditable: false)
+                        InvoiceRowField(label: "No Telp Penerima", value: $viewModel.receiverPhone, isEditable: false)
+                        InvoiceRowField(label: "Alamat Kirim", value: $viewModel.shippingAddress, isEditable: false)
                     }
                     .padding(.horizontal)
 
@@ -307,8 +280,8 @@
                     InvoiceSectionHeader(title: "Jadwal Pesanan")
                     
                     VStack(alignment: .leading, spacing: 12) {
-                        InvoiceRowField(label: "Tanggal Pesanan", value: $viewModel.orderDate)
-    //                    InvoiceRowField(label: "Jam Kirim", value: $viewModel.deliveryTime)
+                        InvoiceRowField(label: "Tanggal Pesanan", value: $viewModel.orderDate, isEditable: false)
+                        InvoiceRowField(label: "Jam Kirim", value: $viewModel.deliveryTime, isEditable: false)
                     }
                     .padding(.horizontal)
 
@@ -397,6 +370,7 @@
         @Binding var value: String
         var keyboardType: UIKeyboardType = .default
         var hasError: Bool = false
+        var isEditable: Bool = true
         
         var body: some View {
             VStack(alignment: .leading) {
@@ -405,13 +379,17 @@
                         .frame(width: 140, alignment: .leading)
                         .font(.body)
                         .foregroundColor(.primary)
-                    
+
                     TextField("Silakan isi kolom", text: $value)
                         .font(.body)
                         .multilineTextAlignment(.leading)
                         .padding(.horizontal, 12)
                         .padding(.vertical, 8)
-                        .background(Color(.white))
+                        .background(
+                            isEditable
+                                ? Color.white
+                                : Color(.systemGray5)
+                        )
                         .cornerRadius(8)
                         .overlay(
                             RoundedRectangle(cornerRadius: 8)
@@ -420,9 +398,11 @@
                                     lineWidth: hasError ? 2 : 1
                                 )
                         )
+                        .foregroundColor(isEditable ? .primary : .gray)
                         .keyboardType(keyboardType)
+                        .disabled(!isEditable)
                 }
-                
+
                 if hasError {
                     HStack {
                         Spacer().frame(width: 140)
@@ -434,9 +414,10 @@
                     }
                 }
             }
-    //        .padding(.horizontal)
         }
     }
+
+
 
 
     #Preview {

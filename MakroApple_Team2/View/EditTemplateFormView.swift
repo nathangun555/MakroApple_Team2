@@ -35,69 +35,71 @@ struct EditTemplateFormView: View {
                         FormSection(
                             title: "Rincian Pelanggan",
                             fields: $viewModel.customerFields,
-                            onAddColumn: { viewModel.addCustomerField() }
+                            onAddColumn: { viewModel.addCustomerField() },
+                            isEditable: false
                         )
                         
                         // Jadwal Pesanan Section
                         FormSection(
                             title: "Jadwal Pesanan",
                             fields: $viewModel.scheduleFields,
-                            onAddColumn: { viewModel.addScheduleField() }
+                            onAddColumn: { viewModel.addScheduleField() },
+                            isEditable: false
                         )
                         
                         // Rincian Pesanan Section
                         FormSection(
                             title: "Rincian Pesanan",
                             fields: $viewModel.orderFields,
-                            onAddColumn: { viewModel.addOrderField() }
+                            onAddColumn: { viewModel.addOrderField() },
+                            isEditable: false
 //                                showDelete: true,
 //                                onDelete: { index in viewModel.deleteOrderField(at: index) }
                         )
                         
                         // Lain-Lain Section
-                        DraggableFormSection(
+//                        DraggableFormSection(
+//                            title: "Lain - Lain",
+//                            fields: $viewModel.otherFields,
+//                            onAddColumn: { viewModel.addOtherField() },
+//                            showDelete: true,
+//                            onDelete: { index in viewModel.deleteOtherField(at: index) }
+//                        )
+                        FormSection(
                             title: "Lain - Lain",
                             fields: $viewModel.otherFields,
                             onAddColumn: { viewModel.addOtherField() },
                             showDelete: true,
-                            onDelete: { index in viewModel.deleteOtherField(at: index) }
+                            onDelete: { index in viewModel.deleteOtherField(at: index) },
+                            isEditable: true
                         )
+                        
                         
                         // Referensi Foto Section
                         VStack(alignment: .leading, spacing: 12) {
                             Text("Referensi Foto")
                                 .font(.title3)
                                 .fontWeight(.bold)
-                            
-                            Button(action: {
-                                // Handle photo upload
-                            }) {
+
+                            Button(action: {}) {
                                 ZStack {
                                     RoundedRectangle(cornerRadius: 12)
                                         .stroke(style: StrokeStyle(lineWidth: 2, dash: [5]))
                                         .foregroundColor(.gray.opacity(0.5))
-                                        .frame(width: 115, height: 115)
+                                        .frame(width: 200, height: 200)
                                         .background(Color(.systemGray6))
                                         .cornerRadius(12)
-                                    
                                     VStack {
                                         Image(systemName: "photo.badge.plus")
-                                            .foregroundColor(.black)
-                                            .frame(width: 115, height: 115)
-                                            .overlay(
-                                                RoundedRectangle(cornerRadius: 10)
-                                                    .strokeBorder(style: StrokeStyle(lineWidth: 1, dash: [5]))
-                                                    .foregroundStyle(Color.secondary)
-                                                    .background(.gray.opacity(0.1))
-                                                    .cornerRadius(10)
-                                            )
+                                            .font(.system(size: 40))
+                                            .foregroundColor(.gray)
                                     }
                                 }
                             }
+                            .disabled(true)
                         }
                         .padding(.horizontal)
                         .frame(maxWidth: .infinity, alignment: .leading)
-                        .disabled(true)
                     }
                     .padding(.vertical)
                 }
