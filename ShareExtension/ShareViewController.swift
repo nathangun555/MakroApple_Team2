@@ -44,7 +44,7 @@ class ShareViewController: UIViewController {
         
         var allImageData: [Data] = []
         var sharedText: String? = nil
-        let groupDefaults = UserDefaults(suiteName: "group.com.please.shared")
+        let groupDefaults = UserDefaults(suiteName: "group.com.please.shared2")
         
         groupDefaults?.removeObject(forKey: "sharedText")
            groupDefaults?.removeObject(forKey: "sharedImagesData")

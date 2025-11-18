@@ -52,7 +52,8 @@ struct CustomTabBar: View {
     @Binding var activeTab: TabModel
     
     var body: some View {
-        GeometryReader { geo in
+        
+        
             HStack(spacing: 8) {
                 
                 ZStack {
@@ -64,7 +65,7 @@ struct CustomTabBar: View {
                 }
             }
             .padding(.horizontal, 15)
-        }
+        
         .frame(height: 45)
     }
     

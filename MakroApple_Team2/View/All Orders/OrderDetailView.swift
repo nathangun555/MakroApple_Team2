@@ -290,32 +290,32 @@ struct OrderDetailView: View {
                             .padding(.top)
                             .font(.title3)
                         
-                        LazyVGrid(columns: columns, spacing: 10) {
-                            
-                            Text("Pengiriman :")
-                            Text("\(order.opsiPengiriman?.isEmpty == true ? "-" : order.opsiPengiriman!)")
-                                .padding(.vertical, 3)
-                                .frame(maxWidth: .infinity)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 10)
-                                        .stroke(Color.gray, lineWidth: 0.5)
-                                        .background(RoundedRectangle(cornerRadius: 30).fill(.secondary.opacity(0.1)))
-                                )
-                            
-                            Text("Notes :")
-
-                            Text("\(order.notes?.isEmpty == true ? "-" : order.notes!)")
-                                .lineLimit(5)
-                                .padding(5)
-                            
-                                .lineLimit(10)
-                                .frame(maxWidth: .infinity)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 10)
-                                        .stroke(Color.gray, lineWidth: 0.5)
-                                        .background(RoundedRectangle(cornerRadius: 10).fill(.secondary.opacity(0.1)))
-                                )
-                        }
+//                        LazyVGrid(columns: columns, spacing: 10) {
+//                            
+//                            Text("Pengiriman :")
+//                            Text("\(order.opsiPengiriman?.isEmpty == true ? "-" : order.opsiPengiriman!)")
+//                                .padding(.vertical, 3)
+//                                .frame(maxWidth: .infinity)
+//                                .background(
+//                                    RoundedRectangle(cornerRadius: 10)
+//                                        .stroke(Color.gray, lineWidth: 0.5)
+//                                        .background(RoundedRectangle(cornerRadius: 30).fill(.secondary.opacity(0.1)))
+//                                )
+//                            
+//                            Text("Notes :")
+//
+//                            Text("\(order.notes?.isEmpty == true ? "-" : order.notes!)")
+//                                .lineLimit(5)
+//                                .padding(5)
+//                            
+//                                .lineLimit(10)
+//                                .frame(maxWidth: .infinity)
+//                                .background(
+//                                    RoundedRectangle(cornerRadius: 10)
+//                                        .stroke(Color.gray, lineWidth: 0.5)
+//                                        .background(RoundedRectangle(cornerRadius: 10).fill(.secondary.opacity(0.1)))
+//                                )
+//                        }
                         
                         if let customFields = order.customFields, !customFields.isEmpty {
 
@@ -644,7 +644,10 @@ struct OrderDetailView: View {
             // 4️⃣ Hide toast after delay and handle navigation
             DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
                 withAnimation { showSuccessToast = false }
+                dismiss()
             }
+            
+          
 
         } catch {
             print("❌ Failed to update status:", error.localizedDescription)
