@@ -28,6 +28,7 @@ struct SettingsView: View {
     
     // Binding untuk dismiss all sheets (dipakai Set_InputMenuView / Set_ConfirmMenuView / Set_ManualInputView)
     @State private var isDismissedFromMenu = false
+    @State private var isDismissedFromTemplate = false
 
     var body: some View {
         NavigationStack {
@@ -165,14 +166,14 @@ struct SettingsView: View {
             }
 
             // Destinasi dinamis Template
-            .navigationDestination(isPresented: $navigateToNewTemplate) {
-                Set_NewTemplateFormView(onAfterSave: {
-                    navigateToNewTemplate = false
-                })
-                .environmentObject(session)
+            .fullScreenCover(isPresented: $navigateToNewTemplate) {
+                NavigationStack{
+                    Set_NewTemplateFormView(isDismissed: $isDismissedFromTemplate)
+                    .environmentObject(session)
+                }
             }
             .navigationDestination(isPresented: $navigateToEditTemplate) {
-                Set_EditTemplateFormView()
+                Set_EditTemplateFormView(isDismissed: $isDismissedFromTemplate)
                     .environmentObject(session)
             }
 
@@ -192,6 +193,13 @@ struct SettingsView: View {
                     showInputMenu = false
                     showMenuDetails = false
                     isDismissedFromMenu = false
+                }
+            }
+            .onChange(of: isDismissedFromTemplate) { oldValue, newValue in
+                if newValue {
+                    navigateToNewTemplate = false
+                    navigateToEditTemplate = false
+                    isDismissedFromTemplate = false
                 }
             }
         }
