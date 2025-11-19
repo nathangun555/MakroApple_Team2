@@ -33,6 +33,7 @@ struct InputMenuView: View {
     @State private var isCameraPresented = false
     @State private var showUploadOptions = false
     @State private var navigateToConfirm = false
+    @State private var showManualInput = false
     @EnvironmentObject var session: SessionManager
     @Environment(\.dismiss) private var dismiss
     @State private var submitState: SubmitState = .idle
@@ -62,7 +63,10 @@ struct InputMenuView: View {
                 Text(errorMessage)
             }
             .navigationDestination(isPresented: $navigateToConfirm) {
-                ConfirmMenuView(isDismissed: $isDismissed, scannedCategories: scannedCategories)
+                ConfirmMenuView(isDismissed: $isDismissed, scannedCategories: scannedCategories, manualInput: false)
+            }
+            .navigationDestination(isPresented: $showManualInput) {
+                ConfirmMenuView(isDismissed: $isDismissed, scannedCategories: scannedCategories, manualInput: true)
             }
     }
     
@@ -72,7 +76,24 @@ struct InputMenuView: View {
             VStack(alignment: .leading, spacing: 20) {
                 headerSection
                 uploadSection
-                Spacer().frame(height: 40)
+                
+                Button {
+                    showManualInput = true
+                } label: {
+                    HStack {
+                        Image(systemName: "square.and.pencil")
+                        Text("Buat Menu Manual")
+                            .fontWeight(.semibold)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color(.systemGray6))
+                    .foregroundColor(.primaryButton)
+                    .cornerRadius(12)
+                }
+                .padding(.horizontal)
+                
+                Spacer().frame(height: 20)
                 VStack(alignment: .center, spacing: 12) {
                     submitButton
                     if viewModel.isLoading {
