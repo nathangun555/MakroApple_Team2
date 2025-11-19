@@ -20,21 +20,27 @@ struct MakroApple_Team2App: App {
     
     @State private var isDismissed: Bool = false
 
+    let notifDelegate = NotificationDelegate()
+        
+    init() {
+        UNUserNotificationCenter.current().delegate = notifDelegate
+        NotificationManager.shared.requestPermission()
+    }
     
     @State private var path : NavigationPath = .init()
     var body: some Scene {
         WindowGroup {
-//            InvoicePreviewView(orderId: "97b3757c-a90b-4868-8b97-0fbe9be71955", isDismissed: $isDismissed)
-//                .environmentObject(session)
-//            InvoiceContentView(viewModel: InvoicePreviewViewModel())
-//            HeaderSectionView(
-//                businessLogoUrl: "https://ynxrqdbpovgmhhoobfjt.supabase.co/storage/v1/object/public/MakroAppleTeam2_Bucket/business-logos/3A0A83FE-2480-42F5-82AE-D2A419AAFF89.jpg",
-//                businessName: "Toko Subur",
-//                businessAddress: "Ngagel Jaya",
-//                businessPhone: "62812345678",
-//                businessEmail: "bejo@gmail.com",
-//                invoiceNumber: "1234"
-//            )
+            //            InvoicePreviewView(orderId: "97b3757c-a90b-4868-8b97-0fbe9be71955", isDismissed: $isDismissed)
+            //                .environmentObject(session)
+            //            InvoiceContentView(viewModel: InvoicePreviewViewModel())
+            //            HeaderSectionView(
+            //                businessLogoUrl: "https://ynxrqdbpovgmhhoobfjt.supabase.co/storage/v1/object/public/MakroAppleTeam2_Bucket/business-logos/3A0A83FE-2480-42F5-82AE-D2A419AAFF89.jpg",
+            //                businessName: "Toko Subur",
+            //                businessAddress: "Ngagel Jaya",
+            //                businessPhone: "62812345678",
+            //                businessEmail: "bejo@gmail.com",
+            //                invoiceNumber: "1234"
+            //            )
             
             MainTabView(selectedTab: $selectedTab, sharedText: $sharedText,hasNewObject: $hasNewObject, sharedImages : $sharedImages)
                 .environmentObject(session)
@@ -43,7 +49,7 @@ struct MakroApple_Team2App: App {
                 .onOpenURL { url in
                     if url.host == "fromwhatsapp" {
                         if let defaults = UserDefaults(suiteName: "group.com.please.shared") {
-
+                            
                             // Ambil shared text
                             if let text = defaults.string(forKey: "sharedText") {
                                 sharedText = text
@@ -52,7 +58,7 @@ struct MakroApple_Team2App: App {
                                 // 🧹 Hapus setelah digunakan
                                 defaults.removeObject(forKey: "sharedText")
                             }
-
+                            
                             // Ambil shared images
                             if let imageDataArray = defaults.array(forKey: "sharedImagesData") as? [Data] {
                                 sharedImages = imageDataArray.compactMap { UIImage(data: $0) }
@@ -61,12 +67,12 @@ struct MakroApple_Team2App: App {
                                 // 🧹 Hapus setelah digunakan
                                 defaults.removeObject(forKey: "sharedImagesData")
                             }
-
+                            
                             defaults.synchronize()
                         }
                     }
                 }
-
+            
                 .onOpenURL { url in
                     if url.host == "fromwhatsapp" {
                         if let defaults = UserDefaults(suiteName: "group.com.please.shared") {
@@ -86,6 +92,10 @@ struct MakroApple_Team2App: App {
                         }
                     }
                 }
+                .onAppear {
+                    NotificationManager.shared.scheduleDailyNotifications() // ⬅️ keep existing schedule
+                }
+            
             
         }
         

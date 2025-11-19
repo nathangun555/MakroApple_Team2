@@ -31,8 +31,8 @@ final class SessionManager: ObservableObject {
     private func setupDevSession() {
         self.isSignedIn = true
 //        self.userId = "e3482e5e-21a0-4799-9977-23ea467819fb" // new
-//        self.userId = "05119430-c1c4-4c21-9f3a-a32d5b909cc1" // has template
-        self.userId = "f4c00649-2639-4d1f-84c3-aff5f8f4d781" // nathan menu
+        self.userId = "05119430-c1c4-4c21-9f3a-a32d5b909cc1" // has template
+//        self.userId = "f4c00649-2639-4d1f-84c3-aff5f8f4d781" // nathan menu
         
 //        self.userId = "49b3ba69-293d-496c-a52c-3e4f5b57329d" // Le.Aure
 //        self.userId = "bade0678-f878-4168-b605-c26e105b1936" // Petito
