@@ -45,6 +45,24 @@ class AllOrdersViewModel {
     }
     
     // MARK: - Fetch Orders
+//    func fetchOrders(for userId: UUID?) async {
+//        guard let userId else {
+//            print("❌ Invalid user ID")
+//            return
+//        }
+//
+//        isLoading = true
+//        defer { isLoading = false }
+//
+//        do {
+//            let fetchedOrders = try await SupabaseManager.shared.fetchAllOrders(for: userId)
+//            self.orders = fetchedOrders
+//            print("✅ Orders fetched:", fetchedOrders.count)
+//        } catch {
+//            print("❌ Error fetching orders:", error)
+//        }
+//    }
+    
     func fetchOrders(for userId: UUID?) async {
         guard let userId else {
             print("❌ Invalid user ID")
@@ -58,10 +76,22 @@ class AllOrdersViewModel {
             let fetchedOrders = try await SupabaseManager.shared.fetchAllOrders(for: userId)
             self.orders = fetchedOrders
             print("✅ Orders fetched:", fetchedOrders.count)
+
+            // ⬇️ Tambahkan kode ini
+            let today = OrderCountHelper.countTodayOrders(from: fetchedOrders)
+            let tomorrow = OrderCountHelper.countTomorrowOrders(from: fetchedOrders)
+
+            NotificationManager.shared.saveOrderCounts(today: today, tomorrow: tomorrow)
+            NotificationManager.shared.scheduleDailyNotifications()
+
+            print("🔔 Saved Today:", today, "| Tomorrow:", tomorrow)
+            
         } catch {
             print("❌ Error fetching orders:", error)
         }
     }
+
+    
     
     // MARK: - Fetch Order Items
     func fetchOrderItems(for userId: UUID?) async {
