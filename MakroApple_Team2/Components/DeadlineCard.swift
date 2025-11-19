@@ -10,6 +10,7 @@ import SwiftUI
 struct DeadlineCard: View {
     var orders: [OrderRecord]
     var hastemplates: Bool
+    @Binding var isTutorial: Bool
     
     private var todayDeadlineCount: Int {
         let today = Calendar.current.startOfDay(for: Date())
@@ -39,20 +40,36 @@ struct DeadlineCard: View {
         
         
         // Today's Deadline Card
-        HStack {
-            VStack {
-                Image(systemName: hastemplates ? "bookmark.fill" : "building.2.crop.circle.fill")
-                    .font(.title3)
+        VStack {
+            HStack {
+                VStack {
+                    Image(systemName: hastemplates ? "bookmark.fill" : "building.2.crop.circle.fill")
+                        .font(.title3)
+                }
+                VStack(alignment: .leading) {
+                    Text(hastemplates ? "Deadline Hari Ini" : "Lengkapi Data Bisnis Anda")
+                        .font(.title2)
+                        .fontWeight(.bold)
+                    
+                    Text(hastemplates ? "\(todayDeadlineCount) Pesanan yang perlu selesai" : "Selesaikan data bisnis sebelum menambah pesanan.")
+                        .font(.caption)
+                }
             }
-            VStack(alignment: .leading) {
-                Text(hastemplates ? "Deadline Hari Ini" : "Data Bisnis Belum Dilengkapi")
-                    .font(.title2)
-                    .fontWeight(.bold)
-                
-                Text(hastemplates ? "\(todayDeadlineCount) Pesanan yang perlu selesai" : "Untuk menambahkan pesanan pertama Anda, lengkapi terlebih dahulu data bisnis yang diperlukan.")
-                    .font(.caption)
+            if !hastemplates {
+                Button(action: {
+                    isTutorial = true
+                }) {
+                    Text("Atur Sekarang")
+                        .font(.subheadline)
+                        .fontWeight(.bold)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 8)
+                        .background(.primaryButton)
+                        .foregroundColor(.white)
+                        .cornerRadius(30)
+                }
+                .padding(.top, 8)
             }
-            
         }
         .padding()
         .frame(maxWidth: .infinity, alignment: .leading)

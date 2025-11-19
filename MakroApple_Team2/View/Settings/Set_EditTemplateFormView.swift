@@ -110,6 +110,7 @@ struct Set_EditTemplateFormView: View {
                     Task {
                         await viewModel.saveTemplate()
                         isDismissed = true
+                        dismiss()
                     }
                 }) {
                     if viewModel.isSaving {

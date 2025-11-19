@@ -70,9 +70,9 @@ struct MainTabView: View {
 //                Tab("Analitik", systemImage: "chart.bar", value: 2) {
 //                    AnalyticsView()
 //                }
-                Tab("Pengaturan", systemImage: "gearshape", value: 3) {
-                    SettingsView()
-                }
+//                Tab("Pengaturan", systemImage: "gearshape", value: 3) {
+//                    SettingsView()
+//                }
                 if selectedTab == 0 || selectedTab == 4 {
                     Tab("Cari Nama atau Pesanan", systemImage: "magnifyingglass", value: 4, role: .search) {
                         AllOrdersView(sharedImages: $sharedImages,

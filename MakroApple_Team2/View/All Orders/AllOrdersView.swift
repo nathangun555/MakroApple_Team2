@@ -17,7 +17,9 @@ struct AllOrdersView: View {
     @Binding var hasNewObject: Bool
     @State var showNewOrderView = false
     @State var showTutorial = false
+    @State var showProfile = false
     @State var isDismissed = false
+    @State var onChangeSettings = false
     
     @Environment(\.dismiss) var dismiss
     
@@ -34,6 +36,7 @@ struct AllOrdersView: View {
     @EnvironmentObject var session: SessionManager
     
     @State private var viewModel = AllOrdersViewModel()
+    @State private var profileImage: UIImage? = nil
 
     private var filteredOrders: [OrderRecord] {
         viewModel.orders
@@ -72,17 +75,48 @@ struct AllOrdersView: View {
                     }
                     
                     Spacer()
+            
                     Button {
                         handleAddNewOrder()
                     } label: {
-                        Image(systemName: "plus.circle.fill")
-                            .font(.system(size: 44))
-                            .foregroundColor(.primaryButton)
+                        Image(systemName: "plus")
+                            .font(.system(size: 24))
+                            .frame(width: 44, height: 44)
+                            .foregroundColor(.white)
+                            .background(viewModel.hasTemplates ? .primaryButton : .secondary)
+                            .clipShape(Circle())
+                    }
+                    .disabled(!viewModel.hasTemplates)
+                    
+                    Button {
+                        showProfile = true
+                    } label: {
+                        if let logoImage = profileImage {
+                            Image(uiImage: logoImage)
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: 44, height: 44)
+                                .clipShape(Circle())
+                        } else {
+                            Image(systemName: "person.fill")
+                                .font(.system(size: 20))
+                                .frame(width: 44, height: 44)
+                                .foregroundColor(.white)
+                                .glassEffect(.clear.tint(.primaryButton), in: .rect(cornerRadius: 30))
+                                .clipShape(Circle())
+                        }
                     }
                 }
                 .padding(.horizontal)
+                .task(id: viewModel.businessLogoUrl) {
+                    guard let urlString = viewModel.businessLogoUrl else {
+                        profileImage = nil
+                        return
+                    }
+                    profileImage = await loadImage(from: urlString)
+                }
                 
-                DeadlineCard(orders: viewModel.orders, hastemplates: viewModel.hasTemplates)
+                DeadlineCard(orders: viewModel.orders, hastemplates: viewModel.hasTemplates, isTutorial: $showTutorial)
                 
                 CustomTabBar(activeTab: $activeTab)
                 
@@ -201,8 +235,8 @@ struct AllOrdersView: View {
             }
             .onChange(of: isDismissed) { newValue in
                 if newValue {
-                    showNewOrderView = false  // closes the fullScreenCover
-                    isDismissed = false       // reset state for next time
+                    showNewOrderView = false
+                    isDismissed = false
                     Task {
                         guard let userIdString = session.userId,
                               let userId = UUID(uuidString: userIdString) else { return }
@@ -218,6 +252,21 @@ struct AllOrdersView: View {
                 sharedImages = []
                 
             }
+            
+            .onChange(of: onChangeSettings) { newValue in
+                if newValue {
+                    onChangeSettings = false
+                    Task {
+                        guard let userIdString = session.userId,
+                              let userId = UUID(uuidString: userIdString) else { return }
+                        
+                        await viewModel.checkIfUserHasTemplates(for: userId)
+                        await viewModel.fetchBusinessName(for: userId)
+                        await viewModel.fetchOrders(for: userId)
+                        await viewModel.fetchOrderItems(for: userId)
+                    }
+                }
+            }
 
             .fullScreenCover(isPresented: $showTutorial) {
                 NavigationStack{
@@ -225,10 +274,16 @@ struct AllOrdersView: View {
                    
                 }
             }
+            .sheet(isPresented: $showProfile) {
+                NavigationStack{
+                    SettingsView(onChangeSettings: $onChangeSettings)
+                   
+                }
+            }
             .onChange(of: isDismissed) { newValue in
                 if newValue {
-                    showTutorial = false  // closes the fullScreenCover
-                    isDismissed = false       // reset state for next time
+                    showTutorial = false
+                    isDismissed = false
                 }
             }
         }
@@ -236,7 +291,6 @@ struct AllOrdersView: View {
         .searchable(text: $searchText, prompt: "Cari Nama Pelanggan")
     }
     
-    // MARK: - 🔘 Add New Order
     private func handleAddNewOrder() {
         let id = UUID()
         orderImagesCache[id] = sharedImages
@@ -249,6 +303,17 @@ struct AllOrdersView: View {
             showTutorial = true
         }
     }
+    
+    private func loadImage(from urlString: String) async -> UIImage? {
+        guard let url = URL(string: urlString) else { return nil }
+        do {
+            let (data, _) = try await URLSession.shared.data(from: url)
+            return UIImage(data: data)
+        } catch {
+            return nil
+        }
+    }
+
 }
 
 //#Preview {
@@ -263,4 +328,3 @@ struct AllOrdersView: View {
 //    // Inject the environment object
 //    view.environmentObject(session)
 //}
-

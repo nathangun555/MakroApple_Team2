@@ -30,7 +30,7 @@ struct Set_InputMenuView: View {
     
     @Binding var isDismissed: Bool
     
-    @State private var viewModel = InputMenuViewModel()
+    var viewModel = InputMenuViewModel()
     
     var body: some View {
         NavigationStack {
@@ -76,13 +76,13 @@ struct Set_InputMenuView: View {
                 } message: {
                     Text(errorMessage)
                 }
-                .fullScreenCover(isPresented: $showConfirmMenu) {
+                .navigationDestination(isPresented: $showConfirmMenu) {
                     Set_ConfirmMenuView(isDismissed: $isDismissed, scannedCategories: scannedCategories)
                         .environmentObject(session)
                         .environmentObject(deleteBus)
                         .environmentObject(unsavedBus)
                 }
-                .fullScreenCover(isPresented: $showManualInput) {
+                .navigationDestination(isPresented: $showManualInput) {
                     Set_ManualInputView(isDismissed: $isDismissed)
                         .environmentObject(session)
                         .environmentObject(deleteBus)
