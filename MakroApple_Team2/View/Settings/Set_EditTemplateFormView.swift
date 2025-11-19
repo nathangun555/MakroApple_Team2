@@ -12,6 +12,10 @@ struct Set_EditTemplateFormView: View {
     @State private var viewModel = Set_EditTemplateFormViewModel()
     @EnvironmentObject var session: SessionManager
     @Environment(\.dismiss) var dismiss
+    
+    @Binding var isDismissed: Bool
+    
+    @FocusState private var focusedOtherField: Int?
 
     var body: some View {
         ZStack {
@@ -32,28 +36,40 @@ struct Set_EditTemplateFormView: View {
                         FormSection(
                             title: "Rincian Pelanggan",
                             fields: $viewModel.customerFields,
-                            onAddColumn: { viewModel.addCustomerField() }
+                            onAddColumn: { viewModel.addCustomerField() },
+                            isEditable: false,
+                            focusedIndex: $focusedOtherField
                         )
 
                         FormSection(
                             title: "Jadwal Pesanan",
                             fields: $viewModel.scheduleFields,
-                            onAddColumn: { viewModel.addScheduleField() }
+                            onAddColumn: { viewModel.addScheduleField() },
+                            isEditable: false,
+                            focusedIndex: $focusedOtherField
                         )
 
                         FormSection(
                             title: "Rincian Pesanan",
                             fields: $viewModel.orderFields,
-                            onAddColumn: { viewModel.addOrderField() }
+                            onAddColumn: { viewModel.addOrderField() },
+                            isEditable: false,
+                            focusedIndex: $focusedOtherField
                         )
 
                         FormSection(
                             title: "Lain - Lain",
                             fields: $viewModel.otherFields,
-                            onAddColumn: { viewModel.addOtherField() },
+                            onAddColumn: {
+                                viewModel.addOtherField()
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                                    focusedOtherField = 0
+                                }
+                            },
                             showDelete: true,
                             onDelete: { index in viewModel.deleteOtherField(at: index) },
-                            isEditable: true
+                            isEditable: true,
+                            focusedIndex: $focusedOtherField   // ADD THIS
                         )
 
                         // Referensi Foto (nonaktif dulu)
@@ -93,7 +109,7 @@ struct Set_EditTemplateFormView: View {
                 Button(action: {
                     Task {
                         await viewModel.saveTemplate()
-                        dismiss()
+                        isDismissed = true
                     }
                 }) {
                     if viewModel.isSaving {
@@ -116,12 +132,13 @@ struct Set_EditTemplateFormView: View {
     }
 }
 
-#Preview {
-    let session = SessionManager()
-    session.isSignedIn = true
-    session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
-    return NavigationStack {
-        Set_EditTemplateFormView()
-            .environmentObject(session)
-    }
-}
+//#Preview {
+//    let session = SessionManager()
+//    session.isSignedIn = true
+//    session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
+//    return NavigationStack {
+//        Set_EditTemplateFormView()
+//            .environmentObject(session)
+//    }
+//}
+

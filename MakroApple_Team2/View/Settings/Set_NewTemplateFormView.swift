@@ -13,8 +13,10 @@ struct Set_NewTemplateFormView: View {
     @State private var viewModel = Set_NewTemplateViewModel()
     @EnvironmentObject var session: SessionManager
     @Environment(\.dismiss) private var dismiss
+    
+    @Binding var isDismissed: Bool
 
-    var onAfterSave: (() -> Void)? = nil
+//    var onAfterSave: (() -> Void)? = nil
 
     var body: some View {
         GeometryReader { geometry in
@@ -79,18 +81,18 @@ Foto Referensi (optional):
                                 }
                             )
 
-                        if let json = viewModel.resultJSON {
-                            Text("✅ Template JSON:")
-                                .font(.headline)
-                                .padding(.top)
-                            ScrollView {
-                                Text(json)
-                                    .font(.system(.caption, design: .monospaced))
-                                    .padding()
-                                    .background(Color(.secondarySystemBackground))
-                                    .cornerRadius(10)
-                            }
-                        }
+//                        if let json = viewModel.resultJSON {
+//                            Text("✅ Template JSON:")
+//                                .font(.headline)
+//                                .padding(.top)
+//                            ScrollView {
+//                                Text(json)
+//                                    .font(.system(.caption, design: .monospaced))
+//                                    .padding()
+//                                    .background(Color(.secondarySystemBackground))
+//                                    .cornerRadius(10)
+//                            }
+//                        }
 
                         if let error = viewModel.errorMessage {
                             Text("❌ Error: \(error)")
@@ -106,10 +108,6 @@ Foto Referensi (optional):
                         Button {
                             Task {
                                 await viewModel.generateTemplate(from: formPesanan)
-                                if viewModel.didSave {
-                                    onAfterSave?()
-                                    dismiss()
-                                }
                             }
                         } label: {
                             if viewModel.isLoading {
@@ -133,20 +131,33 @@ Foto Referensi (optional):
                         .tint(.primaryButton)
                         .disabled(formPesanan.isEmpty || viewModel.isLoading)
                     }
+                    ToolbarItem(placement: .navigationBarLeading) {
+                        Button {
+                            isDismissed = true
+                        } label: {
+                            Image(systemName: "chevron.left")
+                                .font(.title3)
+                                .foregroundColor(.primaryButton)
+                        }
+                    }
                 }
             }
+            .navigationDestination(isPresented: $viewModel.didSave) {
+                Set_EditTemplateFormView(isDismissed: $isDismissed)
+            }
         }
+            
         .task { viewModel.configure(userId: session.userId) }
     }
 }
 
-#Preview {
-    let session = SessionManager()
-    session.isSignedIn = true
-    session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
-
-    return NavigationStack {
-        Set_NewTemplateFormView()
-            .environmentObject(session)
-    }
-}
+//#Preview {
+//    let session = SessionManager()
+//    session.isSignedIn = true
+//    session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
+//
+//    return NavigationStack {
+//        Set_NewTemplateFormView()
+//            .environmentObject(session)
+//    }
+//}

@@ -18,6 +18,7 @@ struct ConfirmMenuView: View {
 
     @Binding var isDismissed: Bool
     let scannedCategories: [MenuCategory]
+    var manualInput: Bool
 
     @State private var productToDelete: (sectionIndex: Int, productIndex: Int)?
     
@@ -131,11 +132,15 @@ struct ConfirmMenuView: View {
         .task {
             vm.configure(userId: session.userId)
             
-            // ✅ Load from scanned data instead of database
-            if !scannedCategories.isEmpty {
-                await vm.loadFromScan(categories: scannedCategories)
+            if manualInput {
+                initializeEmptyProducts()
             } else {
-                await vm.load()
+                // ✅ Load from scanned data instead of database
+                if !scannedCategories.isEmpty {
+                    await vm.loadFromScan(categories: scannedCategories)
+                } else {
+                    await vm.load()
+                }
             }
         }
         .navigationDestination(isPresented: $navigateToTemplateForm) {
@@ -258,6 +263,12 @@ struct ConfirmMenuView: View {
             }
         }
         productToDelete = nil
+    }
+    
+    private func initializeEmptyProducts() {
+        for _ in 0..<3 {
+            vm.addTemporaryProductFlat()
+        }
     }
 }
 
