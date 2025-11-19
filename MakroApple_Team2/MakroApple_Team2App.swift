@@ -75,7 +75,7 @@ struct MakroApple_Team2App: App {
             
                 .onOpenURL { url in
                     if url.host == "fromwhatsapp" {
-                        if let defaults = UserDefaults(suiteName: "group.com.please.shared") {
+                        if let defaults = UserDefaults(suiteName: "group.com.please.shared2") {
                             
                             if let text = defaults.string(forKey: "sharedText") {
                                 sharedText = text
