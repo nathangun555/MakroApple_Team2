@@ -8,13 +8,16 @@
 
 /* Begin PBXBuildFile section */
 		2B21CFC52EB36D09003EEB61 /* ShareExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 2B21CFBB2EB36D09003EEB61 /* ShareExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-		2B41C5AC2EB9FEAB004E99AD /* MakroApple-Team2-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 2B41C5AB2EB9FEAB004E99AD /* MakroApple-Team2-Info.plist */; };
-		351655F92EA62B3E004AD28D /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 351655F82EA62B3E004AD28D /* Supabase */; };
-		35AD8ADF2EA626A9007F83D5 /* Auth in Frameworks */ = {isa = PBXBuildFile; productRef = 35AD8ADE2EA626A9007F83D5 /* Auth */; };
-		35AD8AE12EA626A9007F83D5 /* Functions in Frameworks */ = {isa = PBXBuildFile; productRef = 35AD8AE02EA626A9007F83D5 /* Functions */; };
-		35AD8AE32EA626A9007F83D5 /* PostgREST in Frameworks */ = {isa = PBXBuildFile; productRef = 35AD8AE22EA626A9007F83D5 /* PostgREST */; };
-		35AD8AE52EA626A9007F83D5 /* Realtime in Frameworks */ = {isa = PBXBuildFile; productRef = 35AD8AE42EA626A9007F83D5 /* Realtime */; };
-		35AD8AE72EA626A9007F83D5 /* Storage in Frameworks */ = {isa = PBXBuildFile; productRef = 35AD8AE62EA626A9007F83D5 /* Storage */; };
+		2B2ECE462ECEC1D0000DB1F5 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2B2ECE452ECEC1D0000DB1F5 /* WidgetKit.framework */; };
+		2B2ECE482ECEC1D0000DB1F5 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2B2ECE472ECEC1D0000DB1F5 /* SwiftUI.framework */; };
+		2B2ECE572ECEC1D1000DB1F5 /* MakroWidgetExtensionExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 2B2ECE442ECEC1D0000DB1F5 /* MakroWidgetExtensionExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		2B2ECE732ECF1CCC000DB1F5 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 2B2ECE722ECF1CCC000DB1F5 /* Supabase */; };
+		2B2ECE752ECF1CD0000DB1F5 /* Storage in Frameworks */ = {isa = PBXBuildFile; productRef = 2B2ECE742ECF1CD0000DB1F5 /* Storage */; };
+		2B2ECE772ECF1CD4000DB1F5 /* Realtime in Frameworks */ = {isa = PBXBuildFile; productRef = 2B2ECE762ECF1CD4000DB1F5 /* Realtime */; };
+		2B2ECE792ECF1CD7000DB1F5 /* PostgREST in Frameworks */ = {isa = PBXBuildFile; productRef = 2B2ECE782ECF1CD7000DB1F5 /* PostgREST */; };
+		2B2ECE7B2ECF1CDB000DB1F5 /* Functions in Frameworks */ = {isa = PBXBuildFile; productRef = 2B2ECE7A2ECF1CDB000DB1F5 /* Functions */; };
+		2B2ECE7D2ECF1CDE000DB1F5 /* Auth in Frameworks */ = {isa = PBXBuildFile; productRef = 2B2ECE7C2ECF1CDE000DB1F5 /* Auth */; };
+
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -58,6 +61,24 @@
 			);
 			target = 2B21CFBA2EB36D09003EEB61 /* ShareExtension */;
 		};
+		2B2ECE5A2ECEC1D1000DB1F5 /* Exceptions for "MakroWidgetExtension" folder in "MakroWidgetExtensionExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 2B2ECE432ECEC1D0000DB1F5 /* MakroWidgetExtensionExtension */;
+		};
+		2B2ECE662ECECBAB000DB1F5 /* Exceptions for "MakroApple_Team2" folder in "MakroWidgetExtensionExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Helper/DateFormatterHelper.swift,
+				"Model/DatabaseFunctions/SupabaseManager+Orders.swift",
+				Model/DatabaseSetup/AnyCodable.swift,
+				Model/DatabaseSetup/DatabaseRecords.swift,
+				Model/DatabaseSetup/SupabaseManager.swift,
+			);
+			target = 2B2ECE432ECEC1D0000DB1F5 /* MakroWidgetExtensionExtension */;
+		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -89,19 +110,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		7C98DB502E93CAD400F06C20 /* Frameworks */ = {
+		2B2ECE412ECEC1D0000DB1F5 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				35AD8AE32EA626A9007F83D5 /* PostgREST in Frameworks */,
-				35AD8AE12EA626A9007F83D5 /* Functions in Frameworks */,
-				351655F92EA62B3E004AD28D /* Supabase in Frameworks */,
-				35AD8ADF2EA626A9007F83D5 /* Auth in Frameworks */,
-				35AD8AE72EA626A9007F83D5 /* Storage in Frameworks */,
-				35AD8AE52EA626A9007F83D5 /* Realtime in Frameworks */,
+				2B2ECE792ECF1CD7000DB1F5 /* PostgREST in Frameworks */,
+				2B2ECE752ECF1CD0000DB1F5 /* Storage in Frameworks */,
+				2B2ECE482ECEC1D0000DB1F5 /* SwiftUI.framework in Frameworks */,
+				2B2ECE462ECEC1D0000DB1F5 /* WidgetKit.framework in Frameworks */,
+				2B2ECE7B2ECF1CDB000DB1F5 /* Functions in Frameworks */,
+				2B2ECE772ECF1CD4000DB1F5 /* Realtime in Frameworks */,
+				2B2ECE7D2ECF1CDE000DB1F5 /* Auth in Frameworks */,
+				2B2ECE732ECF1CCC000DB1F5 /* Supabase in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -161,36 +185,35 @@
 			productReference = 2B21CFBB2EB36D09003EEB61 /* ShareExtension.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
-		7C98DB522E93CAD400F06C20 /* MakroApple_Team2 */ = {
+		2B2ECE432ECEC1D0000DB1F5 /* MakroWidgetExtensionExtension */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 7C98DB5E2E93CAD500F06C20 /* Build configuration list for PBXNativeTarget "MakroApple_Team2" */;
+			buildConfigurationList = 2B2ECE5B2ECEC1D1000DB1F5 /* Build configuration list for PBXNativeTarget "MakroWidgetExtensionExtension" */;
 			buildPhases = (
-				7C98DB4F2E93CAD400F06C20 /* Sources */,
-				7C98DB502E93CAD400F06C20 /* Frameworks */,
-				7C98DB512E93CAD400F06C20 /* Resources */,
-				2B21CFCA2EB36D09003EEB61 /* Embed Foundation Extensions */,
+				2B2ECE402ECEC1D0000DB1F5 /* Sources */,
+				2B2ECE412ECEC1D0000DB1F5 /* Frameworks */,
+				2B2ECE422ECEC1D0000DB1F5 /* Resources */,
 			);
 			buildRules = (
 			);
 			dependencies = (
-				2B21CFC42EB36D09003EEB61 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
-				7C98DB552E93CAD400F06C20 /* MakroApple_Team2 */,
+				2B2ECE492ECEC1D0000DB1F5 /* MakroWidgetExtension */,
 			);
-			name = MakroApple_Team2;
+			name = MakroWidgetExtensionExtension;
 			packageProductDependencies = (
-				35AD8ADE2EA626A9007F83D5 /* Auth */,
-				35AD8AE02EA626A9007F83D5 /* Functions */,
-				35AD8AE22EA626A9007F83D5 /* PostgREST */,
-				35AD8AE42EA626A9007F83D5 /* Realtime */,
-				35AD8AE62EA626A9007F83D5 /* Storage */,
-				351655F82EA62B3E004AD28D /* Supabase */,
+				2B2ECE722ECF1CCC000DB1F5 /* Supabase */,
+				2B2ECE742ECF1CD0000DB1F5 /* Storage */,
+				2B2ECE762ECF1CD4000DB1F5 /* Realtime */,
+				2B2ECE782ECF1CD7000DB1F5 /* PostgREST */,
+				2B2ECE7A2ECF1CDB000DB1F5 /* Functions */,
+				2B2ECE7C2ECF1CDE000DB1F5 /* Auth */,
 			);
-			productName = MakroApple_Team2;
-			productReference = 7C98DB532E93CAD400F06C20 /* MakroApple_Team2.app */;
-			productType = "com.apple.product-type.application";
+			productName = MakroWidgetExtensionExtension;
+			productReference = 2B2ECE442ECEC1D0000DB1F5 /* MakroWidgetExtensionExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
+
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -604,6 +627,36 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		2B2ECE722ECF1CCC000DB1F5 /* Supabase */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 35AD8ADD2EA626A9007F83D5 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Supabase;
+		};
+		2B2ECE742ECF1CD0000DB1F5 /* Storage */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 35AD8ADD2EA626A9007F83D5 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Storage;
+		};
+		2B2ECE762ECF1CD4000DB1F5 /* Realtime */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 35AD8ADD2EA626A9007F83D5 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Realtime;
+		};
+		2B2ECE782ECF1CD7000DB1F5 /* PostgREST */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 35AD8ADD2EA626A9007F83D5 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = PostgREST;
+		};
+		2B2ECE7A2ECF1CDB000DB1F5 /* Functions */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 35AD8ADD2EA626A9007F83D5 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Functions;
+		};
+		2B2ECE7C2ECF1CDE000DB1F5 /* Auth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 35AD8ADD2EA626A9007F83D5 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Auth;
+		};
 		351655F82EA62B3E004AD28D /* Supabase */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 35AD8ADD2EA626A9007F83D5 /* XCRemoteSwiftPackageReference "supabase-swift" */;

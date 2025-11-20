@@ -25,6 +25,9 @@
         @State private var expandedProducts = Set<UUID>()
         
         @FocusState private var focusedField: ProductField?
+        
+        @State private var showValidationError = false
+
 
         
         let orderId: String
@@ -35,17 +38,17 @@
         
         var body: some View {
             ScrollView {
-                VStack(spacing: 24) {
+                VStack {
                     // MARK: - Rincian Invoice
                     InvoiceSectionHeader(title: "Rincian Invoice")
                     
-                    VStack(alignment: .leading, spacing: 12) {
+                    VStack {
                         InvoiceRowField(label: "No. Invoice", value: $viewModel.invoiceNumber, isEditable: false)
                         InvoiceRowField(label: "Tanggal", value: $viewModel.invoiceDate, isEditable: false)
                         
                         // Date Picker for Due Date
                         HStack {
-                            Text("Tanggal Jatuh Tempo :")
+                            Text("Tanggal Jatuh Tempo")
                                 .frame(width: 140, alignment: .leading)
                                 .font(.body)
                                 .foregroundColor(.primary)
@@ -66,28 +69,8 @@
                             .labelsHidden()
                             .datePickerStyle(.compact)
                         }
-    //                    .padding(.horizontal)
                     }
-                    .padding(.horizontal)
-
-                    // MARK: - Informasi Pembayaran
-                    InvoiceSectionHeader(title: "Informasi Pembayaran")
-                    
-                    VStack(alignment: .leading, spacing: 12) {
-                        InvoiceRowField(label: "Nama Akun", value: $viewModel.accountName, isEditable: false)
-                        InvoiceRowField(label: "Nomor Rekening", value: $viewModel.accountNumber, isEditable: false)
-                        InvoiceRowField(label: "Nama Bank", value: $viewModel.bankName, isEditable: false)
-                    }
-                    .padding(.horizontal)
-
-                    // MARK: - Tagihan Untuk
-                    InvoiceSectionHeader(title: "Tagihan Untuk")
-                    
-                    VStack(alignment: .leading, spacing: 12) {
-                        InvoiceRowField(label: "Nama Pemesan", value: $viewModel.customerName, isEditable: false)
-                        InvoiceRowField(label: "No Telp Pemesan", value: $viewModel.customerPhone, isEditable: false)
-                    }
-                    .padding(.horizontal)
+                    .padding(.bottom)
 
                     // MARK: - Rincian Pesanan
                     InvoiceSectionHeader(title: "Rincian Pesanan")
@@ -124,7 +107,8 @@
                                                 $item.quantity.wrappedValue = Int(newValue) ?? 0
                                             }
                                         ),
-                                        keyboardType: .numberPad
+                                        keyboardType: .numberPad,
+                                        hasError: showValidationError && item.quantity == 0
                                     )
                                     .focused($focusedField, equals: .quantity(item.id))
                                     .onTapGesture { focusedField = .quantity(item.id) }
@@ -144,7 +128,9 @@
                                                 $item.productPrice.wrappedValue = Decimal(string: clean) ?? 0
                                             }
                                         ),
-                                        keyboardType: .numberPad
+                                        keyboardType: .numberPad,
+                                        hasError: showValidationError && item.productPrice == 0
+
                                     )
                                     .focused($focusedField, equals: .price(item.id))
                                     .onTapGesture { focusedField = .price(item.id) }
@@ -161,8 +147,13 @@
                                             },
                                             set: { newValue in
                                                 let clean = newValue.filter("0123456789".contains)
-                                                $item.discount.wrappedValue = Decimal(string: clean) ?? 0
+                                                let val = Decimal(string: clean) ?? 0
+                                                let price = $item.productPrice.wrappedValue
+                                                let qty = $item.quantity.wrappedValue
+
+                                                $item.discount.wrappedValue = applyDiscountLimit(price, qty, val)
                                             }
+
                                         ),
                                         keyboardType: .numberPad
                                     )
@@ -177,7 +168,7 @@
                     }
     //                .padding()
                     .cornerRadius(10)
-                    .padding(.horizontal)
+                    .padding(.bottom)
 
                     // MARK: - Rincian Biaya
                     InvoiceSectionHeader(title: "Rincian Biaya")
@@ -264,51 +255,7 @@
                         }
 
                     }
-                    .padding(.horizontal)
-
-                    // MARK: - Rincian Tambahan
-                    InvoiceSectionHeader(title: "Rincian Tambahan")
-                    
-                    VStack(alignment: .leading, spacing: 12) {
-                        InvoiceRowField(label: "Nama Penerima", value: $viewModel.receiverName, isEditable: false)
-                        InvoiceRowField(label: "No Telp Penerima", value: $viewModel.receiverPhone, isEditable: false)
-                        InvoiceRowField(label: "Alamat Kirim", value: $viewModel.shippingAddress, isEditable: false)
-                    }
-                    .padding(.horizontal)
-
-                    // MARK: - Jadwal Pesanan
-                    InvoiceSectionHeader(title: "Jadwal Pesanan")
-                    
-                    VStack(alignment: .leading, spacing: 12) {
-                        InvoiceRowField(label: "Tanggal Pesanan", value: $viewModel.orderDate, isEditable: false)
-                        InvoiceRowField(label: "Jam Kirim", value: $viewModel.deliveryTime, isEditable: false)
-                    }
-                    .padding(.horizontal)
-
-    //                // MARK: - Lain - Lain
-    //                InvoiceSectionHeader(title: "Lain - Lain")
-    //
-    //                VStack(alignment: .leading, spacing: 12) {
-    //                    InvoiceRowField(label: "Pengiriman", value: $viewModel.shippingOption)
-    //                    InvoiceRowField(label: "Notes", value: $viewModel.notes)
-    //                }
-    //                .padding()
-
-                    // MARK: - Referensi Foto
-//                    if !viewModel.photoUrl1.isEmpty {
-//                        InvoiceSectionHeader(title: "Referensi Foto")
-//                        
-//                        AsyncImage(url: URL(string: viewModel.photoUrl1)) { image in
-//                            image
-//                                .resizable()
-//                                .aspectRatio(contentMode: .fill)
-//                        } placeholder: {
-//                            Color.gray.opacity(0.2)
-//                        }
-//                        .frame(height: 200)
-//                        .cornerRadius(12)
-//                        .padding(.horizontal)
-//                    }
+                    .padding(.bottom)
                 }
                 .padding(.horizontal)
             }
@@ -317,6 +264,13 @@
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
+                        if viewModel.hasInvalidProduct {
+                            withAnimation {
+                                showValidationError = true
+                            }
+                            return
+                        }
+                        
                         Task {
                             do {
                                 try await viewModel.onConfirmInvoice(hasDownPayment: hasDownPayment)
@@ -351,6 +305,12 @@
         }
     }
 
+private func applyDiscountLimit(_ price: Decimal, _ qty: Int, _ newVal: Decimal) -> Decimal {
+    let maxDiscount = price * Decimal(qty)
+    return min(newVal, maxDiscount)
+}
+
+
     struct InvoiceSectionHeader: View {
         let title: String
         
@@ -361,7 +321,6 @@
                     .fontWeight(.bold)
                 Spacer()
             }
-    //        .padding(.horizontal)
         }
     }
 
@@ -375,10 +334,12 @@
         var body: some View {
             VStack(alignment: .leading) {
                 HStack {
-                    Text("\(label) :")
+                    Text("\(label)")
                         .frame(width: 140, alignment: .leading)
                         .font(.body)
                         .foregroundColor(.primary)
+                    
+                    Text(":")
 
                     TextField("Silakan isi kolom", text: $value)
                         .font(.body)
