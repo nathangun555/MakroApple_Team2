@@ -244,6 +244,7 @@ struct AllOrdersView: View {
                         
                         await viewModel.checkIfUserHasTemplates(for: userId)
                         await viewModel.fetchBusinessName(for: userId)
+                        await viewModel.autoCancelOverdueOrders()
                         await viewModel.fetchOrders(for: userId)
                         await viewModel.fetchOrderItems(for: userId)
                     }
@@ -263,6 +264,7 @@ struct AllOrdersView: View {
                         
                         await viewModel.checkIfUserHasTemplates(for: userId)
                         await viewModel.fetchBusinessName(for: userId)
+                        await viewModel.autoCancelOverdueOrders()
                         await viewModel.fetchOrders(for: userId)
                         await viewModel.fetchOrderItems(for: userId)
                     }

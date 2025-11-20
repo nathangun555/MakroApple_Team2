@@ -23,25 +23,10 @@ struct Set_NewTemplateFormView: View {
             ZStack(alignment: .bottom) {
                 ScrollView {
                     VStack(alignment: .leading) {
-                        HStack {
-                            Text("Masukan/Buat Formulir Pesanan")
-                                .font(.title3)
-                                .fontWeight(.bold)
-                            Spacer()
-                            Button {
-                                if let clipboard = UIPasteboard.general.string {
-                                    formPesanan = clipboard
-                                }
-                            } label: {
-                                Label("Tempel", systemImage: "list.clipboard.fill")
-                                    .font(.caption).fontWeight(.bold)
-                                    .padding(8)
-                                    .labelStyle(.titleAndIcon)
-                                    .foregroundColor(.white)
-                                    .background(.primaryButton)
-                                    .cornerRadius(20)
-                            }
-                        }
+                        
+                        Text("Masukan/Buat Formulir Pesanan")
+                            .font(.title3)
+                            .fontWeight(.bold)
 
                         TextEditor(text: $formPesanan)
                             .padding(3)
