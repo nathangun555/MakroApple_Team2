@@ -178,7 +178,7 @@ struct AllOrdersView: View {
                                                 .toolbar(.hidden, for: .tabBar)
                                                 .environmentObject(session)
                                         ) {
-                                            OrderCard(order: order, orderItem: orderItems.first!)
+                                            OrderCard(order: order, orderItem: orderItems)
                                         }
                                         .buttonStyle(PlainButtonStyle())
                                     }
