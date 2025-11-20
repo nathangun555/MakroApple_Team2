@@ -1708,7 +1708,7 @@ struct Set_BusinessDetailsView: View {
             } else {
               Image(systemName: "checkmark")
                     .font(.title2)
-                .foregroundStyle(vm.hasChanges ? .white : .gray)
+                    .foregroundStyle(vm.hasChanges ? .white : Color(.systemGray4))
                 .frame(width: 32, height: 32)
                 
             }

@@ -31,18 +31,18 @@ final class NotificationManager {
     func readTomorrowCount() -> Int { UserDefaults.standard.integer(forKey: Keys.orderTomorrow) }
     
     // MARK: - Schedule notifications (7:00 & 8:00)
-    func scheduleDailyNotifications() {
+    func scheduleDailyNotifications() { 
         scheduleNotification(
             identifier: "order_tomorrow_7am",
-            hour: 7, minute: 0,
-            title: "Pesanan Besok",
-            bodyGetter: { "Besok ada \(self.readTomorrowCount()) pesanan yang harus diproses." }
+            hour: 18, minute: 5,
+            title: "Jangan Lupa Pesanan Besok",
+            bodyGetter: { "Kamu memiliki \(self.readTomorrowCount()) pesanan yang harus dikirim besok. Lihat detailnya di kalender sekarang" }
         )
         scheduleNotification(
             identifier: "order_today_8am",
             hour: 8, minute: 0,
-            title: "Pesanan Hari Ini",
-            bodyGetter: { "Hari ini ada \(self.readTodayCount()) pesanan yang harus kamu selesaikan." }
+            title: "Pesanan Hari Ini!",
+            bodyGetter: { "Anda memiliki \(self.readTodayCount()) pesanan dijadwalkan hari ini. Lihat detail pesanan sekarang" }
         )
     }
     
