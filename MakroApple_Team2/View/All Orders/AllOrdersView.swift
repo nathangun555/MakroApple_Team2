@@ -203,11 +203,13 @@ struct AllOrdersView: View {
                       let userId = UUID(uuidString: userIdString) else { return }
                 
                 print("🪪 Fetching data for user:", userId)
+                session.isInitialDataLoading = true
                 await viewModel.checkIfUserHasTemplates(for: userId)
                 await viewModel.fetchBusinessName(for: userId)
                 await viewModel.autoCancelOverdueOrders()
                 await viewModel.fetchOrders(for: userId)
                 await viewModel.fetchOrderItems(for: userId)
+                session.isInitialDataLoading = false
             }
             .onAppear {
                 if hasNewObject {
