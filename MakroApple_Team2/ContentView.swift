@@ -8,45 +8,49 @@
 import SwiftUI
 import Supabase
 
-//struct ContentView: View {
-//    @EnvironmentObject var session: SessionManager
-//    @SceneStorage("selectedTab") var selectedTab = 0
-//
-//    var body: some View {
-//        Group {
-//            if session.isSignedIn {
-//                // ✅ Main app after login
-//                MainTabView(selectedTab: $selectedTab, sharedText: .constant(""), hasNewSharedText: <#Binding<Bool>#>)
-//            } else {
-//                // 👇 Sign-in screen
-////                SignInWithAppleView()
-//                MainTabView(selectedTab: $selectedTab, sharedText: .constant(""))
-//            }
+struct ContentView: View {
+    @EnvironmentObject var session: SessionManager
+    @SceneStorage("selectedTab") var selectedTab = 0
+
+    @Binding var sharedText: String
+    @Binding var sharedImages: [UIImage]
+    @Binding var hasNewObject : Bool
+    
+    var body: some View {
+        Group {
+            if session.isSignedIn {
+                // ✅ Main app after login
+                MainTabView(selectedTab: $selectedTab, sharedText: $sharedText,hasNewObject: $hasNewObject, sharedImages : $sharedImages)
+            } else {
+                // 👇 Sign-in screen
+                SignInWithAppleView()
+                
+            }
+        }
+//        .task {
+//            await checkSession()
 //        }
-////        .task {
-////            await checkSession()
-////        }
-//    }
-//
-//    // MARK: - Auto-login check
-//    private func checkSession() async {
-//        do {
-//            let sessionResult = try await SupabaseManager.shared.client.auth.session
-//            let user = sessionResult.user
-//            await MainActor.run {
-//                session.userId = user.id.uuidString
-//                session.isSignedIn = true
-//            }
-//            print("✅ Auto-login for user: \(user.email ?? "No email")")
-//        } catch {
-//            await MainActor.run {
-//                session.isSignedIn = false
-//                session.userId = nil
-//            }
-//            print("ℹ️ No active session: \(error.localizedDescription)")
-//        }
-//    }
-//}
+    }
+
+    // MARK: - Auto-login check
+    private func checkSession() async {
+        do {
+            let sessionResult = try await SupabaseManager.shared.client.auth.session
+            let user = sessionResult.user
+            await MainActor.run {
+                session.userId = user.id.uuidString
+                session.isSignedIn = true
+            }
+            print("✅ Auto-login for user: \(user.email ?? "No email")")
+        } catch {
+            await MainActor.run {
+                session.isSignedIn = false
+                session.userId = nil
+            }
+            print("ℹ️ No active session: \(error.localizedDescription)")
+        }
+    }
+}
 struct MainTabView: View {
     @Binding var selectedTab: Int
     @Binding var sharedText: String
@@ -64,7 +68,7 @@ struct MainTabView: View {
                                   sharedText: $sharedText,
                                   hasNewObject: $hasNewObject)
                 }
-                Tab("Jadwal", systemImage: "calendar", value: 1) {
+                Tab("Kalender", systemImage: "calendar", value: 1) {
                     ActiveOrdersView()
                 }
 //                Tab("Analitik", systemImage: "chart.bar", value: 2) {

@@ -17,6 +17,18 @@ class ConfirmInvoiceViewModel {
     var products: [EditableProductItem] = []
     var downPaymentText: String = ""
     var errorMessage: String?
+    
+    var hasInvalidProduct: Bool {
+        for p in products {
+            if p.quantity == 0 || p.productPrice == 0 {
+                return true
+            }
+        }
+        return false
+    }
+
+    
+    
     var didSave: Bool = false
 
     var downPayment: Decimal {

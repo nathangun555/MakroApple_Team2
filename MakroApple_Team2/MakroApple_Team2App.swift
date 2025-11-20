@@ -30,6 +30,14 @@ struct MakroApple_Team2App: App {
     @State private var path : NavigationPath = .init()
     var body: some Scene {
         WindowGroup {
+            
+            ContentView(sharedText: $sharedText,
+                        sharedImages: $sharedImages, hasNewObject: $hasNewObject)
+                .environmentObject(session)
+                .environmentObject(deleteBus)
+                .environmentObject(unsavedBus)
+
+            
             //            InvoicePreviewView(orderId: "97b3757c-a90b-4868-8b97-0fbe9be71955", isDismissed: $isDismissed)
             //                .environmentObject(session)
             //            InvoiceContentView(viewModel: InvoicePreviewViewModel())
@@ -42,59 +50,59 @@ struct MakroApple_Team2App: App {
             //                invoiceNumber: "1234"
             //            )
             
-            MainTabView(selectedTab: $selectedTab, sharedText: $sharedText,hasNewObject: $hasNewObject, sharedImages : $sharedImages)
-                .environmentObject(session)
-                .environmentObject(deleteBus)
-                .environmentObject(unsavedBus)
-                .onOpenURL { url in
-                    if url.host == "fromwhatsapp" {
-                        if let defaults = UserDefaults(suiteName: "group.com.please.shared") {
-                            
-                            // Ambil shared text
-                            if let text = defaults.string(forKey: "sharedText") {
-                                sharedText = text
-                                hasNewObject = true
-                                print("📩 SHARED TEXT: \(text)")
-                                // 🧹 Hapus setelah digunakan
-                                defaults.removeObject(forKey: "sharedText")
-                            }
-                            
-                            // Ambil shared images
-                            if let imageDataArray = defaults.array(forKey: "sharedImagesData") as? [Data] {
-                                sharedImages = imageDataArray.compactMap { UIImage(data: $0) }
-                                hasNewObject = true
-                                print("🖼️ LOADED \(sharedImages.count) SHARED IMAGES")
-                                // 🧹 Hapus setelah digunakan
-                                defaults.removeObject(forKey: "sharedImagesData")
-                            }
-                            
-                            defaults.synchronize()
-                        }
-                    }
-                }
-            
-                .onOpenURL { url in
-                    if url.host == "fromwhatsapp" {
-                        if let defaults = UserDefaults(suiteName: "group.com.please.shared") {
-                            
-                            if let text = defaults.string(forKey: "sharedText") {
-                                sharedText = text
-                                hasNewObject = true
-                                print("SHARED TEXT : \(text)")
-                            }
-                            
-                            if let image = defaults.array(forKey: "sharedImagesData") as? [Data] {
-                                sharedImages = image.compactMap { UIImage(data: $0) }
-                                hasNewObject = true
-                                print("LOADED \(sharedImages.count) shared images")
-                            }
-                            defaults.synchronize()
-                        }
-                    }
-                }
-                .onAppear {
-                    NotificationManager.shared.scheduleDailyNotifications() // ⬅️ keep existing schedule
-                }
+//            MainTabView(selectedTab: $selectedTab, sharedText: $sharedText,hasNewObject: $hasNewObject, sharedImages : $sharedImages)
+//                .environmentObject(session)
+//                .environmentObject(deleteBus)
+//                .environmentObject(unsavedBus)
+//                .onOpenURL { url in
+//                    if url.host == "fromwhatsapp" {
+//                        if let defaults = UserDefaults(suiteName: "group.com.please.shared") {
+//                            
+//                            // Ambil shared text
+//                            if let text = defaults.string(forKey: "sharedText") {
+//                                sharedText = text
+//                                hasNewObject = true
+//                                print("📩 SHARED TEXT: \(text)")
+//                                // 🧹 Hapus setelah digunakan
+//                                defaults.removeObject(forKey: "sharedText")
+//                            }
+//                            
+//                            // Ambil shared images
+//                            if let imageDataArray = defaults.array(forKey: "sharedImagesData") as? [Data] {
+//                                sharedImages = imageDataArray.compactMap { UIImage(data: $0) }
+//                                hasNewObject = true
+//                                print("🖼️ LOADED \(sharedImages.count) SHARED IMAGES")
+//                                // 🧹 Hapus setelah digunakan
+//                                defaults.removeObject(forKey: "sharedImagesData")
+//                            }
+//                            
+//                            defaults.synchronize()
+//                        }
+//                    }
+//                }
+//            
+//                .onOpenURL { url in
+//                    if url.host == "fromwhatsapp" {
+//                        if let defaults = UserDefaults(suiteName: "group.com.please.shared") {
+//                            
+//                            if let text = defaults.string(forKey: "sharedText") {
+//                                sharedText = text
+//                                hasNewObject = true
+//                                print("SHARED TEXT : \(text)")
+//                            }
+//                            
+//                            if let image = defaults.array(forKey: "sharedImagesData") as? [Data] {
+//                                sharedImages = image.compactMap { UIImage(data: $0) }
+//                                hasNewObject = true
+//                                print("LOADED \(sharedImages.count) shared images")
+//                            }
+//                            defaults.synchronize()
+//                        }
+//                    }
+//                }
+//                .onAppear {
+//                    NotificationManager.shared.scheduleDailyNotifications() // ⬅️ keep existing schedule
+//                }
             
             
         }
