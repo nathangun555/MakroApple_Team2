@@ -1291,6 +1291,8 @@ struct Set_BusinessDetailsView: View {
   @State private var selectedPhotoItem: PhotosPickerItem?
   @State private var isUploadingLogo = false
   @State private var showUnsavedAlert = false
+    
+  @Binding var isDismissed: Bool
 
   enum Field: Hashable {
     case businessName, businessPhone, businessAddress, businessLogoUrl, businessEmail
@@ -1696,6 +1698,7 @@ struct Set_BusinessDetailsView: View {
               Task { await vm.save()
                   
                   if vm.saveSuccess {
+                      isDismissed = true
                       dismiss()
                   }
               }
@@ -1790,10 +1793,10 @@ struct Set_BusinessDetailsView: View {
   }
 }
 
-#Preview {
-  let session = SessionManager()
-  session.isSignedIn = true
-  session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
-  return NavigationStack { Set_BusinessDetailsView() }
-    .environmentObject(session)
-}
+//#Preview {
+//  let session = SessionManager()
+//  session.isSignedIn = true
+//  session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
+//  return NavigationStack { Set_BusinessDetailsView() }
+//    .environmentObject(session)
+//}

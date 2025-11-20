@@ -7,6 +7,7 @@ class AllOrdersViewModel {
     
     private let calendar = Calendar.current
     var businessName: String = ""
+    var businessLogoUrl: String? = nil
     var isLoading = false
     var errorMessage: String?
     var orders: [OrderRecord] = []
@@ -34,6 +35,7 @@ class AllOrdersViewModel {
         do {
             if let user = try await SupabaseManager.shared.fetchUser(by: userId) {
                 businessName = user.businessName ?? "No Business Name"
+                businessLogoUrl = user.businessLogoUrl
                 print("✅ Business Name Loaded:", businessName)
             } else {
                 errorMessage = "User not found"

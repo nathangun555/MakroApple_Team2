@@ -15,6 +15,7 @@ struct SettingsView: View {
     // Navigasi dinamis (template form)
     @State private var navigateToNewTemplate = false
     @State private var navigateToEditTemplate = false
+    @State private var navigateToBusiness = false
 
     // State loading & error saat cek template_format
     @State private var isCheckingTemplate = false
@@ -29,18 +30,29 @@ struct SettingsView: View {
     // Binding untuk dismiss all sheets (dipakai Set_InputMenuView / Set_ConfirmMenuView / Set_ManualInputView)
     @State private var isDismissedFromMenu = false
     @State private var isDismissedFromTemplate = false
+    @State private var isDismissedFromBusiness = false
+    
+    @Binding var onChangeSettings: Bool
 
     var body: some View {
         NavigationStack {
             List {
                 // Group 1
                 Section {
-                    NavigationLink(destination: Set_BusinessDetailsView()) {
+                    
+                    // Tombol dengan pengecekan produk sebelum navigasi
+                    Button {
+                        Task { await goToBusinessInfo() }
+                    } label: {
                         HStack {
                             Image(systemName: "building.2")
                                 .foregroundStyle(.primaryButton)
                                 .imageScale(.large)
                             Text("Rincian Bisnis")
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .foregroundColor(Color(.systemGray2))
+                                .imageScale(.small)
                         }
                     }
 
@@ -165,8 +177,12 @@ struct SettingsView: View {
                 Text("Anda bisa masuk kembali kapan saja.")
             }
 
+            .navigationDestination(isPresented: $navigateToBusiness) {
+                Set_BusinessDetailsView(isDismissed: $isDismissedFromBusiness)
+                    .environmentObject(session)
+            }
             // Destinasi dinamis Template
-            .fullScreenCover(isPresented: $navigateToNewTemplate) {
+            .sheet(isPresented: $navigateToNewTemplate) {
                 NavigationStack{
                     Set_NewTemplateFormView(isDismissed: $isDismissedFromTemplate)
                     .environmentObject(session)
@@ -176,23 +192,32 @@ struct SettingsView: View {
                 Set_EditTemplateFormView(isDismissed: $isDismissedFromTemplate)
                     .environmentObject(session)
             }
-
             // fullScreenCover untuk Menu flows
-            .fullScreenCover(isPresented: $showInputMenu) {
+            .sheet(isPresented: $showInputMenu) {
                 Set_InputMenuView(isDismissed: $isDismissedFromMenu)
                     .environmentObject(session)
                 // DeleteOverlayBus & UnsavedOverlayBus ikut turun dari root, tidak dibuat ulang di sini
+            
             }
-            .fullScreenCover(isPresented: $showMenuDetails) {
+            .navigationDestination(isPresented: $showMenuDetails) {
                 Set_MenuDetailsView()
                     .environmentObject(session)
-                // Bus juga ikut dari root
             }
+            
+            .onChange(of: isDismissedFromBusiness) { oldValue, newValue in
+                if newValue {
+                    navigateToBusiness = false
+                    isDismissedFromBusiness = false
+                    onChangeSettings = true
+                }
+            }
+
             .onChange(of: isDismissedFromMenu) { oldValue, newValue in
                 if newValue {
                     showInputMenu = false
                     showMenuDetails = false
                     isDismissedFromMenu = false
+                    onChangeSettings = true
                 }
             }
             .onChange(of: isDismissedFromTemplate) { oldValue, newValue in
@@ -200,6 +225,7 @@ struct SettingsView: View {
                     navigateToNewTemplate = false
                     navigateToEditTemplate = false
                     isDismissedFromTemplate = false
+                    onChangeSettings = true
                 }
             }
         }
@@ -248,12 +274,21 @@ struct SettingsView: View {
             productCheckError = "Gagal memeriksa produk: \(error.localizedDescription)"
         }
     }
+    
+    // MARK: - Logic cek jumlah produk dan navigasi
+    private func goToBusinessInfo () async {
+        guard let userId = session.userId, let uuid = UUID(uuidString: userId) else {
+            productCheckError = "User belum login atau UID tidak valid."
+            return
+        }
+        navigateToBusiness = true
+    }
 }
 
-#Preview {
-    let session = SessionManager()
-    session.isSignedIn = true
-    session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
-    return NavigationStack { SettingsView() }
-        .environmentObject(session)
-}
+//#Preview {
+//    let session = SessionManager()
+//    session.isSignedIn = true
+//    session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
+//    return NavigationStack { SettingsView() }
+//        .environmentObject(session)
+//}
