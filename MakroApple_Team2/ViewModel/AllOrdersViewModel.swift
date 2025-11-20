@@ -112,6 +112,41 @@ class AllOrdersViewModel {
         }
     }
     
+    // MARK: - Auto Cancel Unpaid Orders
+    func autoCancelOverdueOrders() async {
+        print("🔍 Checking overdue unpaid orders...")
+
+        let today = Calendar.current.startOfDay(for: Date())
+
+        for order in orders {
+            guard order.status.lowercased() == "belum terbayar" else { continue }
+
+            guard let dueDateString = order.invoiceDueDate,
+                  let dueDate = DateFormatterHelper.toDate(dueDateString) else {
+                continue
+            }
+
+            let dueDay = Calendar.current.startOfDay(for: dueDate)
+
+            // Jika lewat deadline
+            if dueDay < today {
+                print("⚠️ Order \(order.id) overdue → set to Dibatalkan")
+
+                do {
+                    try await SupabaseManager.shared.updateOrderStatus(
+                        orderId: order.id,
+                        newStatus: "Dibatalkan"
+                    )
+                } catch {
+                    print("❌ Failed updating overdue order:", error.localizedDescription)
+                }
+            }
+        }
+
+
+    }
+
+    
 
 //    func hasOrders(for date: Date) -> Bool {
 //        return viewModel.orders.contains { calendar.isDate($0.orderDdayDate, inSameDayAs: date) }
