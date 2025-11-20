@@ -89,16 +89,20 @@ struct OrderFormSection: View {
                             .overlay(
                                 RoundedRectangle(cornerRadius: 8)
                                     .stroke(
-                                        fieldErrors.contains(key) ? Color.red : Color(.systemGray4),
-                                        lineWidth: fieldErrors.contains(key) ? 2 : 1
+                                        (fieldErrors.contains(key) && !isOptionalField(field.label))
+                                            ? Color.red
+                                            : Color(.systemGray4),
+                                        lineWidth: (fieldErrors.contains(key) && !isOptionalField(field.label))
+                                            ? 2 : 1
                                     )
                             )
+
                         }
                     }
 
 
                     // Error message
-                    if fieldErrors.contains(key) {
+                    if fieldErrors.contains(key) && !isOptionalField(field.label) {
                         HStack {
                             Spacer().frame(width: 140)
                             Text("Field ini wajib diisi")
@@ -124,3 +128,7 @@ struct OrderField: Identifiable {
     var value: String
 }
 
+func isOptionalField(_ label: String) -> Bool {
+    let lower = label.lowercased()
+    return lower.contains("tanggal pesanan") || lower.contains("jam kirim")
+}

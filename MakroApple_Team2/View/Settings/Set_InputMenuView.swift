@@ -257,7 +257,7 @@ struct Set_InputMenuView: View {
             return "00 MB of 25 MB"
         }
         let sizeInMB = Double(fileSize) / (1024 * 1024)
-        return String(format: "%.2f MB of 25 MB", sizeInMB)
+        return String(format: "%.2f MB of 10 MB", sizeInMB)
     }
     
     private func mergeCategoriesForApp(_ newCats: [MenuCategory]) {

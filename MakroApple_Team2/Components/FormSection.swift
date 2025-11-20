@@ -16,6 +16,8 @@ struct FormSection: View {
     
     var isEditable: Bool = true
     
+    var focusedIndex: FocusState<Int?>.Binding
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
@@ -46,6 +48,7 @@ struct FormSection: View {
                             get: { field.label },
                             set: { fields[index].label = $0 }
                         ))
+                        .focused(focusedIndex, equals: index)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .font(.body)
                         .padding(.horizontal, 12)
@@ -102,3 +105,4 @@ struct FormSection: View {
             .environmentObject(session)
     }
 }
+

@@ -314,8 +314,12 @@ class EditOrderViewModel {
             
             // 2. Validate schedule fields
             for (index, field) in scheduleFields.enumerated() {
+                let key = "schedule-\(index)"
+                
+                if isOptionalField(field.label) { continue }
+                
                 if field.value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                    fieldErrors.insert("schedule-\(index)")
+                    fieldErrors.insert(key)
                 }
             }
             
