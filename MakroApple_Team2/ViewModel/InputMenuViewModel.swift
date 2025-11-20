@@ -20,6 +20,7 @@ class InputMenuViewModel {
     var scanResponseRaw: String?
     
     var isLoading = false
+    var progress: Double = 0.0
     
     private(set) var userId: String?
     
@@ -324,7 +325,11 @@ class InputMenuViewModel {
                 ) == .orderedAscending
         }
     }
-
+    func setProgress(_ value: Double) {
+        withAnimation {
+            progress = min(max(value, 0.0), 1.0)
+        }
+    }
 
 }
 

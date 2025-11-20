@@ -16,6 +16,7 @@ struct Set_InputMenuView: View {
     @State private var isFileImporterPresented = false
     @State private var isPhotoPickerPresented = false
     @State private var showUploadOptions = false
+    @State private var showLoading = false
     @State private var showConfirmMenu = false
     @State private var showManualInput = false
     @State private var submitState: SubmitState = .idle
@@ -30,7 +31,7 @@ struct Set_InputMenuView: View {
     
     @Binding var isDismissed: Bool
     
-    var viewModel = InputMenuViewModel()
+    @State var viewModel = InputMenuViewModel()
     
     var body: some View {
         NavigationStack {
@@ -75,6 +76,9 @@ struct Set_InputMenuView: View {
                     Button("OK", role: .cancel) { }
                 } message: {
                     Text(errorMessage)
+                }
+                .navigationDestination(isPresented: $showLoading) {
+                    LoadingView(model: viewModel, context: "menu")
                 }
                 .navigationDestination(isPresented: $showConfirmMenu) {
                     Set_ConfirmMenuView(isDismissed: $isDismissed, scannedCategories: scannedCategories)
@@ -288,6 +292,7 @@ struct Set_InputMenuView: View {
     // MARK: - Submit (upload -> scan per-batch 1 URL)
     private func submitFiles() {
         submitState = .loading
+        showLoading = true
         Task {
             do {
                 var convertedUrls: [URL] = []
@@ -301,6 +306,7 @@ struct Set_InputMenuView: View {
                                 convertedUrls.append(temp)
                             }
                         }
+                        viewModel.setProgress(0.25)
                     } else {
                         convertedUrls.append(file.url)
                     }
@@ -311,7 +317,10 @@ struct Set_InputMenuView: View {
                     let publicUrl = try await withCheckedThrowingContinuation { cont in
                         viewModel.uploadMenu(fileUrl: localUrl) { result in
                             switch result {
-                            case .success(let url): cont.resume(returning: url)
+                            case .success(let url):
+                                let progress = 0.25 + (0.35 * Double(i+1) / Double(convertedUrls.count))
+                                viewModel.setProgress(progress)
+                                cont.resume(returning: url)
                             case .failure(let err): cont.resume(throwing: err)
                             }
                         }
@@ -319,7 +328,10 @@ struct Set_InputMenuView: View {
 
                     let scanJson = try await withCheckedThrowingContinuation { cont in
                         viewModel.menuScanBatch(imageUrls: [publicUrl]) { json in
-                            if let json { cont.resume(returning: json) }
+                            if let json {
+                                viewModel.setProgress(0.85)
+                                cont.resume(returning: json)
+                            }
                             else { cont.resume(throwing: NSError(domain: "scan", code: -1, userInfo: [NSLocalizedDescriptionKey: "Scan failed"])) }
                         }
                     }
@@ -331,8 +343,9 @@ struct Set_InputMenuView: View {
 
                     print("Progress \(i+1)/\(convertedUrls.count)")
                 }
-
+                viewModel.setProgress(1.0)
                 submitState = .success
+                showLoading = false
                 showConfirmMenu = true
             } catch {
                 submitState = .failure(error.localizedDescription)
