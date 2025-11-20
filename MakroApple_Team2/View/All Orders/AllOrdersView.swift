@@ -205,6 +205,7 @@ struct AllOrdersView: View {
                 print("🪪 Fetching data for user:", userId)
                 await viewModel.checkIfUserHasTemplates(for: userId)
                 await viewModel.fetchBusinessName(for: userId)
+                await viewModel.autoCancelOverdueOrders()
                 await viewModel.fetchOrders(for: userId)
                 await viewModel.fetchOrderItems(for: userId)
             }

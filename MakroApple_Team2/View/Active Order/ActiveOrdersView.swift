@@ -106,6 +106,7 @@ struct ActiveOrdersView: View {
               if let userIdString = session.userId,
                  let userId = UUID(uuidString: userIdString) {
                   await viewModel.fetchBusinessName(for: userId)
+                  await viewModel.autoCancelOverdueOrders()
                   await viewModel.fetchOrders(for: userId)
                   await viewModel.fetchOrderItems(for: userId)
               } else {
