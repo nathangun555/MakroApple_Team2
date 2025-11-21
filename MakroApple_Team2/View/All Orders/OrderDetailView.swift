@@ -90,54 +90,62 @@ struct OrderDetailView: View {
                             Group {
                                 
                                 // Nama Pemesan
-                                Text("Nama Pemesan :")
-                                Text(order.customerOrderName)
-                                    .padding(.vertical, 3)
-                                    .frame(maxWidth: .infinity)
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 10)
-                                            .stroke(Color.gray, lineWidth: 0.5) // stroke
-                                            .background(
-                                                Rectangle()
-                                                .fill(.secondary.opacity(0.1))) // fill
-                                    )
+                                Text("Nama Pemesan")
+                                
+                                HStack{
+                                    Text(":")
+                                    Text("\(order.customerOrderName)")
+                                        .padding(.vertical, 3)
+                                        .frame(maxWidth: .infinity)
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 10)
+                                                .fill(.secondary.opacity(0.2))
+                                        )
+                                }
+                               
                                 
                                 
-                                Text("No. Telp Pemesan :")
-                                Text("\(order.customerOrderPhone?.isEmpty == true ? "-" : order.customerOrderPhone!)")
-                                    .padding(.vertical, 3)
-                                    .frame(maxWidth: .infinity)
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 10)
-                                            .stroke(Color.gray, lineWidth: 0.5) // stroke
-                                            .background(
-                                                Rectangle()
-                                                    .fill(.secondary.opacity(0.1))) // fill
-                                    )
+                                Text("No. Telp Pemesan")
                                 
-                                Text("Nama Penerima :")
-                                Text(order.customerReceiverName ?? "-")
-                                    .padding(.vertical, 3)
-                                    .frame(maxWidth: .infinity)
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 10)
-                                            .stroke(Color.gray, lineWidth: 0.5) // stroke
-                                            .background(
-                                                Rectangle()
-                                                    .fill(.secondary.opacity(0.1))) // fill
-                                    )
+                                HStack{
+                                    Text(":")
+                                    Text("\(order.customerOrderPhone?.isEmpty == true ? "-" : order.customerOrderPhone!)")
+                                        .padding(.vertical, 3)
+                                        .frame(maxWidth: .infinity)
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 10)
+                                                .fill(.secondary.opacity(0.2))
+                                        )
+                                }
                                 
-                                Text("No. Telp Penerima :")
-                                Text(order.customerReceiverPhone ?? "-")
-                                    .padding(.vertical, 3)
-                                    .frame(maxWidth: .infinity)
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 10)
-                                            .stroke(Color.gray, lineWidth: 0.5) // stroke
-                                            .background(
-                                                Rectangle()
-                                                    .fill(.secondary.opacity(0.1))) // fill
-                                    )
+                                
+                                Text("Nama Penerima")
+                                
+                                HStack{
+                                    Text(":")
+                                    Text("\(order.customerReceiverName ?? "-")")
+                                        .padding(.vertical, 3)
+                                        .frame(maxWidth: .infinity)
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 10)
+                                                .fill(.secondary.opacity(0.2))
+                                        )
+                                    
+                                }
+                                
+                                Text("No. Telp Penerima")
+                                
+                                HStack{
+                                    Text(":")
+                                    Text("\(order.customerReceiverPhone ?? "-")")
+                                        .padding(.vertical, 3)
+                                        .frame(maxWidth: .infinity)
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 10)
+                                                .fill(.secondary.opacity(0.2))
+                                        )
+                                    
+                                }
                                 
                                 
                             }
@@ -153,30 +161,56 @@ struct OrderDetailView: View {
                             Group {
                                 
                                 
-                                Text("Tanggal Pesanan :")
+                                Text("Tanggal Pesanan")
+                                HStack{
+                                    Text(":")
+                                    Text("\(DateFormatterHelper.formattedDate(order.orderDdayDate ?? "-"))")
+                                        .padding(.vertical, 3)
+                                        .frame(maxWidth: .infinity)
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 10)
+                                                .fill(.secondary.opacity(0.2))
+                                        )
+                                }
                                 
-                                Text(DateFormatterHelper.formattedDate(order.orderDdayDate ?? "-"))
-                                    .padding(.vertical, 3)
-                                    .frame(maxWidth: .infinity)
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 10)
-                                            .stroke(Color.gray, lineWidth: 0.5) // stroke
-                                            .background(
-                                                Rectangle()
-                                                    .fill(.secondary.opacity(0.1))) // fill
-                                    )
+                                Text("Jam Kirim")
+                                HStack{
+                                    Text(":")
+                                    Text("\(DateFormatterHelper.formattedTime(order.orderDdayDate ?? "g")) WIB")
+                                        .padding(.vertical, 3)
+                                        .frame(maxWidth: .infinity)
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 10)
+                                                .fill(.secondary.opacity(0.2))
+                                        )
+                                }
                                 
-                                Text("Jam Kirim :")
-                                Text("\(DateFormatterHelper.formattedTime(order.orderDdayDate ?? "g")) WIB")
-                                    .padding(.vertical, 3)
-                                    .frame(maxWidth: .infinity)
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 10)
-                                            .stroke(Color.gray, lineWidth: 0.5)
-                                            .background(
-                                                Rectangle()
-                                                    .fill(.secondary.opacity(0.1)))
-                                    )
+                                
+                            }
+                        }
+                        
+                        Text("Jatuh Tempo Pembayaran")
+                            .bold()
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.top)
+                            .font(.title3)
+                        
+                        LazyVGrid(columns: columns, spacing: 10) {
+                            Group {
+                                
+                                
+                                Text("Tanggal")
+                                HStack{
+                                    Text(":")
+                                    Text("\(DateFormatterHelper.formattedDate(order.invoiceDueDate ?? "-"))")
+                                        .padding(.vertical, 3)
+                                        .frame(maxWidth: .infinity)
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 10)
+                                                .fill(.secondary.opacity(0.2))
+                                        )
+                                }
+                                
                                 
                                 
                             }
@@ -197,30 +231,32 @@ struct OrderDetailView: View {
                                     
                                     LazyVGrid(columns: columns, spacing: 10) {
                                         Group {
-                                            Text("Nama Produk :")
-                                            Text("\(item.productName.isEmpty == true ? "-" : item.productName)")
-                                                .frame(maxWidth: .infinity, alignment: .center)
-                                                .padding(4)
-                                                .lineLimit(10)
-                                                .background(
-                                                    RoundedRectangle(cornerRadius: 10)
-                                                        .stroke(Color.gray, lineWidth: 0.5) // stroke
-                                                        .background(
-                                                            Rectangle()
-                                                                .fill(.secondary.opacity(0.1)))
-                                                )
+                                            Text("Nama Produk")
                                             
-                                            Text("Jumlah Produk :")
-                                            Text(String(item.quantity) ?? "-")
-                                                .padding(.vertical, 3)
-                                                .frame(maxWidth: .infinity)
-                                                .background(
-                                                    RoundedRectangle(cornerRadius: 10)
-                                                        .stroke(Color.gray, lineWidth: 0.5) // stroke
-                                                        .background(
-                                                            Rectangle()
-                                                                .fill(.secondary.opacity(0.1))) // fill
-                                                )
+                                            HStack{
+                                                Text(":")
+                                                Text("\(item.productName.isEmpty == true ? "-" : item.productName)")
+                                                    .frame(maxWidth: .infinity, alignment: .center)
+                                                    .padding(4)
+                                                    .lineLimit(10)
+                                                    .background(
+                                                        RoundedRectangle(cornerRadius: 10)
+                                                            .fill(.secondary.opacity(0.2))
+                                                    )
+                                            }
+                                            
+                                            
+                                            Text("Jumlah Produk")
+                                            HStack{
+                                                Text(":")
+                                                Text("\(String(item.quantity) ?? "-")")
+                                                    .padding(.vertical, 3)
+                                                    .frame(maxWidth: .infinity)
+                                                    .background(
+                                                        RoundedRectangle(cornerRadius: 10)
+                                                            .fill(.secondary.opacity(0.2))
+                                                    )
+                                            }
                                             
                                         }
                                     }
@@ -326,18 +362,18 @@ struct OrderDetailView: View {
 
                             LazyVGrid(columns: columns, spacing: 10) {
                                 ForEach(customFields.sorted(by: { $0.key < $1.key }), id: \.key) { key, value in
-                                    Text("\(key):")
-                                    Text("\(value.value ?? "-")")
-                                        .padding(.vertical, 3)
-                                        .frame(maxWidth: .infinity)
-                                        .background(
-                                            RoundedRectangle(cornerRadius: 10)
-                                                .stroke(Color.gray, lineWidth: 0.5)
-                                                .background(
-                                                    RoundedRectangle(cornerRadius: 10)
-                                                        .fill(.secondary.opacity(0.1))
-                                                )
-                                        )
+                                    Text("\(key)")
+                                    
+                                    HStack{
+                                        Text(":")
+                                        Text("\(value.value ?? "-")")
+                                            .padding(.vertical, 3)
+                                            .frame(maxWidth: .infinity)
+                                            .background(
+                                                RoundedRectangle(cornerRadius: 10)
+                                                    .fill(.secondary.opacity(0.2))
+                                            )
+                                    }
                                 }
                             }
                         }
@@ -424,11 +460,12 @@ struct OrderDetailView: View {
                                         }
                                     }
                                 } label: {
-                                    Image(systemName: "square.and.arrow.up")
-                                        .foregroundColor(.black)
+                                    Label("Bagikan", systemImage: "square.and.arrow.up")
+                                        .glassEffect(.clear.tint(.red))
+                                    
                                 }
-                                .buttonStyle(.bordered)
-                                .tint(.gray)
+//                                .buttonStyle(.bordered)
+//                                .tint(.gray)
 
                                 
                                 Spacer()

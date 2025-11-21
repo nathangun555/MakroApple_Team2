@@ -78,8 +78,12 @@ class AllOrdersViewModel {
             let fetchedOrders = try await SupabaseManager.shared.fetchAllOrders(for: userId)
             self.orders = fetchedOrders
             print("✅ Orders fetched:", fetchedOrders.count)
+            
 
-            // ⬇️ Tambahkan kode ini
+           
+
+            saveOrdersForWidget(fetchedOrders)
+            
             let today = OrderCountHelper.countTodayOrders(from: fetchedOrders)
             let tomorrow = OrderCountHelper.countTomorrowOrders(from: fetchedOrders)
 
@@ -93,7 +97,19 @@ class AllOrdersViewModel {
         }
     }
 
-    
+    // MARK: - Save Orders for Widget (Terpisah)
+    func saveOrdersForWidget(_ orders: [OrderRecord]) {
+        guard let defaults = UserDefaults(suiteName: "group.com.please.shared") else { return }
+        
+        let encoder = JSONEncoder()
+        if let data = try? encoder.encode(orders) {
+            defaults.set(data, forKey: "orders_for_widget")
+            print("✅ Orders saved for widget: \(orders.count)")
+        } else {
+            print("❌ Failed to encode orders for widget")
+        }
+    }
+
     
     // MARK: - Fetch Order Items
     func fetchOrderItems(for userId: UUID?) async {

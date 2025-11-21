@@ -17,6 +17,18 @@ class ConfirmInvoiceViewModel {
     var products: [EditableProductItem] = []
     var downPaymentText: String = ""
     var errorMessage: String?
+    
+    var hasInvalidProduct: Bool {
+        for p in products {
+            if p.quantity == 0 || p.productPrice == 0 {
+                return true
+            }
+        }
+        return false
+    }
+
+    
+    
     var didSave: Bool = false
 
     var downPayment: Decimal {
@@ -33,7 +45,7 @@ class ConfirmInvoiceViewModel {
     
     var invoiceNumber: String = ""
     var invoiceDate: String = ""
-    var invoiceDueDate: String = ""
+    var invoiceDueDate: String? = nil
     var accountName: String = ""
     var accountNumber: String = ""
     var bankName: String = ""
@@ -258,15 +270,15 @@ class ConfirmInvoiceViewModel {
         
         let shippingCost = Decimal(string: shippingCostText) ?? 0
         
-        let updatedOrder = try await SupabaseManager.shared.updateOrder(
-            orderId: orderUUID,
-            invoiceDate: invoiceDate,
-            invoiceDueDate: invoiceDueDate,
-            subtotal: totalProductSubtotal,
-            shippingCost: shippingCost,
-            totalAmount: totalAfterDiscount,
-            downPayment: downPayment
-        )
+            let updatedOrder = try await SupabaseManager.shared.updateOrder(
+                orderId: orderUUID,
+                invoiceDate: invoiceDate,
+                invoiceDueDate: invoiceDueDate,
+                subtotal: totalProductSubtotal,
+                shippingCost: shippingCost,
+                totalAmount: totalAfterDiscount,
+                downPayment: downPayment
+            )
         self.orderRecord = updatedOrder
     }
     

@@ -69,7 +69,8 @@ struct OrderListView: View {
                                         )
                                         .environmentObject(session)
                                 ) {
-                                    OrderCard(order: order, orderItem: items.first!)
+                                    OrderCard(order: order, orderItem: items)
+
                                 }
                                 .buttonStyle(PlainButtonStyle())
                             }

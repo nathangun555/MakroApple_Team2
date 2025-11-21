@@ -1,13 +1,6 @@
-//
-//  OrderWidgetIntent.swift
-//  MakroApple_Team2
-//
-//  Created by Edward Suwandi on 20/11/25.
-//
-
-
 import AppIntents
 
+// MARK: - Widget Mode Enum
 enum OrderWidgetMode: String, AppEnum {
     case status
     case calendar
@@ -24,6 +17,7 @@ enum OrderWidgetMode: String, AppEnum {
     }
 }
 
+// MARK: - Status Enum
 enum OrderStatusOption: String, AppEnum {
     case BelumTerbayar = "Belum Terbayar"
     case Diproses = "Diproses"
@@ -46,26 +40,20 @@ enum OrderStatusOption: String, AppEnum {
     }
 }
 
+// MARK: - Main Intent for Widget
 struct OrderWidgetIntent: WidgetConfigurationIntent {
 
-    static var title: LocalizedStringResource = "Order Widget"
-    static var description = IntentDescription("See order information in widget.")
+    @Parameter(title: "Mode")
+    var mode: OrderWidgetMode?   // MUST BE OPTIONAL
 
-    @Parameter(
-        title: "Mode",
-        default: .status
-    )
-    var mode: OrderWidgetMode
+    @Parameter(title: "Order Status")
+    var status: OrderStatusOption?   // MUST BE OPTIONAL
 
-    @Parameter(
-        title: "Status (used if mode = status)",
-        default: .Diproses
-    )
-    var status: OrderStatusOption
+    @Parameter(title: "Select Date")
+    var selectedDate: Date?     // MUST BE OPTIONAL
 
-    @Parameter(
-        title: "Select Date (used if mode = calendar)",
-        default: Date()
+    static var title: LocalizedStringResource = "Order Widget Settings"
+    static var description = IntentDescription(
+        "Configure how the order widget displays orders."
     )
-    var selectedDate: Date
 }

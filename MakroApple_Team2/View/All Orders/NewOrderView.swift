@@ -40,19 +40,35 @@ struct NewOrderView: View {
         } else {
             ZStack{
                 
-                ZStack(alignment: .bottom){
-                    ScrollView{
-                        VStack(alignment: .leading){
-                            HStack{
-                                
-                                
-                                Text("Formulir Pesanan")
-                                    .font(.title3)
-                                    .fontWeight(.bold)
-                                Spacer()
-                                Button(action: {
-                                    if let clipboard = UIPasteboard.general.string {
-                                        formPesanan = clipboard
+                var body: some View {
+                    // flag to show that this is the latest iwak's code
+                    ZStack{
+                        
+                        ZStack(alignment: .bottom){
+                            ScrollView{
+                                VStack(alignment: .leading){
+                                        
+                                        Text("Formulir Pesanan")
+                                            .font(.title3)
+                                            .fontWeight(.bold)
+                                        Spacer()
+                                    
+                                    
+                                    
+                                    ZStack(alignment: .topLeading) {
+                                        
+                                        
+                                        TextEditor(text: $formPesanan)
+                                            .padding(8)
+                                            .frame(minHeight: 200)
+                                            .focused($isTextEditorFocused)
+                                        
+                                        if formPesanan.isEmpty && !isTextEditorFocused {
+                                                Text("Tempel formulir pesanan anda di sini ✨")
+                                                    .foregroundColor(.gray)
+                                                    .padding(.horizontal, 8)
+                                                    .padding(.vertical, 12)
+                                            }
                                     }
                                 }) {
                                     Label("Tempel", systemImage: "list.clipboard.fill")

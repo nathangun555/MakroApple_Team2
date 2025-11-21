@@ -143,7 +143,7 @@ extension SupabaseManager {
     func updateOrder(
             orderId: UUID,
             invoiceDate: String,
-            invoiceDueDate: String,
+            invoiceDueDate: String?,
             subtotal: Decimal,
             shippingCost: Decimal,
             totalAmount: Decimal,

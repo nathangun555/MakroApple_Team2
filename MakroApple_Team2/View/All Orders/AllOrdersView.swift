@@ -188,7 +188,7 @@ struct AllOrdersView: View {
                                                 .toolbar(.hidden, for: .tabBar)
                                                 .environmentObject(session)
                                         ) {
-                                            OrderCard(order: order, orderItem: orderItems.first!)
+                                            OrderCard(order: order, orderItem: orderItems)
                                         }
                                         .buttonStyle(PlainButtonStyle())
                                     }
@@ -254,6 +254,7 @@ struct AllOrdersView: View {
                         
                         await viewModel.checkIfUserHasTemplates(for: userId)
                         await viewModel.fetchBusinessName(for: userId)
+                        await viewModel.autoCancelOverdueOrders()
                         await viewModel.fetchOrders(for: userId)
                         await viewModel.fetchOrderItems(for: userId)
                     }
@@ -273,6 +274,7 @@ struct AllOrdersView: View {
                         
                         await viewModel.checkIfUserHasTemplates(for: userId)
                         await viewModel.fetchBusinessName(for: userId)
+                        await viewModel.autoCancelOverdueOrders()
                         await viewModel.fetchOrders(for: userId)
                         await viewModel.fetchOrderItems(for: userId)
                     }
