@@ -1,55 +1,47 @@
+////
+////  MakroApple_Team2App.swift
+////  MakroApple_Team2
+////
+////  Created by Nathan Gunawan on 06/10/25.
+////
 //
-//  MakroApple_Team2App.swift
-//  MakroApple_Team2
+//import SwiftUI
+//import Combine
 //
-//  Created by Nathan Gunawan on 06/10/25.
+//@main
+//struct MakroApple_Team2App: App {
+//    @StateObject var session = SessionManager()
+//    @StateObject var deleteBus = DeleteOverlayBus()
+//    @State private var selectedTab: Int = 0
+//    @State private var sharedText: String = ""
+//    @State private var sharedImages: [UIImage] = []
+//    @State private var hasNewObject = false
+//    @StateObject var unsavedBus = UnsavedOverlayBus()
 //
-
-import SwiftUI
-import Combine
-
-@main
-struct MakroApple_Team2App: App {
-    @StateObject var session = SessionManager()
-    @StateObject var deleteBus = DeleteOverlayBus()
-    @State private var selectedTab: Int = 0
-    @State private var sharedText: String = ""
-    @State private var sharedImages: [UIImage] = []
-    @State private var hasNewObject = false
-    @StateObject var unsavedBus = UnsavedOverlayBus()
-    
-    @State private var isDismissed: Bool = false
-
-    let notifDelegate = NotificationDelegate()
-        
-    init() {
-        UNUserNotificationCenter.current().delegate = notifDelegate
-        NotificationManager.shared.requestPermission()
-    }
-    
-    @State private var path : NavigationPath = .init()
-    var body: some Scene {
-        WindowGroup {
-            
-            ContentView(sharedText: $sharedText,
-                        sharedImages: $sharedImages, hasNewObject: $hasNewObject)
-                .environmentObject(session)
-                .environmentObject(deleteBus)
-                .environmentObject(unsavedBus)
-
-            
-            //            InvoicePreviewView(orderId: "97b3757c-a90b-4868-8b97-0fbe9be71955", isDismissed: $isDismissed)
-            //                .environmentObject(session)
-            //            InvoiceContentView(viewModel: InvoicePreviewViewModel())
-            //            HeaderSectionView(
-            //                businessLogoUrl: "https://ynxrqdbpovgmhhoobfjt.supabase.co/storage/v1/object/public/MakroAppleTeam2_Bucket/business-logos/3A0A83FE-2480-42F5-82AE-D2A419AAFF89.jpg",
-            //                businessName: "Toko Subur",
-            //                businessAddress: "Ngagel Jaya",
-            //                businessPhone: "62812345678",
-            //                businessEmail: "bejo@gmail.com",
-            //                invoiceNumber: "1234"
-            //            )
-            
+//    @State private var isDismissed: Bool = false
+//
+//    let notifDelegate = NotificationDelegate()
+//
+//    init() {
+//        UNUserNotificationCenter.current().delegate = notifDelegate
+//        NotificationManager.shared.requestPermission()
+//    }
+//
+//    @State private var path : NavigationPath = .init()
+//    var body: some Scene {
+//        WindowGroup {
+//            //            InvoicePreviewView(orderId: "97b3757c-a90b-4868-8b97-0fbe9be71955", isDismissed: $isDismissed)
+//            //                .environmentObject(session)
+//            //            InvoiceContentView(viewModel: InvoicePreviewViewModel())
+//            //            HeaderSectionView(
+//            //                businessLogoUrl: "https://ynxrqdbpovgmhhoobfjt.supabase.co/storage/v1/object/public/MakroAppleTeam2_Bucket/business-logos/3A0A83FE-2480-42F5-82AE-D2A419AAFF89.jpg",
+//            //                businessName: "Toko Subur",
+//            //                businessAddress: "Ngagel Jaya",
+//            //                businessPhone: "62812345678",
+//            //                businessEmail: "bejo@gmail.com",
+//            //                invoiceNumber: "1234"
+//            //            )
+//
 //            MainTabView(selectedTab: $selectedTab, sharedText: $sharedText,hasNewObject: $hasNewObject, sharedImages : $sharedImages)
 //                .environmentObject(session)
 //                .environmentObject(deleteBus)
@@ -57,7 +49,7 @@ struct MakroApple_Team2App: App {
 //                .onOpenURL { url in
 //                    if url.host == "fromwhatsapp" {
 //                        if let defaults = UserDefaults(suiteName: "group.com.please.shared") {
-//                            
+//
 //                            // Ambil shared text
 //                            if let text = defaults.string(forKey: "sharedText") {
 //                                sharedText = text
@@ -66,7 +58,7 @@ struct MakroApple_Team2App: App {
 //                                // 🧹 Hapus setelah digunakan
 //                                defaults.removeObject(forKey: "sharedText")
 //                            }
-//                            
+//
 //                            // Ambil shared images
 //                            if let imageDataArray = defaults.array(forKey: "sharedImagesData") as? [Data] {
 //                                sharedImages = imageDataArray.compactMap { UIImage(data: $0) }
@@ -75,22 +67,22 @@ struct MakroApple_Team2App: App {
 //                                // 🧹 Hapus setelah digunakan
 //                                defaults.removeObject(forKey: "sharedImagesData")
 //                            }
-//                            
+//
 //                            defaults.synchronize()
 //                        }
 //                    }
 //                }
-//            
+//
 //                .onOpenURL { url in
 //                    if url.host == "fromwhatsapp" {
 //                        if let defaults = UserDefaults(suiteName: "group.com.please.shared") {
-//                            
+//
 //                            if let text = defaults.string(forKey: "sharedText") {
 //                                sharedText = text
 //                                hasNewObject = true
 //                                print("SHARED TEXT : \(text)")
 //                            }
-//                            
+//
 //                            if let image = defaults.array(forKey: "sharedImagesData") as? [Data] {
 //                                sharedImages = image.compactMap { UIImage(data: $0) }
 //                                hasNewObject = true
@@ -103,9 +95,114 @@ struct MakroApple_Team2App: App {
 //                .onAppear {
 //                    NotificationManager.shared.scheduleDailyNotifications() // ⬅️ keep existing schedule
 //                }
-            
-            
+//
+//
+//        }
+//
+//    }
+//}
+
+
+
+//
+//  MakroApple_Team2App.swift
+//  MakroApple_Team2
+//
+//  Created by Nathan Gunawan on 06/10/25.
+//
+
+import SwiftUI
+import Combine
+import UserNotifications
+
+@main
+struct MakroApple_Team2App: App {
+    @StateObject var session = SessionManager()
+    @StateObject var deleteBus = DeleteOverlayBus()
+    @StateObject var unsavedBus = UnsavedOverlayBus()
+
+    @State private var selectedTab: Int = 0
+    @State private var sharedText: String = ""
+    @State private var sharedImages: [UIImage] = []
+    @State private var hasNewObject = false
+    @State private var isDismissed: Bool = false
+
+    @State private var path: NavigationPath = .init()
+
+    let notifDelegate = NotificationDelegate()
+
+    init() {
+        UNUserNotificationCenter.current().delegate = notifDelegate
+        NotificationManager.shared.requestPermission()
+    }
+
+    var body: some Scene {
+        WindowGroup {
+            ZStack {
+                // MARK: - Root content (auth-based)
+                Group {
+                    if !session.isAuthLoaded {
+                        // Splash saat cek session Supabase
+                        SplashView()
+                    } else if session.isSignedIn {
+                        MainTabView(
+                            selectedTab: $selectedTab,
+                            sharedText: $sharedText,
+                            hasNewObject: $hasNewObject,
+                            sharedImages: $sharedImages
+                        )
+                    } else {
+                        SignInWithAppleView()
+                    }
+                }
+
+                // MARK: - Overlay loading data awal (opsional, pakai flag di SessionManager)
+                if session.isInitialDataLoading {
+                    Color(.systemBackground)
+                        .ignoresSafeArea()
+
+                    VStack(spacing: 16) {
+                        if let appIcon = Bundle.main.icon {
+                            Image(uiImage: appIcon)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 96, height: 96)
+                                .cornerRadius(20)
+                                .shadow(radius: 10)
+                        }
+                    }
+                }
+            }
+            .environmentObject(session)
+            .environmentObject(deleteBus)
+            .environmentObject(unsavedBus)
+            .onOpenURL { url in
+                guard url.host == "fromwhatsapp" else { return }
+
+                if let defaults = UserDefaults(suiteName: "group.com.please.shared") {
+
+                    // Ambil shared text
+                    if let text = defaults.string(forKey: "sharedText") {
+                        sharedText = text
+                        hasNewObject = true
+                        print("📩 SHARED TEXT: \(text)")
+                        defaults.removeObject(forKey: "sharedText")
+                    }
+
+                    // Ambil shared images
+                    if let imageDataArray = defaults.array(forKey: "sharedImagesData") as? [Data] {
+                        sharedImages = imageDataArray.compactMap { UIImage(data: $0) }
+                        hasNewObject = true
+                        print("🖼️ LOADED \(sharedImages.count) SHARED IMAGES")
+                        defaults.removeObject(forKey: "sharedImagesData")
+                    }
+
+                    defaults.synchronize()
+                }
+            }
+            .onAppear {
+                NotificationManager.shared.scheduleDailyNotifications()
+            }
         }
-        
     }
 }

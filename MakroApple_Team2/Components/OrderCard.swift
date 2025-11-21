@@ -11,8 +11,16 @@ struct OrderCard: View {
     
     let order: OrderRecord
     @State private var viewModel = AllOrdersViewModel()
-    let orderItem: OrderItemRecord
+    let orderItem: [OrderItemRecord]
     
+    var firstItem: OrderItemRecord? {
+        orderItem.first
+    }
+
+    var remainingCount: Int {
+        max(orderItem.count - 1, 0)
+    }
+
 //    let order : Order
     var body: some View {
         
@@ -50,7 +58,7 @@ struct OrderCard: View {
                 
                 HStack {
                     // Pesanan
-                    Text(orderItem.productName)
+                    Text(firstItem?.productName ?? "-")
                         .font(Font.body.bold())
                     
                     Spacer()
@@ -67,9 +75,11 @@ struct OrderCard: View {
                 
                
                 // Tambahan
-//                Text("+ 3 more")
-//                    .font(Font.subheadline)
-//                    .foregroundColor(.secondary)
+                if remainingCount > 0 {
+                    Text("+ \(remainingCount) produk lainnya")
+                        .font(.caption)
+                }
+                
                 
             }
             .padding()

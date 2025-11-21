@@ -38,28 +38,12 @@
                         ZStack(alignment: .bottom){
                             ScrollView{
                                 VStack(alignment: .leading){
-                                    HStack{
-                                        
                                         
                                         Text("Formulir Pesanan")
                                             .font(.title3)
                                             .fontWeight(.bold)
                                         Spacer()
-                                        Button(action: {
-                                            if let clipboard = UIPasteboard.general.string {
-                                                formPesanan = clipboard
-                                            }
-                                        }) {
-                                            Label("Tempel", systemImage: "list.clipboard.fill")
-                                                .font(.caption)
-                                                .fontWeight(.bold)
-                                                .padding(8)
-                                                .labelStyle(.titleAndIcon)
-                                                .foregroundColor(.white)
-                                                .background(.primaryButton)
-                                                .cornerRadius(20)
-                                        }
-                                    }
+                                    
                                     
                                     
                                     ZStack(alignment: .topLeading) {
