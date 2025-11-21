@@ -20,11 +20,35 @@ class WidgetDataManager {
         }
     }
     
+    func loadOrdersForWidget() -> [WidgetOrder] {
+        let defaults = UserDefaults(suiteName: "group.com.please.shared")!
+        guard let data = defaults.data(forKey: "orders_for_widget"),
+              let orderRecords = try? JSONDecoder().decode([OrderRecord].self, from: data)
+        else { return [] }
+
+        return orderRecords.map { order in
+            WidgetOrder(
+                id: order.id,
+                orderNumber: order.orderNumber,
+                customerName: order.customerOrderName,
+                status: order.status,
+                orderDdayISO: order.orderDdayDate
+            )
+        }
+    }
+
+    
     func loadOrders() -> [WidgetOrder] {
         let decoder = JSONDecoder()
         guard let data = suite.data(forKey: key),
               let decoded = try? decoder.decode([WidgetOrder].self, from: data)
-        else { return [] }
+        else {
+            print("Widget orders kosong")
+            return []
+        }
+        
+        print("Widget orders loaded:", decoded)
         return decoded
     }
+
 }

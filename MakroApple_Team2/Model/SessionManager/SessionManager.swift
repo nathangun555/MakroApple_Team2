@@ -127,7 +127,7 @@ final class SessionManager: ObservableObject {
     private var authListenerTask: Task<Void, Never>? = nil
 
     // ✅ Dev mode flag
-    private let useDevMode = true   // Set to true hanya kalau mau bypass login
+    private let useDevMode = false   // Set to true hanya kalau mau bypass login
 
     init() {
         if useDevMode {
