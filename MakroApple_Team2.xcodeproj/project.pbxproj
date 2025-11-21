@@ -86,6 +86,8 @@
 		2B2ECE662ECECBAB000DB1F5 /* Exceptions for "MakroApple_Team2" folder in "MakroWidgetExtensionExtension" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				Assets.xcassets,
+				Components/Color.swift,
 				Helper/DateFormatterHelper.swift,
 				"Model/DatabaseFunctions/SupabaseManager+Orders.swift",
 				Model/DatabaseSetup/AnyCodable.swift,

@@ -85,38 +85,10 @@ struct OrderWidget: Widget {
         AppIntentConfiguration(kind: kind,
                                intent: OrderWidgetIntent.self,
                                provider: Provider()) { entry in
-            OrderWidgetEntryView(entry: entry)
+            MakroWidgetExtensionEntryView(entry: entry)
         }
         .configurationDisplayName("Order Status Widget")
         .description("Shows filtered orders.")
-    }
-}
-
-
-// MARK: - Entry View
-struct OrderWidgetEntryView: View {
-    let entry: SimpleEntry
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text("Orders")
-                .font(.headline)
-
-            ForEach(entry.orders.prefix(3)) { order in
-                VStack(alignment: .leading) {
-                    Text(order.customerName ?? "-")
-                        .font(.body)
-                    Text(order.status)
-                        .font(.caption)
-                        .foregroundColor(.gray)
-                }
-            }
-        }
-        .padding()
-        .containerBackground(for: .widget) {
-            Color.white
-        }
-
     }
 }
 
@@ -134,8 +106,10 @@ extension OrderWidgetIntent {
 
 
 
+
+
 // MARK: - Preview
-#Preview(as: .systemMedium) {
+#Preview(as: .systemLarge) {
     OrderWidget()
 } timeline: {
     SimpleEntry(

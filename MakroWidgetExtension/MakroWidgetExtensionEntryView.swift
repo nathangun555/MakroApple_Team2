@@ -18,13 +18,13 @@ struct MakroWidgetExtensionEntryView: View {
             SmallWidgetView(orders: entry.orders)
 
         case .systemMedium:
-            MediumWidgetView(orders: entry.orders)
+            MediumWidgetView()
 
         case .systemLarge:
-            LargeWidgetView(orders: entry.orders)
+            LargeWidgetView()
 
         default:
-            MediumWidgetView(orders: entry.orders)
+            MediumWidgetView()
         }
     }
 }
