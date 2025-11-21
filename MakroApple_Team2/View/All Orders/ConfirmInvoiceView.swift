@@ -80,17 +80,31 @@ struct ConfirmInvoiceView: View {
 
                         Spacer()
 
-                        
-
-                        // DatePicker
                         DatePicker(
-                            "",
-                            selection: Binding(
-                                get: { selectedDueDate ?? Date() },
-                                set: { newDate in
-                                    selectedDueDate = newDate
-                                    viewModel.invoiceDueDate = DateFormatterHelper.isoDateString(from: newDate)
-                                }
+                                "",
+                                selection: Binding(
+                                    get: { selectedDueDate ?? Date() },
+                                    set: { newDate in
+                                        selectedDueDate = newDate
+                                        viewModel.invoiceDueDate = DateFormatterHelper.isoDateString(from: newDate)
+                                    }
+                                ),
+                                in: Date()...,
+                                displayedComponents: .date
+                            )
+                            .labelsHidden()
+                            .datePickerStyle(.compact)
+
+                      // development
+                        // DatePicker
+//                         DatePicker(
+//                             "",
+//                             selection: Binding(
+//                                 get: { selectedDueDate ?? Date() },
+//                                 set: { newDate in
+//                                     selectedDueDate = newDate
+//                                     viewModel.invoiceDueDate = DateFormatterHelper.isoDateString(from: newDate)
+//                                 }
                             ),
                             displayedComponents: .date
                         )

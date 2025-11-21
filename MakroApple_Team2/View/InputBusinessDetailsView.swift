@@ -122,7 +122,7 @@ struct InputBusinessDetailsView: View {
             LabeledRow(label: "No Telp Bisnis :", labelWidth: labelWidth) {
               PillTextField(placeholder: "Silakan isi no telp bisnis anda",
                             text: $vm.businessPhone,
-                            keyboard: .phonePad,
+                            keyboard: .numbersAndPunctuation,
                             contentType: .telephoneNumber)
                 .focused($focusedField, equals: .businessPhone)
             }

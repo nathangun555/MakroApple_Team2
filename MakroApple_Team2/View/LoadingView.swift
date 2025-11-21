@@ -65,12 +65,6 @@ struct LoadingView: View {
                     .foregroundColor(.primary)
                     .multilineTextAlignment(.center)
                 
-                if showProgress {
-                    Text("\(Int(model.progress * 100))%")
-                        .foregroundColor(.secondary)
-                        .font(.subheadline)
-                }
-                
                 Text(tips[currentTipIndex])
                     .font(.footnote)
                     .foregroundColor(.secondary.opacity(0.8))
@@ -96,6 +90,7 @@ struct LoadingView: View {
         }
         .padding()
         .onAppear { startRotatingTips() }
+        .navigationBarBackButtonHidden(true)
     }
 
     private func startRotatingTips() {

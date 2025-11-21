@@ -44,7 +44,7 @@ struct CalendarHeaderView: View {
       .clipped()
       .animation(.easeInOut(duration: 0.18), value: isCollapsed)
     }
-    .background(.ultraThinMaterial)
+//    .background(.ultraThinMaterial)
   }
 }
 

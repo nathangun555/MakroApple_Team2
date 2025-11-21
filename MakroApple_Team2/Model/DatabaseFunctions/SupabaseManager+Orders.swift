@@ -75,7 +75,8 @@ extension SupabaseManager {
         
         let pesananDateRaw = parsedOrder["Tanggal Pesanan"] as? String ?? DateFormatterHelper.formattedDate(now, showTime: false)
         print(pesananDateRaw)
-        let jamKirimRaw = parsedOrder["Jam Kirim"] as? String ?? "00:00"
+        let jamKirimRaw = (parsedOrder["Jam Kirim"] as? String)
+            .flatMap { $0.isEmpty ? nil : $0 } ?? "23:59"
         print(jamKirimRaw)
 
         let pesananDateTimeISO = !pesananDateRaw.isEmpty
