@@ -102,6 +102,9 @@ struct Set_EditTemplateFormView: View {
                 }
             }
         }
+        .onTapGesture {
+            hideKeyboard()
+        }
         .navigationTitle("Template Formulir Bisnis")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {

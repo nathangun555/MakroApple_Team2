@@ -135,6 +135,9 @@ struct NewTemplateFormView: View {
                     }
                     .animation(.easeInOut(duration: 0.3), value: viewModel.isLoading)
                 }
+                .onTapGesture {
+                    hideKeyboard()
+                }
                 .navigationDestination(isPresented: $viewModel.didSave) {
                     EditTemplateFormView(isDismissed: $isDismissed)
                 }

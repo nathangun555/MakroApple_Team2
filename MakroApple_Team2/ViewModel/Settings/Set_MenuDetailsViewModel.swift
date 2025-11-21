@@ -619,7 +619,7 @@ struct EditableProductRow: View {
                         .monospacedDigit()
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .focused($focusedField, equals: .price)
-                        .doneToolbar(isFocused: $focusedField)
+                       
                     }
                     .padding(.vertical, 6)
                     .padding(.horizontal, 8)

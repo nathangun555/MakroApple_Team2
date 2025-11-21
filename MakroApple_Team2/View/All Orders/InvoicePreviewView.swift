@@ -111,6 +111,9 @@ struct InvoicePreviewView: View {
                     
                 }
             }
+            .onTapGesture {
+                hideKeyboard()
+            }
             .navigationTitle(viewModel.isPreviewMode ? "Preview Invoice" : "Invoice")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

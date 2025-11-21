@@ -139,6 +139,9 @@ struct Set_ConfirmMenuView: View {
                 .zIndex(999)
             }
         }
+        .onTapGesture {
+            hideKeyboard()
+        }
         .task {
             vm.configure(userId: session.userId)
             await vm.loadFromScan(categories: scannedCategories)
