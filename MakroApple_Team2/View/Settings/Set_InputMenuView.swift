@@ -318,7 +318,7 @@ struct Set_InputMenuView: View {
                         viewModel.uploadMenu(fileUrl: localUrl) { result in
                             switch result {
                             case .success(let url):
-                                let progress = 0.25 + (0.35 * Double(i+1) / Double(convertedUrls.count))
+                                let progress = 0.25 + (0.50 * Double(i+1) / Double(convertedUrls.count))
                                 viewModel.setProgress(progress)
                                 cont.resume(returning: url)
                             case .failure(let err): cont.resume(throwing: err)
@@ -329,7 +329,6 @@ struct Set_InputMenuView: View {
                     let scanJson = try await withCheckedThrowingContinuation { cont in
                         viewModel.menuScanBatch(imageUrls: [publicUrl]) { json in
                             if let json {
-                                viewModel.setProgress(0.85)
                                 cont.resume(returning: json)
                             }
                             else { cont.resume(throwing: NSError(domain: "scan", code: -1, userInfo: [NSLocalizedDescriptionKey: "Scan failed"])) }

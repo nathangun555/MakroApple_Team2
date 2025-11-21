@@ -61,6 +61,7 @@
                                         viewModel.invoiceDueDate = DateFormatterHelper.isoDateString(from: newDate)
                                     }
                                 ),
+                                in: Date()...,
                                 displayedComponents: .date
                             )
                             .labelsHidden()
@@ -127,6 +128,7 @@
                                         keyboardType: .numberPad
                                     )
                                     .focused($focusedField, equals: .quantity(item.id))
+                                    .doneToolbar(isFocused: $focusedField)
                                     .onTapGesture { focusedField = .quantity(item.id) }
 
                                     // Harga
@@ -136,8 +138,8 @@
                                             get: {
                                                 let val = $item.productPrice.wrappedValue
                                                 return focusedField == .price(item.id)
-                                                    ? (val == 0 ? " Rp " : " \(val.formatted(.currency(code: "IDR")))") :
-                                                      " \(val.formatted(.currency(code: "IDR")))"
+                                                    ? (val == 0 ? " Rp " : " \(val.formatted(.currency(code: "IDR")))")
+                                                    : " \(val.formatted(.currency(code: "IDR")))"
                                             },
                                             set: { newValue in
                                                 let clean = newValue.filter("0123456789".contains)
@@ -147,6 +149,7 @@
                                         keyboardType: .numberPad
                                     )
                                     .focused($focusedField, equals: .price(item.id))
+                                    .doneToolbar(isFocused: $focusedField)
                                     .onTapGesture { focusedField = .price(item.id) }
 
                                     // Diskon
@@ -156,8 +159,8 @@
                                             get: {
                                                 let val = $item.discount.wrappedValue
                                                 return focusedField == .discount(item.id)
-                                                    ? (val == 0 ? " Rp " : " \(val.formatted(.currency(code: "IDR")))") :
-                                                      " \(val.formatted(.currency(code: "IDR")))"
+                                                    ? (val == 0 ? " Rp " : " \(val.formatted(.currency(code: "IDR")))")
+                                                    : " \(val.formatted(.currency(code: "IDR")))"
                                             },
                                             set: { newValue in
                                                 let clean = newValue.filter("0123456789".contains)
@@ -167,6 +170,7 @@
                                         keyboardType: .numberPad
                                     )
                                     .focused($focusedField, equals: .discount(item.id))
+                                    .doneToolbar(isFocused: $focusedField)
                                     .onTapGesture { focusedField = .discount(item.id) }
 
                                 }
@@ -201,7 +205,7 @@
                             value: Binding(
                                 get: {
                                     let val = Decimal(string: viewModel.shippingCostText) ?? 0
-                                    if focusedField == .shipping { // dummy UUID untuk fokus
+                                    if focusedField == .shipping { // dummy UUID for focus
                                         return val == 0 ? " Rp " : " \(val.formatted(.currency(code: "IDR")))"
                                     } else {
                                         return " \(val.formatted(.currency(code: "IDR")))"
@@ -215,6 +219,7 @@
                             keyboardType: .numberPad
                         )
                         .focused($focusedField, equals: .shipping)
+                        .doneToolbar(isFocused: $focusedField)
                         .onTapGesture { focusedField = .shipping }
 
                         
@@ -237,26 +242,27 @@
                             Spacer()
                             
                             TextField("Rp 0,00",
-                                      text: Binding(
-                                        get: {
-                                            let val = Decimal(string: viewModel.downPaymentText) ?? 0
-                                            if focusedField == .downPayment { // gunakan UUID statis atau case tanpa UUID
-                                                return val == 0 ? " Rp " : " \(val.formatted(.currency(code: "IDR")))"
-                                            } else {
-                                                return " \(val.formatted(.currency(code: "IDR")))"
-                                            }
-                                        },
-                                        set: { newValue in
-                                            let clean = newValue.filter("0123456789".contains)
-                                            viewModel.downPaymentText = clean
+                                text: Binding(
+                                    get: {
+                                        let val = Decimal(string: viewModel.downPaymentText) ?? 0
+                                        if focusedField == .downPayment {
+                                            return val == 0 ? " Rp " : " \(val.formatted(.currency(code: "IDR")))"
+                                        } else {
+                                            return " \(val.formatted(.currency(code: "IDR")))"
                                         }
-                                      )
+                                    },
+                                    set: { newValue in
+                                        let clean = newValue.filter("0123456789".contains)
+                                        viewModel.downPaymentText = clean
+                                    }
+                                )
                             )
                             .disabled(!hasDownPayment)
                             .frame(width: 120)
                             .textFieldStyle(.roundedBorder)
                             .keyboardType(.decimalPad)
                             .focused($focusedField, equals: .downPayment)
+                            .doneToolbar(isFocused: $focusedField)
                             .onTapGesture { focusedField = .downPayment }
                             
                             Toggle("", isOn: $hasDownPayment)

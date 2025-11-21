@@ -64,7 +64,7 @@ struct MainTabView: View {
                                   sharedText: $sharedText,
                                   hasNewObject: $hasNewObject)
                 }
-                Tab("Jadwal", systemImage: "calendar", value: 1) {
+                Tab("Kalender", systemImage: "calendar", value: 1) {
                     ActiveOrdersView()
                 }
 //                Tab("Analitik", systemImage: "chart.bar", value: 2) {

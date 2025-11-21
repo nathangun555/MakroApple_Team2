@@ -65,7 +65,7 @@ class EditOrderViewModel {
         let customerKeys = ["Nama Pemesan", "No. Telp Pemesan", "Nama Penerima", "No. Telp Penerima", "Alamat Kirim"]
         for key in customerKeys {
             if let value = data[key] as? String {
-                customerFields.append(OrderField(label: "\(key) :", value: value))
+                customerFields.append(OrderField(label: "\(key)", value: value))
                 processedKeys.insert(key)
             }
         }
@@ -74,7 +74,7 @@ class EditOrderViewModel {
         let scheduleKeys = ["Tanggal Pesanan", "Jam Kirim"]
         for key in scheduleKeys {
             if let value = data[key] as? String {
-                scheduleFields.append(OrderField(label: "\(key) :", value: value))
+                scheduleFields.append(OrderField(label: "\(key)", value: value))
                 processedKeys.insert(key)
             }
         }
@@ -131,7 +131,7 @@ class EditOrderViewModel {
                 stringValue = "\(value)"
             }
         
-            otherFields.append(OrderField(label: "\(key):", value: stringValue))
+            otherFields.append(OrderField(label: "\(key)", value: stringValue))
         }
         
         print("📋 Parsed Order Data:")
@@ -218,6 +218,7 @@ class EditOrderViewModel {
             
             orderIdNow = order.id.uuidString
             print("✅ Order saved: \(order.id)")
+            print(order)
             
             let orderItems = try await SupabaseManager.shared.createOrderItems(
                 products: self.products,
@@ -254,14 +255,15 @@ class EditOrderViewModel {
         
         // Customer fields
         for field in customerFields {
-            let key = field.label.replacingOccurrences(of: " :", with: "").trimmingCharacters(in: .whitespaces)
+            let key = field.label.trimmingCharacters(in: .whitespaces)
             data[key] = field.value
         }
         
         // Schedule fields
         for field in scheduleFields {
-            let key = field.label.replacingOccurrences(of: " :", with: "").trimmingCharacters(in: .whitespaces)
+            let key = field.label.trimmingCharacters(in: .whitespaces)
             data[key] = field.value
+
         }
         
         // Products
@@ -285,7 +287,7 @@ class EditOrderViewModel {
         
         // Other fields (including all unmapped fields)
         for field in otherFields {
-            let key = field.label.replacingOccurrences(of: ":", with: "").trimmingCharacters(in: .whitespaces)
+            let key = field.label.trimmingCharacters(in: .whitespaces)
             data[key] = field.value
         }
         

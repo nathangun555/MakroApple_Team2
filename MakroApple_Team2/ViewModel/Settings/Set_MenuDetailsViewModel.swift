@@ -510,8 +510,14 @@ final class Set_MenuDetailsViewModel: ObservableObject {
 }
 
 // MARK: - EditableProductRow (tidak berubah dari versi sebelumnya)
+
+enum EditableProductField: Hashable {
+    case price
+}
+
 struct EditableProductRow: View {
     @ObservedObject var viewModel: EditableProduct
+    @FocusState private var focusedField: EditableProductField?
     var isEditing: Bool
     var sectionIndex: Int
     var productIndex: Int
@@ -612,6 +618,8 @@ struct EditableProductRow: View {
                         .font(.system(size: 16, weight: .regular))
                         .monospacedDigit()
                         .frame(maxWidth: .infinity, alignment: .leading)
+                        .focused($focusedField, equals: .price)
+                        .doneToolbar(isFocused: $focusedField)
                     }
                     .padding(.vertical, 6)
                     .padding(.horizontal, 8)

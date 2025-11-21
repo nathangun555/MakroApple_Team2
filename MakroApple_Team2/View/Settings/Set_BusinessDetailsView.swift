@@ -1401,7 +1401,7 @@ struct Set_BusinessDetailsView: View {
                        )
                        .frame(maxWidth: .infinity, alignment: .leading)
                        .focused($focusedField, equals: .businessPhone)
-                       .keyboardType(.numberPad)
+                       .keyboardType(.numbersAndPunctuation)
             }
             if let error = vm.fieldErrors["businessPhone"] {
                 HStack(spacing: 6) {

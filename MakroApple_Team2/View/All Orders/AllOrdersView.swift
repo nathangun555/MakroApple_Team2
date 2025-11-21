@@ -79,12 +79,17 @@ struct AllOrdersView: View {
                     Button {
                         handleAddNewOrder()
                     } label: {
-                        Image(systemName: "plus")
-                            .font(.system(size: 24))
-                            .frame(width: 44, height: 44)
-                            .foregroundColor(.white)
-                            .background(viewModel.hasTemplates ? .primaryButton : .secondary)
-                            .clipShape(Circle())
+                        ZStack {
+                            Circle()
+                                .fill(Color.white)
+                                .frame(width: 40, height: 40)
+                                .shadow(color: Color(.systemGray4),
+                                        radius: 4, x: 0, y: 1)
+
+                            Image(systemName: "plus")
+                                .font(.title3)
+                                .foregroundColor(viewModel.hasTemplates ? .primaryButton : .secondary)
+                        }
                     }
                     .disabled(!viewModel.hasTemplates)
                     
@@ -95,15 +100,20 @@ struct AllOrdersView: View {
                             Image(uiImage: logoImage)
                                 .resizable()
                                 .scaledToFill()
-                                .frame(width: 44, height: 44)
+                                .frame(width: 40, height: 40)
                                 .clipShape(Circle())
                         } else {
-                            Image(systemName: "person.fill")
-                                .font(.system(size: 20))
-                                .frame(width: 44, height: 44)
-                                .foregroundColor(.white)
-                                .glassEffect(.clear.tint(.primaryButton), in: .rect(cornerRadius: 30))
-                                .clipShape(Circle())
+                            ZStack {
+                                Circle()
+                                    .fill(Color.white)
+                                    .frame(width: 40, height: 40)
+                                    .shadow(color: Color(.systemGray4),
+                                            radius: 4, x: 0, y: 1)
+
+                                Image(systemName: "person.fill")
+                                    .font(.title3)
+                                    .foregroundColor(.primaryButton)
+                            }
                         }
                     }
                 }
@@ -113,7 +123,7 @@ struct AllOrdersView: View {
                         profileImage = nil
                         return
                     }
-                    profileImage = await loadImage(from: urlString)
+                    profileImage = await viewModel.loadImage(from: urlString)
                 }
                 
                 DeadlineCard(orders: viewModel.orders, hastemplates: viewModel.hasTemplates, isTutorial: $showTutorial)
@@ -302,16 +312,6 @@ struct AllOrdersView: View {
 //            showTutorial = true
         } else {
             showTutorial = true
-        }
-    }
-    
-    private func loadImage(from urlString: String) async -> UIImage? {
-        guard let url = URL(string: urlString) else { return nil }
-        do {
-            let (data, _) = try await URLSession.shared.data(from: url)
-            return UIImage(data: data)
-        } catch {
-            return nil
         }
     }
 

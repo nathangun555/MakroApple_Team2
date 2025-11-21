@@ -15,6 +15,7 @@ struct InvoicePreviewView: View {
     
     @State var orderId: String?
     
+    @State private var isLoading = false
     @State private var isSaving = false
     @State private var showSuccessAlert = false
     
@@ -29,7 +30,8 @@ struct InvoicePreviewView: View {
             
             ZStack {
                 if viewModel.isLoading {
-                    ProgressView("Memuat invoice...")
+                    LoadingView(context: "invoice")
+//                    ProgressView("Memuat invoice...")
                 } else if let errorMessage = viewModel.errorMessage {
                     VStack {
                         Text("❌ Error")

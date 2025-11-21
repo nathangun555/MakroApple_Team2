@@ -250,6 +250,7 @@ struct ProductsSection: View {
                         .focused($focusedField, equals: qtyKey)
                         .textFieldStyle(.roundedBorder)
                         .keyboardType(.numberPad)
+                        .doneToolbar(isFocused: $focusedField)
                         .overlay(
                             RoundedRectangle(cornerRadius: 6)
                                 .stroke(
