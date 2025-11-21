@@ -310,6 +310,7 @@ struct ConfirmInvoiceView: View {
                         .textFieldStyle(.roundedBorder)
                         .keyboardType(.decimalPad)
                         .focused($focusedField, equals: .downPayment)
+
                         .onTapGesture { focusedField = .downPayment }
                         
                         Toggle("", isOn: $hasDownPayment)
