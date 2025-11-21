@@ -133,6 +133,9 @@ struct Set_ManualInputView: View {
                 .zIndex(999)
             }
         }
+        .onTapGesture {
+            hideKeyboard()
+        }
         .task {
             vm.configure(userId: session.userId)
             // Langsung tambahkan 3 produk kosong

@@ -105,13 +105,13 @@ struct ConfirmInvoiceView: View {
 //                                     selectedDueDate = newDate
 //                                     viewModel.invoiceDueDate = DateFormatterHelper.isoDateString(from: newDate)
 //                                 }
-                            ),
-                            displayedComponents: .date
-                        )
-                        .labelsHidden()
-                        .datePickerStyle(.compact)
-                        .disabled(!hasDueDate)  // Disable saat toggle off
-                        .opacity(hasDueDate ? 1 : 0.3) // Visual feedback
+//                            ),
+//                            displayedComponents: .date
+//                        )
+//                        .labelsHidden()
+//                        .datePickerStyle(.compact)
+//                        .disabled(!hasDueDate)  // Disable saat toggle off
+//                        .opacity(hasDueDate ? 1 : 0.3) // Visual feedback
                         
                         // Toggle ON/OFF
                         Toggle("", isOn: $hasDueDate)
@@ -322,6 +322,9 @@ struct ConfirmInvoiceView: View {
             }
             .padding(.horizontal)
         }
+        .onTapGesture {
+            hideKeyboard()
+        }
         .navigationTitle("Rincian Invoice")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -365,7 +368,10 @@ struct ConfirmInvoiceView: View {
         .navigationDestination(isPresented: $viewModel.didSave) {
             InvoicePreviewView(orderId: orderId, isDismissed: $isDismissed)
         }
+        
+
     }
+    
 }
 
 private func applyDiscountLimit(_ price: Decimal, _ qty: Int, _ newVal: Decimal) -> Decimal {

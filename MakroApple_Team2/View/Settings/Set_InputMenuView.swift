@@ -36,6 +36,9 @@ struct Set_InputMenuView: View {
     var body: some View {
         NavigationStack {
             mainContent
+                .onTapGesture {
+                    hideKeyboard()
+                }
                 .navigationBarTitleDisplayMode(.inline)
                 .navigationBarBackButtonHidden(true)
                 .toolbar {

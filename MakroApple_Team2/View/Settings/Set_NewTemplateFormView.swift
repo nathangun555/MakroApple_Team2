@@ -127,6 +127,9 @@ Foto Referensi (optional):
                     }
                 }
             }
+            .onTapGesture {
+                hideKeyboard()
+            }
             .navigationDestination(isPresented: $viewModel.didSave) {
                 Set_EditTemplateFormView(isDismissed: $isDismissed)
             }

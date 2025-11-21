@@ -55,7 +55,7 @@ struct ActiveOrdersView: View {
                           } label: {
                               HStack(spacing: 8) {
                                      Image(systemName: viewMode == .bulanan ? "checkmark" : "checkmark")
-                                         .opacity(viewMode == .bulanan ? 1 : 0) 
+                                         .opacity(viewMode == .bulanan ? 1 : 0)
 
                                      Image(systemName: "rectangle.grid.1x2")
                                      Text("Bulanan")
@@ -194,7 +194,7 @@ struct ActiveOrdersView: View {
 //                    Color.clear
 //                      .onChange(of: minY, initial: true) { oldY, newY in
 //                        let rawDelta = newY - oldY
-//                          
+//
 //                        // Ignore jitter
 //                        guard abs(rawDelta) > 15 else { return }
 //

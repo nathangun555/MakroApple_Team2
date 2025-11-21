@@ -129,6 +129,9 @@ struct ConfirmMenuView: View {
                 .zIndex(999)
             }
         }
+        .onTapGesture {
+            hideKeyboard()
+        }
         .task {
             vm.configure(userId: session.userId)
             

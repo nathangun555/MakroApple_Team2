@@ -225,7 +225,7 @@ struct OrderListView: View {
                                                             )
                                                             .environmentObject(session)
                                                     ) {
-                                                        OrderCard(order: order, orderItem: item)
+                                                        OrderCard(order: order, orderItem: [item])
                                                     }
                                                     .buttonStyle(PlainButtonStyle())
                                                 }

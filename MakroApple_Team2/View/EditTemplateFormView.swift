@@ -116,6 +116,9 @@ struct EditTemplateFormView: View {
                 }
             }
         }
+        .onTapGesture {
+            hideKeyboard()
+        }
         .navigationTitle("Formulir Pesanan")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
