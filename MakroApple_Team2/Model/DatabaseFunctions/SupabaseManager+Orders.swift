@@ -216,4 +216,24 @@ extension SupabaseManager {
                 ])
             }
         }
+    
+    func deleteOrderCompletely(orderId: UUID) async throws {
+
+        _ = try await client
+            .from("order_items")
+            .delete()
+            .eq("order_id", value: orderId.uuidString)
+            .execute()
+
+        print("🗑️ Deleted items for order \(orderId)")
+
+        _ = try await client
+            .from("orders")
+            .delete()
+            .eq("id", value: orderId.uuidString)
+            .execute()
+
+        print("🗑️ Deleted order \(orderId)")
+    }
+
 }
