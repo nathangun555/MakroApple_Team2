@@ -87,7 +87,7 @@ struct AllOrdersView: View {
                                         radius: 4, x: 0, y: 1)
 
                             Image(systemName: "plus")
-                                .font(.title3)
+                                .font(.title2)
                                 .foregroundColor(viewModel.hasTemplates ? .primaryButton : .secondary)
                         }
                     }

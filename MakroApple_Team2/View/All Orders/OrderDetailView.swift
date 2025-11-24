@@ -547,15 +547,47 @@ struct OrderDetailView: View {
         )
         .navigationTitle("Rincian Pesanan")
         .toolbar {
-            if order.status == "Belum Terbayar" || order.status == "Diproses" {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        activeAlert = .cancel
+            ToolbarItem(placement: .navigationBarTrailing) {
+                HStack(spacing: 0) {
+                    Menu {
+                        Button {
+        //                    showEdit = true
+                            } label: {
+                                Label("Edit", systemImage: "pencil")
+                            }
+                        
+                            if order.status == "Belum Terbayar" || order.status == "Diproses" {
+                        Button {
+                                activeAlert = .cancel
+                            } label: {
+                                Label("Hapus", systemImage: "trash")
+                            }
+                        }
                     } label: {
-                        Image(systemName: "trash")
+                        ZStack {
+                            Circle()
+                                .fill(Color.white)
+                                .frame(width: 40, height: 40)
+//                                .shadow(color: Color(.systemGray4), radius: 4, x: 0, y: 1)
+                            Image(systemName: "ellipsis")
+                                .font(.title3.weight(.semibold))
+                                .foregroundColor(.primaryButton)
+                        }
                     }
+                    .frame(width: 40, height: 40)
+                    .buttonStyle(.plain)
                 }
             }
+            
+//            if order.status == "Belum Terbayar" || order.status == "Diproses" {
+//                ToolbarItem(placement: .topBarTrailing) {
+//                    Button {
+//                        activeAlert = .cancel
+//                    } label: {
+//                        Image(systemName: "trash")
+//                    }
+//                }
+//            }
         }
         .task {
             
