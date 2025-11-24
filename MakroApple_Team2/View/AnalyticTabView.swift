@@ -227,7 +227,7 @@ import Combine
 
 struct AnalyticTabView: View {
     @State private var timeframe: AnalyticTimeframe = .hari
-    @StateObject private var viewModel = AnalyticTabViewModel()
+    @EnvironmentObject var viewModel: AnalyticTabViewModel
     @EnvironmentObject var session: SessionManager
     
     // Tambahkan di dalam struct BarChartStatCard, sebelum body
@@ -341,8 +341,30 @@ struct AnalyticTabView: View {
         .onAppear {
             guard let userIdStr = session.userId,
                   let userId = UUID(uuidString: userIdStr) else { return }
-            viewModel.loadHistory(userId: userId, tf: timeframe)
+            
+            // ✅ Cek apakah data sudah ada di cache
+            let key = viewModel.cacheKey(tf: timeframe, offset: 0)
+            
+            // Jika belum ada cache DAN tidak sedang prefetch, baru load
+            Task {
+                while viewModel.isPrefetching {
+                    try? await Task.sleep(nanoseconds: 50_000_000)
+                }
+                viewModel.loadHistory(userId: userId, tf: timeframe)
+            }
         }
+        .overlay {
+            if viewModel.isLoading {
+                ZStack {
+                    Color.black.opacity(0.2)
+                    ProgressView()
+                        .scaleEffect(1.5)
+                        .tint(.primaryButton)
+                }
+                .ignoresSafeArea()
+            }
+        }
+
         
     }
 }
@@ -423,7 +445,97 @@ struct BarChartStatCard: View {
                 .padding(.vertical, 8)
             }
             
-            // BAR CHART
+            if !barEntries.isEmpty {
+                // ✅ Calculate maxValue untuk determine format
+                let maxValue = barEntries.map { $0.value }.max() ?? 1
+                
+                // ✅ Determine format & divisor based on maxValue
+                let (divisor, suffix): (Double, String) = {
+                    if maxValue >= 1_000_000 {
+                        return (1_000_000, "Jt")  // Juta
+                    } else if maxValue >= 1_000 {
+                        return (1_000, "Rb")      // Ribu
+                    } else {
+                        return (1, "")            // Satuan (< 1000)
+                    }
+                }()
+                
+                Chart(barEntries) { entry in
+                    BarMark(
+                        x: .value("Label", entry.label),
+                        y: .value("Value", entry.value)
+                    )
+                    .cornerRadius(8)
+                    .foregroundStyle(
+                        selectedIndex == barEntries.firstIndex(of: entry)
+                        ? Color.primaryButton
+                        : Color.primaryButton.opacity(0.3)
+                    )
+                }
+                .chartXAxis {
+                    AxisMarks(position: .bottom) { value in
+                        if let label = value.as(String.self) {
+                            AxisValueLabel {
+                                Text(label)
+                                    .font(.caption)
+                                    .foregroundColor(
+                                        barEntries.firstIndex(where: { $0.label == label }) == selectedIndex
+                                        ? Color.primaryButton
+                                        : Color.secondary
+                                    )
+                                    .fontWeight(
+                                        barEntries.firstIndex(where: { $0.label == label }) == selectedIndex
+                                        ? .bold
+                                        : .regular
+                                    )
+                            }
+                        }
+                    }
+                }
+                .chartYAxis {
+                    AxisMarks(position: .leading) { value in
+                        if let numValue = value.as(Double.self) {
+                            AxisValueLabel {
+                                if title == "Revenue" {
+                                    // ✅ Dynamic format: Rb, Jt, atau M
+                                    let formatted = Int(numValue / divisor)
+                                    Text("\(formatted)\(suffix)")
+                                        .font(.caption2)
+                                } else {
+                                    // Produk Terjual tetap normal
+                                    Text("\(Int(numValue))")
+                                        .font(.caption2)
+                                }
+                            }
+                            AxisGridLine()
+                        }
+                    }
+                }
+                .chartOverlay { proxy in
+                    GeometryReader { geo in
+                        Rectangle()
+                            .fill(Color.clear)
+                            .contentShape(Rectangle())
+                            .gesture(
+                                DragGesture(minimumDistance: 0)
+                                    .onEnded { value in
+                                        let xPos = value.location.x
+                                        let chartWidth = geo.size.width
+                                        let barWidth = chartWidth / CGFloat(barEntries.count)
+                                        let tappedIndex = Int(xPos / barWidth)
+                                        
+                                        if tappedIndex >= 0 && tappedIndex < barEntries.count {
+                                            selectedIndex = tappedIndex
+                                        }
+                                    }
+                            )
+                    }
+                }
+                .frame(height: 110)
+                .padding(.horizontal, 8)
+            }
+
+//             BAR CHART
 //            if !barEntries.isEmpty {
 //                Chart(barEntries) { entry in
 //                    BarMark(
@@ -499,91 +611,93 @@ struct BarChartStatCard: View {
 //                .padding(.horizontal, 8)
 //            }
             // BAR CHART
-            if !barEntries.isEmpty {
-                let maxValue = barEntries.map { $0.value }.max() ?? 1
-                let minNonZero = barEntries.filter { $0.value > 0 }.map { $0.value }.min() ?? 0
-                
-                // Jika ada jomplang besar (min < 5% dari max), set floor jadi lebih visible
-                let effectiveMin: Double = {
-                    if minNonZero > 0 && minNonZero < maxValue * 0.05 {
-                        return maxValue * 0.05  // Floor 5% dari max
-                    } else {
-                        return 0
-                    }
-                }()
-                
-                Chart(barEntries) { entry in
-                    BarMark(
-                        x: .value("Label", entry.label),
-                        y: .value("Value", entry.value > 0 ? max(entry.value, effectiveMin) : 0)  // ← FIX: Cek dulu apakah > 0
-                    )
-                    .cornerRadius(8)
-                    .foregroundStyle(
-                        selectedIndex == barEntries.firstIndex(of: entry)
-                        ? Color.primaryButton
-                        : Color.primaryButton.opacity(0.3)
-                    )
-                }
-                .chartYScale(domain: 0...maxValue)
-                .chartXAxis {
-                    AxisMarks(position: .bottom) { value in
-                        if let label = value.as(String.self) {
-                            AxisValueLabel {
-                                Text(label)
-                                    .font(.caption)
-                                    .foregroundColor(
-                                        barEntries.firstIndex(where: { $0.label == label }) == selectedIndex
-                                        ? Color.primaryButton
-                                        : Color.secondary
-                                    )
-                                    .fontWeight(
-                                        barEntries.firstIndex(where: { $0.label == label }) == selectedIndex
-                                        ? .bold
-                                        : .regular
-                                    )
-                            }
-                        }
-                    }
-                }
-                .chartYAxis {
-                    AxisMarks(position: .leading) { value in
-                        if let numValue = value.as(Double.self) {
-                            AxisValueLabel {
-                                if title == "Revenue" {
-                                    Text("\(Int(numValue / 1000))")
-                                        .font(.caption2)
-                                } else {
-                                    Text("\(Int(numValue))")
-                                        .font(.caption2)
-                                }
-                            }
-                            AxisGridLine()
-                        }
-                    }
-                }
-                .chartOverlay { proxy in
-                    GeometryReader { geo in
-                        Rectangle()
-                            .fill(Color.clear)
-                            .contentShape(Rectangle())
-                            .gesture(
-                                DragGesture(minimumDistance: 0)
-                                    .onEnded { value in
-                                        let xPos = value.location.x
-                                        let chartWidth = geo.size.width
-                                        let barWidth = chartWidth / CGFloat(barEntries.count)
-                                        let tappedIndex = Int(xPos / barWidth)
-                                        
-                                        if tappedIndex >= 0 && tappedIndex < barEntries.count {
-                                            selectedIndex = tappedIndex
-                                        }
-                                    }
-                            )
-                    }
-                }
-                .frame(height: 110)
-                .padding(.horizontal, 8)
-            }
+//            if !barEntries.isEmpty {
+//                let maxValue = barEntries.map { $0.value }.max() ?? 1
+//                let minNonZero = barEntries.filter { $0.value > 0 }.map { $0.value }.min() ?? 0
+//                
+//                // Jika ada jomplang besar (min < 5% dari max), set floor jadi lebih visible
+//                let effectiveMin: Double = {
+//                    if minNonZero > 0 && minNonZero < maxValue * 0.05 {
+//                        return maxValue * 0.05  // Floor 5% dari max
+//                    } else {
+//                        return 0
+//                    }
+//                }()
+//                
+//                
+//                
+//                Chart(barEntries) { entry in
+//                    BarMark(
+//                        x: .value("Label", entry.label),
+//                        y: .value("Value", entry.value > 0 ? max(entry.value, effectiveMin) : 0)  // ← FIX: Cek dulu apakah > 0
+//                    )
+//                    .cornerRadius(8)
+//                    .foregroundStyle(
+//                        selectedIndex == barEntries.firstIndex(of: entry)
+//                        ? Color.primaryButton
+//                        : Color.primaryButton.opacity(0.3)
+//                    )
+//                }
+//                .chartYScale(domain: 0...maxValue)
+//                .chartXAxis {
+//                    AxisMarks(position: .bottom) { value in
+//                        if let label = value.as(String.self) {
+//                            AxisValueLabel {
+//                                Text(label)
+//                                    .font(.caption)
+//                                    .foregroundColor(
+//                                        barEntries.firstIndex(where: { $0.label == label }) == selectedIndex
+//                                        ? Color.primaryButton
+//                                        : Color.secondary
+//                                    )
+//                                    .fontWeight(
+//                                        barEntries.firstIndex(where: { $0.label == label }) == selectedIndex
+//                                        ? .bold
+//                                        : .regular
+//                                    )
+//                            }
+//                        }
+//                    }
+//                }
+//                .chartYAxis {
+//                    AxisMarks(position: .leading) { value in
+//                        if let numValue = value.as(Double.self) {
+//                            AxisValueLabel {
+//                                if title == "Revenue" {
+//                                    Text("\(Int(numValue / 1000))")
+//                                        .font(.caption2)
+//                                } else {
+//                                    Text("\(Int(numValue))")
+//                                        .font(.caption2)
+//                                }
+//                            }
+//                            AxisGridLine()
+//                        }
+//                    }
+//                }
+//                .chartOverlay { proxy in
+//                    GeometryReader { geo in
+//                        Rectangle()
+//                            .fill(Color.clear)
+//                            .contentShape(Rectangle())
+//                            .gesture(
+//                                DragGesture(minimumDistance: 0)
+//                                    .onEnded { value in
+//                                        let xPos = value.location.x
+//                                        let chartWidth = geo.size.width
+//                                        let barWidth = chartWidth / CGFloat(barEntries.count)
+//                                        let tappedIndex = Int(xPos / barWidth)
+//                                        
+//                                        if tappedIndex >= 0 && tappedIndex < barEntries.count {
+//                                            selectedIndex = tappedIndex
+//                                        }
+//                                    }
+//                            )
+//                    }
+//                }
+//                .frame(height: 110)
+//                .padding(.horizontal, 8)
+//            }
 
         }
         .padding(16)
