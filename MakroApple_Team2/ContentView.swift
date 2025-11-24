@@ -67,9 +67,12 @@ struct MainTabView: View {
                 Tab("Jadwal", systemImage: "calendar", value: 1) {
                     ActiveOrdersView()
                 }
-//                Tab("Analitik", systemImage: "chart.bar", value: 2) {
-//                    AnalyticsView()
+//                Tab("AI", systemImage: "chart.bar", value: 2) {
+//                    ChatBotView()
 //                }
+                Tab("Analitik", systemImage: "chart.bar", value: 2) {
+                    AnalyticTabView()
+                }
 //                Tab("Pengaturan", systemImage: "gearshape", value: 3) {
 //                    SettingsView()
 //                }
@@ -114,9 +117,6 @@ struct MainTabView: View {
     }
 }
 
-
-        
-        
 //        NavigationStack {
 //            ZStack(alignment: .bottom) {
 //                TabView(selection: $selectedTab) {

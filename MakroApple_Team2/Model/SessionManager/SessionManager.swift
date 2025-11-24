@@ -127,7 +127,7 @@ final class SessionManager: ObservableObject {
     private var authListenerTask: Task<Void, Never>? = nil
 
     // ✅ Dev mode flag
-    private let useDevMode = false   // Set to true hanya kalau mau bypass login
+    private let useDevMode = true   // Set to true hanya kalau mau bypass login
 
     init() {
         if useDevMode {
@@ -148,7 +148,7 @@ final class SessionManager: ObservableObject {
     // ✅ Dev mode setup - instant, synchronous
     private func setupDevSession() {
         self.isSignedIn = true
-        self.userId = "7a1829f4-eef2-488e-ad77-b7b3f1042d7d"
+        self.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
 
         print("🧪 DEV MODE: Instant session loaded")
         print("🪪 userId:", userId ?? "nil")

@@ -73,7 +73,6 @@ struct AllOrdersView: View {
                             .fontWeight(.bold)
                             .foregroundStyle(Color(.black))
                     }
-                    
                     Spacer()
             
                     Button {
@@ -203,7 +202,7 @@ struct AllOrdersView: View {
                       let userId = UUID(uuidString: userIdString) else { return }
                 
                 print("🪪 Fetching data for user:", userId)
-                session.isInitialDataLoading = true
+             
                 await viewModel.checkIfUserHasTemplates(for: userId)
                 await viewModel.fetchBusinessName(for: userId)
                 await viewModel.autoCancelOverdueOrders()
