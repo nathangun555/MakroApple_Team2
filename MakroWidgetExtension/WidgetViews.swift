@@ -137,55 +137,102 @@ struct MediumWidgetView: View {
         let rightOrders = Array(filtered.dropFirst().prefix(2))
         let remainingCount = max(filtered.count - 3, 0)
         
-        
-        
-        HStack(alignment: .top, spacing: 15) {
-            
-            // LEFT SIDE
-            VStack(alignment: .leading, spacing: 8) {
-                Text(dateComponents.day)
-                    .font(.largeTitle.bold())
-                    .foregroundColor(.primaryButton)
+        if filtered.isEmpty {
+            VStack (alignment: .leading){
                 
-                Text(dateComponents.monthYear)
-                    .font(.footnote.bold())
-                    .foregroundColor(.primary)
+                HStack {
+                    Text(dateComponents.day)
+                        .font(.largeTitle.bold())
+                        .foregroundColor(.primaryButton)
+                    
+                    Text(dateComponents.monthYear)
+                        .font(.footnote.bold())
+                        .foregroundColor(.primary)
+                    
+                    
+                }
                 
+                HStack{
+                    Image(systemName: "book.pages.fill")
+                        .font(.title)
+                        .foregroundColor(.primaryButton)
+                        .padding(12) // jarak dari icon ke tepi circle
+                        .background(
+                            Circle()
+                                .fill(Color.blue.opacity(0.1))
+                        )
+                    
+                    VStack(alignment: .leading){
+                        Text("Belum Ada Pesanan")
+                            .font(.subheadline)
+                            .fontWeight(.bold)
+                            .foregroundColor(.primary)
+                        
+                        Text("Belum ada pesanan yang tercatat.\nTambah pesanan baru untuk mulai kelola penjualanmu dengan mudah.")
+                            .font(.footnote)
+                            .foregroundColor(.gray)
+                            .multilineTextAlignment(.leading)
+                        
+                    }
+                    
+                }
                 
-                if let order = leftOrder {
-                           let items = orderItems.filter { $0.orderId == order.id }
-                    mediumWidgetOrderCard(
-                               time: DateFormatterHelper.formattedTime(order.orderDdayDate ?? "-"),
-                               title: items.first?.productName ?? "-",
-                               color: widgetStatusColors[order.status] ?? .gray.opacity(0.5)
-                           )
-                       }
             }
-            
-            // RIGHT SIDE
-            VStack(alignment: .leading, spacing: 8) {
-                ForEach(rightOrders) { order in
-                            let items = orderItems.filter { $0.orderId == order.id }
-                    mediumWidgetOrderCard(
-                                time: DateFormatterHelper.formattedTime(order.orderDdayDate ?? "-"),
-                                title: items.first?.productName ?? "-",
-                                color: widgetStatusColors[order.status] ?? .gray.opacity(0.5)
-                            )
-                        }
-
-                        // Sisa pesanan
-                        if remainingCount > 0 {
-                            Text("+ \(remainingCount) Pesanan")
-                                .font(.caption.bold())
-                                .foregroundColor(.primaryButton)
-                        }
+            .containerBackground(for: .widget) {
+                Color(.systemBackground)
             }
-            
-            
         }
-        .frame(maxWidth: .infinity, alignment: .top)
-        .containerBackground(for: .widget) {
-            Color(.systemBackground)
+        else {
+            HStack(alignment: .top, spacing: 15) {
+                
+                // LEFT SIDE
+                VStack(alignment: .leading, spacing: 8) {
+                    Text(dateComponents.day)
+                        .font(.largeTitle.bold())
+                        .foregroundColor(.primaryButton)
+                    
+                    Text(dateComponents.monthYear)
+                        .font(.footnote.bold())
+                        .foregroundColor(.primary)
+                    
+                    
+                    
+                    if let order = leftOrder {
+                        let items = orderItems.filter { $0.orderId == order.id }
+                        mediumWidgetOrderCard(
+                            time: DateFormatterHelper.formattedTime(order.orderDdayDate ?? "-"),
+                            title: items.first?.productName ?? "-",
+                            color: widgetStatusColors[order.status] ?? .gray.opacity(0.5)
+                        )
+                    }
+                }
+                
+                // RIGHT SIDE
+                VStack(alignment: .leading, spacing: 8) {
+                    ForEach(rightOrders) { order in
+                        let items = orderItems.filter { $0.orderId == order.id }
+                        mediumWidgetOrderCard(
+                            time: DateFormatterHelper.formattedTime(order.orderDdayDate ?? "-"),
+                            title: items.first?.productName ?? "-",
+                            color: widgetStatusColors[order.status] ?? .gray.opacity(0.5)
+                        )
+                    }
+                    
+                    // Sisa pesanan
+                    if remainingCount > 0 {
+                        Text("+ \(remainingCount) Pesanan")
+                            .font(.caption.bold())
+                            .foregroundColor(.primaryButton)
+                    }
+                }
+                
+                
+            }
+            .frame(maxWidth: .infinity, alignment: .top)
+            .containerBackground(for: .widget) {
+                Color(.systemBackground)
+            }
+            
         }
     }
 }
@@ -219,9 +266,27 @@ struct LargeWidgetView : View {
             
             if filteredOrders.isEmpty {
                 Spacer()
-                Text("No Orders Today")
-                    .frame(maxWidth:.infinity,alignment: .center)
-                    .foregroundColor(.secondary)
+                VStack {
+                    Image(systemName: "book.pages.fill")
+                        .font(.title)
+                        .foregroundColor(.blue)
+                        .padding(12) // jarak dari icon ke tepi circle
+                        .background(
+                            Circle()
+                                .fill(Color.blue.opacity(0.1))
+                        )
+                    
+                    Text("Belum Ada Pesanan")
+                        .font(.subheadline)
+                        .fontWeight(.bold)
+                        .foregroundColor(.primary)
+                    
+                    Text("Belum ada pesanan yang tercatat.\nTambah pesanan baru untuk mulai kelola penjualanmu dengan mudah.")
+                        .font(.footnote)
+                        .foregroundColor(.gray)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 32)
+                }
                 Spacer()
             }
             else {
