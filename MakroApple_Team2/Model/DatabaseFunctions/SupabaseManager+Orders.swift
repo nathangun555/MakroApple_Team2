@@ -139,8 +139,8 @@ extension SupabaseManager {
             orderData["custom_fields"] = AnyCodable(customFields)
         }
 
-        orderData["created_at"] = AnyCodable(now)
-        orderData["updated_at"] = AnyCodable(now)
+        orderData["created_at"] = AnyCodable(ISO8601DateFormatter().string(from: Date()))
+        orderData["updated_at"] = AnyCodable(ISO8601DateFormatter().string(from: Date()))
 
         let insertResponse = try await client
             .from("orders")
