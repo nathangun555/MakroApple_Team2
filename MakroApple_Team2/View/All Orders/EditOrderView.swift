@@ -199,7 +199,7 @@ struct ProductsSection: View {
             .padding(.horizontal)
 
             ForEach(Array(products.enumerated()), id: \.offset) { index, product in
-                VStack(alignment: .leading, spacing: 12) {
+                VStack(alignment: .leading, spacing: 8) {
                     HStack {
 //                        Text(product.category.isEmpty ? "Kategori Produk" : product.category)
 //                            .font(.headline)

@@ -190,12 +190,12 @@ struct Set_InputMenuView: View {
         HStack(spacing: 12) {
             ZStack {
                 RoundedRectangle(cornerRadius: 8)
-                    .fill(Color.red.opacity(0.1))
+                    .fill(Color.gray.opacity(0.1))
                     .frame(width: 50, height: 50)
                 Text(file.isPDF ? "PDF" : "IMG")
                     .font(.caption)
                     .bold()
-                    .foregroundColor(.red)
+                    .foregroundColor(.gray)
             }
             
             VStack(alignment: .leading, spacing: 4) {
@@ -254,6 +254,11 @@ struct Set_InputMenuView: View {
         let fileName = url.lastPathComponent
         let fileSize = getFileSize(url: url)
         let isPDF = url.pathExtension.lowercased() == "pdf"
+        guard isPDF else {
+            errorMessage = "Only PDF files are allowed."
+            showErrorAlert = true
+            return
+        }
         let item = UploadedFileItem(url: url, fileName: fileName, fileSize: fileSize, isPDF: isPDF)
         uploadedFiles.append(item)
     }
