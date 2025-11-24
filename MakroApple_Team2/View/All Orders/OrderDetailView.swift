@@ -21,14 +21,17 @@ struct OrderDetailView: View {
     @State private var invoiceViewModel = InvoicePreviewViewModel()
     @EnvironmentObject var session: SessionManager
     @State var order: OrderRecord
-    let orderItem: [OrderItemRecord]
+    @State var orderItem: [OrderItemRecord]
     
+    @State private var showEditSheet = false
     
     @State private var showSuccessToast = false
     @Environment(\.dismiss) private var dismiss
     
     @State private var selectedPDFURL: URL?
     @State private var showPDFViewer = false
+    
+    @State private var isDismissed = false
     
     let source: OrderSource
     
@@ -551,7 +554,7 @@ struct OrderDetailView: View {
                 HStack(spacing: 0) {
                     Menu {
                         Button {
-        //                    showEdit = true
+                            showEditSheet = true
                             } label: {
                                 Label("Edit", systemImage: "pencil")
                             }
@@ -601,6 +604,33 @@ struct OrderDetailView: View {
             }
             
         }
+        .sheet(isPresented: $showEditSheet) {
+            EditOrderDetailView(
+                orderId: order.id.uuidString,
+                parsedOrderData: order.asParsedDictionary(with: orderItem),
+                isDismissed: $isDismissed
+            )
+        }
+        
+        .onChange(of: isDismissed) { newValue in
+            if newValue {
+                isDismissed = false
+                showEditSheet = false
+                Task {
+                    viewModel.configure(userId: session.userId)
+                    if let userIdString = viewModel.userId {
+                        await viewModel.fetchOrders(for: UUID(uuidString: userIdString))
+                        await viewModel.fetchOrderItems(for: UUID(uuidString: userIdString))
+                        if let updated = viewModel.orders.first(where: { $0.id == order.id }) {
+                            self.order = updated
+                        }
+                        self.orderItem = viewModel.orderItems.filter { $0.orderId == order.id }
+                    } else {
+                        print("❌ Passed session.userId invalid or nil")
+                    }
+                }
+            }
+        }
         .onDisappear {
             switch order.status.lowercased() {
             case "belum terbayar": activeTab = .belumBayar
@@ -628,12 +658,12 @@ struct OrderDetailView: View {
                                     Image(systemName: "square.and.arrow.up")
                                 }
                             }
-
-
+                            
+                            
                         }
                 }
             }
-        
+            
         }
 
     }

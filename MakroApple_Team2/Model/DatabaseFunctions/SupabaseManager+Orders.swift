@@ -52,10 +52,44 @@ extension SupabaseManager {
         
         var newOrderId: UUID
         
+        var existingOrderNumber: String?
+        
+        var existingPhotoURLs: [String] = []
+        
         if orderId != "" {
             newOrderId = UUID(uuidString: orderId)!
+            let existingResponse = try await client
+                        .from("orders")
+                        .select("photo_url_1,photo_url_2,photo_url_3,order_number")
+                        .eq("id", value: newOrderId.uuidString)
+                        .single()
+                        .execute()
+                    
+            let existingData = existingResponse.data
+            // now decode normally
+            if let jsonObj = try? JSONSerialization.jsonObject(with: existingData, options: []),
+               let existingDict = jsonObj as? [String: Any] {
+
+                existingPhotoURLs = [
+                    existingDict["photo_url_1"] as? String ?? "",
+                    existingDict["photo_url_2"] as? String ?? "",
+                    existingDict["photo_url_3"] as? String ?? ""
+                ]
+                existingOrderNumber = existingDict["order_number"] as? String
+            }
+
         } else {
             newOrderId = UUID()
+        }
+        
+        func mergedPhotoURL(at index: Int) -> String {
+            if photoURLs.count > index, !photoURLs[index].isEmpty {
+                return photoURLs[index]
+            }
+            if existingPhotoURLs.count > index {
+                return existingPhotoURLs[index]
+            }
+            return ""
         }
         
         orderData["id"] = AnyCodable(newOrderId.uuidString)
@@ -75,10 +109,13 @@ extension SupabaseManager {
             .execute()
 
         let orderCount = response.count ?? 0
-
         
         let orderNumber = DateFormatterHelper.generateInvoiceNumber(orderDate: Date(), orderCount: orderCount)
-        orderData["order_number"] = AnyCodable(orderNumber)
+        if orderId != "" {
+            orderData["order_number"] = AnyCodable(existingOrderNumber ?? "")
+        } else {
+            orderData["order_number"] = AnyCodable(orderNumber)
+        }
         
         orderData["status"] = AnyCodable("Belum Terbayar")
         orderData["customer_order_name"] = AnyCodable(parsedOrder["Nama Pemesan"] as? String ?? "")
@@ -117,9 +154,9 @@ extension SupabaseManager {
         orderData["invoice_url"] = nil
 
         // Primary photo URLs
-        orderData["photo_url_1"] = AnyCodable(photoURLs.count > 0 ? photoURLs[0] : "")
-        orderData["photo_url_2"] = AnyCodable(photoURLs.count > 1 ? photoURLs[1] : "")
-        orderData["photo_url_3"] = AnyCodable(photoURLs.count > 2 ? photoURLs[2] : "")
+        orderData["photo_url_1"] = AnyCodable(mergedPhotoURL(at: 0))
+        orderData["photo_url_2"] = AnyCodable(mergedPhotoURL(at: 1))
+        orderData["photo_url_3"] = AnyCodable(mergedPhotoURL(at: 2))
 
         // Handle everything else as custom fields
         let reservedKeys: Set<String> = [
