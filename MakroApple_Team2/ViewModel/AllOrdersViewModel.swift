@@ -80,9 +80,22 @@ class AllOrdersViewModel {
             print("✅ Orders fetched:", fetchedOrders.count)
             
 
-           
+            let today2 = Date()
+            let filteredOrders = fetchedOrders
+                .filter { order in
+                    guard let dday = DateFormatterHelper.toDate(order.orderDdayDate ?? "") else { return false }
+                    let isValidStatus = order.status != "Belum Terbayar" && order.status != "Dibatalkan"
+                    return isValidStatus && Calendar.current.isDate(dday, inSameDayAs: today2)
+                }
+                .sorted { order1, order2 in
+                    let date1 = DateFormatterHelper.toDate(order1.orderDdayDate ?? "") ?? Date.distantPast
+                    let date2 = DateFormatterHelper.toDate(order2.orderDdayDate ?? "") ?? Date.distantPast
+                    return date1 < date2
+                }
 
-            saveOrdersForWidget(fetchedOrders)
+            // Simpan ke widget
+            WidgetDataManager.shared.saveOrders(filteredOrders)
+
             
             let today = OrderCountHelper.countTodayOrders(from: fetchedOrders)
             let tomorrow = OrderCountHelper.countTomorrowOrders(from: fetchedOrders)
@@ -97,18 +110,7 @@ class AllOrdersViewModel {
         }
     }
 
-    // MARK: - Save Orders for Widget (Terpisah)
-    func saveOrdersForWidget(_ orders: [OrderRecord]) {
-        guard let defaults = UserDefaults(suiteName: "group.com.please.shared") else { return }
-        
-        let encoder = JSONEncoder()
-        if let data = try? encoder.encode(orders) {
-            defaults.set(data, forKey: "orders_for_widget")
-            print("✅ Orders saved for widget: \(orders.count)")
-        } else {
-            print("❌ Failed to encode orders for widget")
-        }
-    }
+
 
     
     // MARK: - Fetch Order Items
@@ -125,44 +127,47 @@ class AllOrdersViewModel {
             let orderItems = try await SupabaseManager.shared.fetchOrderItems(userId: userId)
             self.orderItems = orderItems
             print("✅ Ditemukan \(orderItems.count) order items untuk user \(userId)")
+            WidgetDataManager.shared.saveOrderItems(orderItems)
+
+
         } catch {
             print("❌ Gagal ambil order items:", error.localizedDescription)
         }
     }
     
     // MARK: - Auto Cancel Unpaid Orders
-    func autoCancelOverdueOrders() async {
-        print("🔍 Checking overdue unpaid orders...")
-
-        let today = Calendar.current.startOfDay(for: Date())
-
-        for order in orders {
-            guard order.status.lowercased() == "belum terbayar" else { continue }
-
-            guard let dueDateString = order.invoiceDueDate,
-                  let dueDate = DateFormatterHelper.toDate(dueDateString) else {
-                continue
-            }
-
-            let dueDay = Calendar.current.startOfDay(for: dueDate)
-
-            // Jika lewat deadline
-            if dueDay < today {
-                print("⚠️ Order \(order.id) overdue → set to Dibatalkan")
-
-                do {
-                    try await SupabaseManager.shared.updateOrderStatus(
-                        orderId: order.id,
-                        newStatus: "Dibatalkan"
-                    )
-                } catch {
-                    print("❌ Failed updating overdue order:", error.localizedDescription)
-                }
-            }
-        }
-
-
-    }
+//    func autoCancelOverdueOrders() async {
+//        print("🔍 Checking overdue unpaid orders...")
+//
+//        let today = Calendar.current.startOfDay(for: Date())
+//
+//        for order in orders {
+//            guard order.status.lowercased() == "belum terbayar" else { continue }
+//
+//            guard let dueDateString = order.invoiceDueDate,
+//                  let dueDate = DateFormatterHelper.toDate(dueDateString) else {
+//                continue
+//            }
+//
+//            let dueDay = Calendar.current.startOfDay(for: dueDate)
+//
+//            // Jika lewat deadline
+//            if dueDay < today {
+//                print("⚠️ Order \(order.id) overdue → set to Dibatalkan")
+//
+//                do {
+//                    try await SupabaseManager.shared.updateOrderStatus(
+//                        orderId: order.id,
+//                        newStatus: "Dibatalkan"
+//                    )
+//                } catch {
+//                    print("❌ Failed updating overdue order:", error.localizedDescription)
+//                }
+//            }
+//        }
+//
+//
+//    }
 
     
 

@@ -1,54 +1,57 @@
-//
-//  WidgetDataManager.swift
-//  MakroApple_Team2
-//
-//  Created by Edward Suwandi on 20/11/25.
-//
-
 import Foundation
+import WidgetKit
 
 class WidgetDataManager {
     static let shared = WidgetDataManager()
     
     private let suite = UserDefaults(suiteName: "group.com.please.shared")!
-    private let key = "widget_orders"
+    private let key = "orders_for_widget"
+    private let itemsKey = "order_items_for_widget"
     
-    func saveOrders(_ orders: [WidgetOrder]) {
+    
+    
+    // Simpan OrderRecord langsung
+    func saveOrders(_ orders: [OrderRecord]) {
         let encoder = JSONEncoder()
         if let data = try? encoder.encode(orders) {
             suite.set(data, forKey: key)
+            WidgetCenter.shared.reloadAllTimelines() // reload widget otomatis
+            print("✅ Orders saved for widget: \(orders.count)")
+        } else {
+            print("❌ Failed to encode orders for widget")
         }
     }
     
-    func loadOrdersForWidget() -> [WidgetOrder] {
-        let defaults = UserDefaults(suiteName: "group.com.please.shared")!
-        guard let data = defaults.data(forKey: "orders_for_widget"),
-              let orderRecords = try? JSONDecoder().decode([OrderRecord].self, from: data)
-        else { return [] }
-
-        return orderRecords.map { order in
-            WidgetOrder(
-                id: order.id,
-                orderNumber: order.orderNumber,
-                customerName: order.customerOrderName,
-                status: order.status,
-                orderDdayISO: order.orderDdayDate
-            )
-        }
-    }
-
     
-    func loadOrders() -> [WidgetOrder] {
+    
+    // Load OrderRecord langsung
+    func loadOrders() -> [OrderRecord] {
         let decoder = JSONDecoder()
         guard let data = suite.data(forKey: key),
-              let decoded = try? decoder.decode([WidgetOrder].self, from: data)
-        else {
+              let decoded = try? decoder.decode([OrderRecord].self, from: data) else {
             print("Widget orders kosong")
             return []
         }
-        
         print("Widget orders loaded:", decoded)
         return decoded
     }
-
+    
+    func saveOrderItems(_ items: [OrderItemRecord]) {
+           let encoder = JSONEncoder()
+           if let data = try? encoder.encode(items) {
+               suite.set(data, forKey: itemsKey)
+               WidgetCenter.shared.reloadAllTimelines()
+               print("✅ Order items saved for widget: \(items.count)")
+           }
+       }
+       
+       func loadOrderItems() -> [OrderItemRecord] {
+           let decoder = JSONDecoder()
+           guard let data = suite.data(forKey: itemsKey),
+                 let decoded = try? decoder.decode([OrderItemRecord].self, from: data) else {
+               print("Widget order items kosong")
+               return []
+           }
+           return decoded
+       }
 }

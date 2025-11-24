@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+
 struct AllOrdersView: View {
     @State private var searchText = ""
     @State var activeTab: TabModel = .belumBayar
@@ -58,7 +59,7 @@ struct AllOrdersView: View {
     var body: some View {
         NavigationStack() {
             VStack {
-                // 🏷️ Header
+                // Header
                 HStack {
                     
                     Button {
@@ -173,6 +174,9 @@ struct AllOrdersView: View {
                     else {
                         ScrollView {
                             LazyVStack(spacing: 12) {
+                                
+
+                                
                                 ForEach(filteredOrders) { order in
                                     let orderItems = viewModel.orderItems.filter { $0.orderId == order.id }
                                     
@@ -215,7 +219,7 @@ struct AllOrdersView: View {
                 print("🪪 Fetching data for user:", userId)
                 await viewModel.checkIfUserHasTemplates(for: userId)
                 await viewModel.fetchBusinessName(for: userId)
-                await viewModel.autoCancelOverdueOrders()
+//                await viewModel.autoCancelOverdueOrders()
                 await viewModel.fetchOrders(for: userId)
                 await viewModel.fetchOrderItems(for: userId)
             }
@@ -254,7 +258,7 @@ struct AllOrdersView: View {
                         
                         await viewModel.checkIfUserHasTemplates(for: userId)
                         await viewModel.fetchBusinessName(for: userId)
-                        await viewModel.autoCancelOverdueOrders()
+//                        await viewModel.autoCancelOverdueOrders()
                         await viewModel.fetchOrders(for: userId)
                         await viewModel.fetchOrderItems(for: userId)
                     }
@@ -274,7 +278,7 @@ struct AllOrdersView: View {
                         
                         await viewModel.checkIfUserHasTemplates(for: userId)
                         await viewModel.fetchBusinessName(for: userId)
-                        await viewModel.autoCancelOverdueOrders()
+//                        await viewModel.autoCancelOverdueOrders()
                         await viewModel.fetchOrders(for: userId)
                         await viewModel.fetchOrderItems(for: userId)
                     }

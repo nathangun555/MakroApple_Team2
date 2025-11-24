@@ -69,6 +69,13 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		2B0C54A52ED35E94005A3834 /* Exceptions for "MakroWidgetExtension" folder in "MakroApple_Team2" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				WidgetDataManager.swift,
+			);
+			target = 7C98DB522E93CAD400F06C20 /* MakroApple_Team2 */;
+		};
 		2B21CFC62EB36D09003EEB61 /* Exceptions for "ShareExtension" folder in "ShareExtension" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -110,6 +117,7 @@
 		2B2ECE492ECEC1D0000DB1F5 /* MakroWidgetExtension */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
+				2B0C54A52ED35E94005A3834 /* Exceptions for "MakroWidgetExtension" folder in "MakroApple_Team2" target */,
 				2B2ECE5A2ECEC1D1000DB1F5 /* Exceptions for "MakroWidgetExtension" folder in "MakroWidgetExtensionExtension" target */,
 			);
 			path = MakroWidgetExtension;
