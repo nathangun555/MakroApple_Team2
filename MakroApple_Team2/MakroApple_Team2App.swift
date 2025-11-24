@@ -134,6 +134,11 @@ struct MakroApple_Team2App: App {
     init() {
         UNUserNotificationCenter.current().delegate = notifDelegate
         NotificationManager.shared.requestPermission()
+        
+        Task {
+                    await RealTimeOrderListener.shared.startListening()
+            await NotificationManager.shared.fetchAutocancelCountAndNotify()
+                }
     }
 
     var body: some Scene {

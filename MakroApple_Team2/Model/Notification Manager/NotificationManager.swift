@@ -5,14 +5,14 @@
 //  Created by Edward Suwandi on 19/11/25.
 //
 
-// NotificationManager.swift
 import Foundation
 import UserNotifications
+import Supabase
 
 final class NotificationManager {
     static let shared = NotificationManager()
     private init() {}
-    
+
     // MARK: - Permission
     func requestPermission() {
         UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
@@ -20,8 +20,8 @@ final class NotificationManager {
             if let e = error { print("Permission error:", e.localizedDescription) }
         }
     }
-    
-    // MARK: - Save / Read Counts
+
+    // MARK: - Save / Read Counts Pesanan Hari Ini & Besok
     func saveOrderCounts(today: Int, tomorrow: Int) {
         UserDefaults.standard.set(today, forKey: Keys.orderToday)
         UserDefaults.standard.set(tomorrow, forKey: Keys.orderTomorrow)
@@ -29,23 +29,63 @@ final class NotificationManager {
     
     func readTodayCount() -> Int { UserDefaults.standard.integer(forKey: Keys.orderToday) }
     func readTomorrowCount() -> Int { UserDefaults.standard.integer(forKey: Keys.orderTomorrow) }
-    
-    // MARK: - Schedule notifications (7:00 & 8:00)
-    func scheduleDailyNotifications() { 
+
+    // MARK: - Schedule notifications rutin
+    func scheduleDailyNotifications() {
         scheduleNotification(
             identifier: "order_tomorrow_7am",
-            hour: 18, minute: 5,
-            title: "Jangan Lupa Pesanan Besok",
-            bodyGetter: { "Kamu memiliki \(self.readTomorrowCount()) pesanan yang harus dikirim besok. Lihat detailnya di kalender sekarang" }
+            hour: 7, minute: 0,
+            title: "Pesanan Besok",
+            bodyGetter: { "Kamu memiliki \(self.readTomorrowCount()) pesanan yang harus dikirim besok. Lihat detailnya di kalender sekarang." }
         )
         scheduleNotification(
             identifier: "order_today_8am",
             hour: 8, minute: 0,
             title: "Pesanan Hari Ini!",
-            bodyGetter: { "Anda memiliki \(self.readTodayCount()) pesanan dijadwalkan hari ini. Lihat detail pesanan sekarang" }
+            bodyGetter: { "Anda memiliki \(self.readTodayCount()) pesanan dijadwalkan hari ini. Lihat detail pesanan sekarang." }
         )
     }
-    
+
+    // MARK: - Fetch jumlah autocancel dari Supabase & schedule jam 6 pagi
+    func fetchAutocancelCountAndNotify() async {
+        do {
+            let client = SupabaseManager.shared.client
+            let todayISO = Date().ISO8601Format()
+
+            // Query semua order yang statusnya Dibatalkan dan invoice_due_date lewat
+            let response = try await client
+                .from("orders")
+                .select("id")
+                .eq("status", value: "Dibatalkan")
+                .lt("invoice_due_date", value: todayISO)
+                .execute()
+
+            let count = response.count ?? 0
+
+            print("⚠️ Autocancel count fetched from Supabase: \(count)")
+
+            scheduleAutocancelNotification(count: count)
+        } catch {
+            print("❌ Failed to fetch autocancel count:", error.localizedDescription)
+        }
+    }
+
+    // MARK: - Schedule autocancel notification jam 6 pagi
+    private func scheduleAutocancelNotification(count: Int) {
+        guard count > 0 else {
+            print("ℹ️ No autocancel orders to notify")
+            return
+        }
+
+        scheduleNotification(
+            identifier: "autocancel_daily_6am",
+            hour: 19, minute: 11,
+            title: "Pesanan Otomatis Dibatalkan",
+            bodyGetter: { "Ada \(count) pesanan yang otomatis dibatalkan karena lewat tanggal jatuh tempo." }
+        )
+    }
+
+    // MARK: - Generic schedule helper
     private func scheduleNotification(
         identifier: String,
         hour: Int,
@@ -53,21 +93,20 @@ final class NotificationManager {
         title: String,
         bodyGetter: () -> String
     ) {
-        // Remove existing request to replace content
         UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [identifier])
         
         let content = UNMutableNotificationContent()
         content.title = title
         content.body = bodyGetter()
         content.sound = .default
-        
+
         var comps = DateComponents()
         comps.hour = hour
         comps.minute = minute
-        
+
         let trigger = UNCalendarNotificationTrigger(dateMatching: comps, repeats: true)
         let req = UNNotificationRequest(identifier: identifier, content: content, trigger: trigger)
-        
+
         UNUserNotificationCenter.current().add(req) { error in
             if let e = error {
                 print("❌ Failed to schedule \(identifier):", e.localizedDescription)
@@ -76,14 +115,8 @@ final class NotificationManager {
             }
         }
     }
-    
-    // MARK: - Helpers & Keys
-    private struct Keys {
-        static let orderToday = "order_today"
-        static let orderTomorrow = "order_tomorrow"
-    }
-    
-    // For debug: schedule immediate one-off notification (not repeating)
+
+    // MARK: - Debug: schedule immediate notification
     func scheduleImmediateDebugNotification(title: String, body: String, seconds: TimeInterval = 5) {
         let content = UNMutableNotificationContent()
         content.title = title
@@ -93,5 +126,11 @@ final class NotificationManager {
         let trigger = UNTimeIntervalNotificationTrigger(timeInterval: seconds, repeats: false)
         let req = UNNotificationRequest(identifier: "debug_oneoff_\(UUID().uuidString)", content: content, trigger: trigger)
         UNUserNotificationCenter.current().add(req)
+    }
+
+    // MARK: - Helpers & Keys
+    private struct Keys {
+        static let orderToday = "order_today"
+        static let orderTomorrow = "order_tomorrow"
     }
 }

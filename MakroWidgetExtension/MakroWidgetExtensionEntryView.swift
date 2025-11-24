@@ -15,16 +15,19 @@ struct MakroWidgetExtensionEntryView: View {
     var body: some View {
         switch family {
         case .systemSmall:
-            SmallWidgetView(orders: entry.orders)
+            MediumWidgetView(orders: entry.orders, orderItems: entry.orderItems)
 
         case .systemMedium:
-            MediumWidgetView()
+            MediumWidgetView(orders: entry.orders, orderItems: entry.orderItems)
+
 
         case .systemLarge:
-            LargeWidgetView()
+            LargeWidgetView(orders: entry.orders, orderItems: entry.orderItems)
+
 
         default:
-            MediumWidgetView()
+            MediumWidgetView(orders: entry.orders, orderItems: entry.orderItems)
+
         }
     }
 }
