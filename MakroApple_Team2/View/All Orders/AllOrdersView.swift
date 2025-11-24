@@ -59,7 +59,7 @@ struct AllOrdersView: View {
     var body: some View {
         NavigationStack() {
             VStack {
-                // 🏷️ Header
+                // Header
                 HStack {
                     
                     Button {

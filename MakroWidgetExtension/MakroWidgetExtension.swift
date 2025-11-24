@@ -1,6 +1,21 @@
 import SwiftUI
 import WidgetKit
 
+
+struct OrderWidget: Widget {
+    let kind = "OrderWidget"
+
+    var body: some WidgetConfiguration {
+        AppIntentConfiguration(kind: kind,
+                               intent: OrderWidgetIntent.self,
+                               provider: Provider()) { entry in
+            MakroWidgetExtensionEntryView(entry: entry)
+        }
+        .configurationDisplayName("Order Status Widget")
+        .description("Shows filtered orders.")
+    }
+}
+
 // MARK: - Timeline Entry
 struct SimpleEntry: TimelineEntry {
     let date: Date
