@@ -282,6 +282,24 @@ class ConfirmInvoiceViewModel {
         self.orderRecord = updatedOrder
     }
     
+    func deleteCurrentOrder() async {
+        guard let orderIdString = orderId,
+              let orderUUID = UUID(uuidString: orderIdString) else {
+            errorMessage = "Order ID tidak valid."
+            return
+        }
+
+        do {
+            try await SupabaseManager.shared.deleteOrderCompletely(orderId: orderUUID)
+            print("🧽 Order successfully cleaned up")
+        } catch {
+            errorMessage = "Gagal menghapus order: \(error.localizedDescription)"
+            print("❌ Delete error:", error)
+        }
+    }
+
+    
+    
     private func bestMatch(for orderedName: String, in menu: [ProductRecord]) -> ProductRecord? {
         let orderedNorm = orderedName.normalizedForMenuMatch()
         let orderedWords = Set(orderedNorm.split(separator: " ").map { String($0) })

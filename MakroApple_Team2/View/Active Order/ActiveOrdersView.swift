@@ -95,13 +95,13 @@ struct ActiveOrdersView: View {
                       } label: {
                           ZStack {
                               Circle()
-                                  .fill(.ultraThinMaterial)          // glass effect
+                                  .fill(Color.white)
                                   .frame(width: 40, height: 40)
-                                  .shadow(color: .black.opacity(0.12),
-                                          radius: 8, x: 0, y: 4)
+                                  .shadow(color: Color(.systemGray4),
+                                          radius: 4, x: 0, y: 1)
                               Image(systemName: "ellipsis")
                                   .font(.title3.weight(.semibold))
-                                  .foregroundColor(.primary)
+                                  .foregroundColor(.primaryButton)
                           }
                       }
                       .buttonStyle(.plain)

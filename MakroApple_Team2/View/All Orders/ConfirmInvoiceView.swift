@@ -29,8 +29,8 @@ struct ConfirmInvoiceView: View {
     @State private var showValidationError = false
     
     @State private var hasDueDate: Bool = true
-
-
+    
+    @Environment(\.dismiss) var dismiss
     
     let orderId: String
     @Binding var isDismissed: Bool
@@ -328,6 +328,7 @@ struct ConfirmInvoiceView: View {
         }
         .navigationTitle("Rincian Invoice")
         .navigationBarTitleDisplayMode(.inline)
+        .navigationBarBackButtonHidden(true)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
@@ -353,7 +354,18 @@ struct ConfirmInvoiceView: View {
                 .buttonStyle(.glassProminent)
                 .tint(.primaryButton)
             }
-           
+            ToolbarItem(placement: .navigationBarLeading) {
+                Button {
+                    Task {
+                        await viewModel.deleteCurrentOrder()
+                        dismiss()
+                    }
+                } label: {
+                    HStack {
+                        Image(systemName: "chevron.left")
+                    }
+                }
+            }
         }
         .task {
             viewModel.configure(userId: session.userId, orderId: orderId)

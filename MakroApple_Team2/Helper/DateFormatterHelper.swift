@@ -100,6 +100,18 @@ struct DateFormatterHelper {
         return df.string(from: date)
     }
     
+    static func orderYearString(from date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy"
+        return formatter.string(from: date)
+    }
+    
+    static func generateInvoiceNumber(orderDate: Date, orderCount: Int) -> String {
+        let yearString = DateFormatterHelper.orderYearString(from: orderDate)
+        let counterString = String(format: "%05d", orderCount + 1)
+        return "INV/\(yearString)/\(counterString)"
+    }
+    
     static func isoDateString(from date: Date) -> String {
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "id_ID")

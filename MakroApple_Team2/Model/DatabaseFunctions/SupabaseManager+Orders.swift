@@ -61,7 +61,23 @@ extension SupabaseManager {
         orderData["id"] = AnyCodable(newOrderId.uuidString)
         orderData["user_id"] = AnyCodable(userId.uuidString)
         
-        let orderNumber = "INV/" + DateFormatterHelper.orderNumberString(from: Date())
+        let date = Date()
+        let orderYear = Calendar.current.component(.year, from: date)
+        let startDate = "\(orderYear)-01-01 00:00:00+00"
+        let endDate = "\(orderYear)-12-31 23:59:59+00"
+
+        let response = try await client
+            .from("orders")
+            .select("id", count: CountOption.exact)
+            .eq("user_id", value: userId)
+            .gte("invoice_date", value: startDate)
+            .lte("invoice_date", value: endDate)
+            .execute()
+
+        let orderCount = response.count ?? 0
+
+        
+        let orderNumber = DateFormatterHelper.generateInvoiceNumber(orderDate: Date(), orderCount: orderCount)
         orderData["order_number"] = AnyCodable(orderNumber)
         
         orderData["status"] = AnyCodable("Belum Terbayar")
@@ -123,10 +139,10 @@ extension SupabaseManager {
             orderData["custom_fields"] = AnyCodable(customFields)
         }
 
-        orderData["created_at"] = AnyCodable(now)
-        orderData["updated_at"] = AnyCodable(now)
+        orderData["created_at"] = AnyCodable(ISO8601DateFormatter().string(from: Date()))
+        orderData["updated_at"] = AnyCodable(ISO8601DateFormatter().string(from: Date()))
 
-        let response = try await client
+        let insertResponse = try await client
             .from("orders")
             .upsert(orderData, onConflict: "id")
             .select()
@@ -134,7 +150,7 @@ extension SupabaseManager {
             .execute()
 
         let decoder = JSONDecoder()
-        let order = try decoder.decode(OrderRecord.self, from: response.data)
+        let order = try decoder.decode(OrderRecord.self, from: insertResponse.data)
 
         print("✅ Order created: \(order.id)")
         return order
@@ -216,4 +232,25 @@ extension SupabaseManager {
                 ])
             }
         }
+    
+    func deleteOrderCompletely(orderId: UUID) async throws {
+
+        _ = try await client
+            .from("order_items")
+            .delete()
+            .eq("order_id", value: orderId.uuidString)
+            .execute()
+
+        print("🗑️ Deleted items for order \(orderId)")
+
+        _ = try await client
+            .from("orders")
+            .delete()
+            .eq("id", value: orderId.uuidString)
+            .execute()
+
+        print("🗑️ Deleted order \(orderId)")
+    }
+
 }
+
