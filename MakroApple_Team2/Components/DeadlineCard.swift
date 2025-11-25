@@ -44,7 +44,7 @@ struct DeadlineCard: View {
             HStack {
                 VStack {
                     Image(systemName: hastemplates ? "bookmark.fill" : "building.2.crop.circle.fill")
-                        .font(.title3)
+                        .font(.title2)
                 }
                 VStack(alignment: .leading) {
                     Text(hastemplates ? "Deadline Hari Ini" : "Lengkapi Data Bisnis Anda")

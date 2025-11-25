@@ -320,7 +320,7 @@ struct InputBusinessDetailsView: View {
           } label: {
             Image(systemName: "chevron.left")
               .font(.system(size: 20, weight: .semibold))
-              .foregroundColor(.blue)
+              .foregroundStyle(.primaryButton)
           }
         }
         

@@ -561,10 +561,10 @@ struct OrderDetailView: View {
                                 }
                             
                             
-                            Button {
+                            Button(role: .destructive) {
                                     activeAlert = .cancel
                                 } label: {
-                                    Label("Batalkan Pesanan", systemImage: "trash")
+                                    Label("Batalkan Pesanan", systemImage: "xmark.bin.fill")
                                 }
                         } label: {
                             ZStack {

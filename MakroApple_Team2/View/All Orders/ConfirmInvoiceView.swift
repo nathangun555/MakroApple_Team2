@@ -363,6 +363,7 @@ struct ConfirmInvoiceView: View {
                 } label: {
                     HStack {
                         Image(systemName: "chevron.left")
+                            .foregroundStyle(.primaryButton)
                     }
                 }
             }

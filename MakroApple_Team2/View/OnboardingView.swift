@@ -54,6 +54,7 @@ struct OnboardingView: View {
                       .font(.title3.weight(.semibold))
                       .padding(10)
                       .background(reduceTransparency ? AnyShapeStyle(.bar) : AnyShapeStyle(.regularMaterial), in: Circle())
+                      .foregroundStyle(.primaryButton)
               }
               .opacity(page == 0 ? 0 : 1)
               .accessibilityLabel("Previous")

@@ -89,6 +89,7 @@ struct AllOrdersView: View {
                             Image(systemName: "plus")
                                 .font(.title2)
                                 .foregroundColor(viewModel.hasTemplates ? .white : .secondary)
+                                .glassEffect()
                         }
                     }
                     .disabled(!viewModel.hasTemplates)
@@ -113,6 +114,7 @@ struct AllOrdersView: View {
                                 Image(systemName: "person.fill")
                                     .font(.title3)
                                     .foregroundColor(.primaryButton)
+                                    .glassEffect()
                             }
                         }
                     }

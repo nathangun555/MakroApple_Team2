@@ -134,6 +134,7 @@ struct MakroApple_Team2App: App {
     init() {
         UNUserNotificationCenter.current().delegate = notifDelegate
         NotificationManager.shared.requestPermission()
+        UINavigationBar.appearance().tintColor = UIColor(Color.primaryButton)
     }
 
     var body: some Scene {
