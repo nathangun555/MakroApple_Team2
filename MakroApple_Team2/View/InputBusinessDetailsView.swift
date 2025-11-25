@@ -93,11 +93,20 @@ struct InputBusinessDetailsView: View {
                 .focused($focusedField, equals: .businessName)
             }
             if let error = vm.fieldErrors["businessName"] {
-              Text(error)
-                .font(.caption)
-                .foregroundStyle(.red)
+                
+                HStack{
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .foregroundStyle(.red)
+                        .font(.system(size: 12, weight: .semibold))
+                  Text(error)
+                    .font(.caption)
+                    .foregroundStyle(.red)
+                }
                 .padding(.leading, labelWidth + 12)
+                
+               
             }
+              
           }
           RowDivider()
 
@@ -109,9 +118,16 @@ struct InputBusinessDetailsView: View {
                 .focused($focusedField, equals: .businessAddress)
             }
             if let error = vm.fieldErrors["businessAddress"] {
-              Text(error)
-                .font(.caption)
-                .foregroundStyle(.red)
+                HStack{
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .foregroundStyle(.red)
+                        .font(.system(size: 12, weight: .semibold))
+                    Text(error)
+                        .font(.caption)
+                        .foregroundStyle(.red)
+                      
+                    
+                }
                 .padding(.leading, labelWidth + 12)
             }
           }
@@ -127,9 +143,16 @@ struct InputBusinessDetailsView: View {
                 .focused($focusedField, equals: .businessPhone)
             }
             if let error = vm.fieldErrors["businessPhone"] {
-              Text(error)
-                .font(.caption)
-                .foregroundStyle(.red)
+                HStack{
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .foregroundStyle(.red)
+                        .font(.system(size: 12, weight: .semibold))
+                    Text(error)
+                        .font(.caption)
+                        .foregroundStyle(.red)
+                        
+                    
+                }
                 .padding(.leading, labelWidth + 12)
             }
           }
@@ -147,9 +170,17 @@ struct InputBusinessDetailsView: View {
                 .focused($focusedField, equals: .businessEmail)
             }
             if let error = vm.fieldErrors["businessEmail"] {
-              Text(error)
-                .font(.caption)
-                .foregroundStyle(.red)
+                
+                HStack{
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .foregroundStyle(.red)
+                        .font(.system(size: 12, weight: .semibold))
+                    Text(error)
+                        .font(.caption)
+                        .foregroundStyle(.red)
+                        
+                    
+                }
                 .padding(.leading, labelWidth + 12)
             }
           }
@@ -248,9 +279,17 @@ struct InputBusinessDetailsView: View {
                 .focused($focusedField, equals: .bankAccountName)
             }
             if let error = vm.fieldErrors["bankAccountName"] {
-              Text(error)
-                .font(.caption)
-                .foregroundStyle(.red)
+                
+                HStack{
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .foregroundStyle(.red)
+                        .font(.system(size: 12, weight: .semibold))
+                    Text(error)
+                        .font(.caption)
+                        .foregroundStyle(.red)
+                        
+                    
+                }
                 .padding(.leading, labelWidth + 12)
             }
           }
@@ -266,9 +305,17 @@ struct InputBusinessDetailsView: View {
                 
             }
             if let error = vm.fieldErrors["bankAccountNumber"] {
-              Text(error)
-                .font(.caption)
-                .foregroundStyle(.red)
+                
+                HStack{
+                    
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .foregroundStyle(.red)
+                        .font(.system(size: 12, weight: .semibold))
+                    Text(error)
+                        .font(.caption)
+                        .foregroundStyle(.red)
+                    
+                }
                 .padding(.leading, labelWidth + 12)
             }
           }
@@ -282,9 +329,16 @@ struct InputBusinessDetailsView: View {
                 .focused($focusedField, equals: .bankName)
             }
             if let error = vm.fieldErrors["bankName"] {
-              Text(error)
-                .font(.caption)
-                .foregroundStyle(.red)
+                
+                HStack{
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .foregroundStyle(.red)
+                        .font(.system(size: 12, weight: .semibold))
+                    Text(error)
+                        .font(.caption)
+                        .foregroundStyle(.red)
+                    
+                }
                 .padding(.leading, labelWidth + 12)
             }
           }
@@ -319,7 +373,8 @@ struct InputBusinessDetailsView: View {
             }
           } label: {
             Image(systemName: "chevron.left")
-              .font(.system(size: 20, weight: .semibold))
+                  .font(.title3)
+                  .fontWeight(.semibold)
               .foregroundStyle(.primaryButton)
           }
         }
@@ -328,7 +383,8 @@ struct InputBusinessDetailsView: View {
         
         ToolbarItem(placement: .topBarTrailing) {
           Button {
-              Task { await vm.save()
+              Task {
+                  await vm.save()
                   
                   if vm.saveSuccess {
                       navigateToMenu = true
@@ -343,12 +399,13 @@ struct InputBusinessDetailsView: View {
             } else {
                 Image(systemName: "chevron.right")
                     .font(.title3)
-                    .foregroundColor(.white)
+                    .fontWeight(.semibold)
+                    .foregroundColor(vm.noEmptyFields ? .white : Color.primaryButton )
             }
                   
           }
           .buttonStyle(.glassProminent)
-          .tint(.primaryButton)
+          .tint(vm.noEmptyFields ? Color.primaryButton : .white)
           .disabled(vm.isSaving || vm.isLoading)
         }
       }
@@ -366,40 +423,48 @@ struct InputBusinessDetailsView: View {
         vm.saveSuccess = false
         vm.fieldErrors.removeValue(forKey: "businessName")
         vm.checkForChanges()
+          vm.checkForEmptyFields()
       }
       .onChange(of: vm.businessPhone) { _ in
         vm.saveSuccess = false
         vm.fieldErrors.removeValue(forKey: "businessPhone")
         vm.checkForChanges()
+          vm.checkForEmptyFields()
       }
       .onChange(of: vm.businessAddress) { _ in
         vm.saveSuccess = false
         vm.fieldErrors.removeValue(forKey: "businessAddress")
         vm.checkForChanges()
+          vm.checkForEmptyFields()
       }
       .onChange(of: vm.businessLogoUrl) { _ in
         vm.saveSuccess = false
         vm.checkForChanges()
+          vm.checkForEmptyFields()
       }
       .onChange(of: vm.businessEmail) { _ in
         vm.saveSuccess = false
         vm.fieldErrors.removeValue(forKey: "businessEmail")
         vm.checkForChanges()
+          vm.checkForEmptyFields()
       }
       .onChange(of: vm.bankAccountNumber) { _ in
         vm.saveSuccess = false
         vm.fieldErrors.removeValue(forKey: "bankAccountNumber")
         vm.checkForChanges()
+          vm.checkForEmptyFields()
       }
       .onChange(of: vm.bankAccountName) { _ in
         vm.saveSuccess = false
         vm.fieldErrors.removeValue(forKey: "bankAccountName")
         vm.checkForChanges()
+          vm.checkForEmptyFields()
       }
       .onChange(of: vm.bankName) { _ in
         vm.saveSuccess = false
         vm.fieldErrors.removeValue(forKey: "bankName")
         vm.checkForChanges()
+          vm.checkForEmptyFields()
       }
       
       // ✅ Alert at top level - covers EVERYTHING including toolbar and tab bar
