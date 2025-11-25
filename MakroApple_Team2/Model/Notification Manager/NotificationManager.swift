@@ -32,19 +32,33 @@ final class NotificationManager {
 
     // MARK: - Schedule notifications rutin
     func scheduleDailyNotifications() {
-        scheduleNotification(
-            identifier: "order_tomorrow_7am",
-            hour: 7, minute: 0,
-            title: "Pesanan Besok",
-            bodyGetter: { "Kamu memiliki \(self.readTomorrowCount()) pesanan yang harus dikirim besok. Lihat detailnya di kalender sekarang." }
-        )
-        scheduleNotification(
-            identifier: "order_today_8am",
-            hour: 8, minute: 0,
-            title: "Pesanan Hari Ini!",
-            bodyGetter: { "Anda memiliki \(self.readTodayCount()) pesanan dijadwalkan hari ini. Lihat detail pesanan sekarang." }
-        )
+        let todayCount = readTodayCount()
+        if todayCount > 0 {
+            scheduleNotification(
+                identifier: "order_today_8am",
+                hour: 8, minute: 0,
+                title: "Pesanan Hari Ini!",
+                bodyGetter: { "Anda memiliki \(todayCount) pesanan dijadwalkan hari ini. Lihat detail pesanan sekarang." }
+            )
+        } else {
+            print("ℹ️ Tidak ada pesanan hari ini, notifikasi dilewati")
+            UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: ["order_today_8am"])
+        }
+
+        let tomorrowCount = readTomorrowCount()
+        if tomorrowCount > 0 {
+            scheduleNotification(
+                identifier: "order_tomorrow_7am",
+                hour: 7, minute: 0,
+                title: "Pesanan Besok",
+                bodyGetter: { "Kamu memiliki \(tomorrowCount) pesanan yang harus dikirim besok. Lihat detailnya di kalender sekarang." }
+            )
+        } else {
+            print("ℹ️ Tidak ada pesanan besok, notifikasi dilewati")
+            UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: ["order_tomorrow_7am"])
+        }
     }
+
 
     // MARK: - Fetch jumlah autocancel dari Supabase & schedule jam 6 pagi
     func fetchAutocancelCountAndNotify() async {
