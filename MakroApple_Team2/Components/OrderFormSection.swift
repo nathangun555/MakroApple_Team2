@@ -100,18 +100,24 @@ struct OrderFormSection: View {
                         }
                     }
 
-
+                    // Nathan Merubah Ini buat alert 
                     // Error message
                     if fieldErrors.contains(key) && !isOptionalField(field.label) {
                         HStack {
                             Spacer().frame(width: 140)
-                            Text("Field ini wajib diisi")
-                                .font(.caption)
-                                .foregroundStyle(.red)
-                                .padding(.leading, 12)
+                            HStack(spacing: 4) {
+                                Image(systemName: "exclamationmark.triangle.fill")
+                                    .font(.caption)
+                                    .foregroundColor(.red)
+                                Text("Field ini wajib diisi")
+                                    .font(.caption)
+                                    .foregroundStyle(.red)
+                            }
+                            .padding(.leading, 12)
                             Spacer()
                         }
                     }
+
                 }
                 .id(key)
                 .padding(.horizontal)
