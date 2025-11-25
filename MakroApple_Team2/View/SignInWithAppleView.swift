@@ -1,3 +1,9 @@
+////
+////  SignInWithAppleView.swift
+////  MakroApple_Team2
+////
+////  Created by Nathan Gunawan on 06/10/25.
+////
 import SwiftUI
 import AuthenticationServices
 import Supabase
