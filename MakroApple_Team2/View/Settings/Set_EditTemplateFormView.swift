@@ -61,7 +61,7 @@ struct Set_EditTemplateFormView: View {
                             focusedIndex: $focusedOtherField
                         )
 
-                        FormSection(
+                        DraggableFormSection(
                             title: "Lain - Lain",
                             fields: $viewModel.otherFields,
                             onAddColumn: {

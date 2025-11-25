@@ -163,7 +163,7 @@ class EditTemplateViewModel {
 
 
 // MARK: - Data Models
-struct FormFieldItem: Identifiable {
+struct FormFieldItem: Identifiable, Hashable {
     let id = UUID()
     var label: String
     var value: String
