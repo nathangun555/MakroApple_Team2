@@ -109,8 +109,8 @@ struct CombinedCalendarView: View {
             .frame(width: 36, height: 42)
             .background(
               isSelected
-              ? Color.blue
-              : (isToday ? Color.blue.opacity(0.15) : .clear)
+              ? Color.primaryButton
+              : (isToday ? Color.primaryButton.opacity(0.15) : .clear)
             )
             .clipShape(RoundedRectangle(cornerRadius: 10))
             .foregroundColor(
@@ -132,4 +132,20 @@ struct CombinedCalendarView: View {
     private var isSelected: Bool { calendar.isDate(date, inSameDayAs: selectedDate) }
     private var isToday: Bool { calendar.isDateInToday(date) }
     }
+}
+
+#Preview("Signed In") {
+    let session = SessionManager()
+    session.isAuthLoaded = true
+    session.isSignedIn = true
+
+    return MainTabView(
+        selectedTab: .constant(0),
+        sharedText: .constant("Test Text"),
+        hasNewObject: .constant(false),
+        sharedImages: .constant([])
+    )
+    .environmentObject(session)
+    .environmentObject(DeleteOverlayBus())
+    .environmentObject(UnsavedOverlayBus())
 }

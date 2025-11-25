@@ -142,3 +142,19 @@ struct MonthNavigationView: View {
       return calendar.date(byAdding: .day, value: clamped - 1, to: start) ?? start
     }
 }
+
+#Preview("Signed In") {
+    let session = SessionManager()
+    session.isAuthLoaded = true
+    session.isSignedIn = true
+
+    return MainTabView(
+        selectedTab: .constant(0),
+        sharedText: .constant("Test Text"),
+        hasNewObject: .constant(false),
+        sharedImages: .constant([])
+    )
+    .environmentObject(session)
+    .environmentObject(DeleteOverlayBus())
+    .environmentObject(UnsavedOverlayBus())
+}

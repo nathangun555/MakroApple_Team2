@@ -65,6 +65,7 @@ struct MainTabView: View {
                                   sharedText: $sharedText,
                                   hasNewObject: $hasNewObject)
                 }
+                
                 Tab("Jadwal", systemImage: "calendar", value: 1) {
                     ActiveOrdersView()
                 }
@@ -86,6 +87,7 @@ struct MainTabView: View {
                     }
                 }
             }
+            .tint(.primaryButton)
             .onAppear {
                         // ✅ Prefetch analytics saat app launch
                         if let userIdStr = session.userId,
