@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct DraggableFormSection: View {
     let title: String
@@ -13,18 +14,22 @@ struct DraggableFormSection: View {
     let onAddColumn: () -> Void
     var showDelete: Bool = false
     var onDelete: ((Int) -> Void)? = nil
+    var isEditable: Bool = true
+    var focusedIndex: FocusState<Int?>.Binding
 
-    // Controls edit mode for drag
-    @State private var editMode: EditMode = .active // default: always draggable. Use .inactive for manual toggle
+    @State private var draggingItem: FormFieldItem?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            // Section header
+
+            // Header
             HStack {
                 Text(title)
                     .font(.title3)
                     .fontWeight(.bold)
+
                 Spacer()
+
                 Button(action: onAddColumn) {
                     Label("Tambahkan Kolom", systemImage: "plus")
                         .font(.subheadline)
@@ -35,18 +40,36 @@ struct DraggableFormSection: View {
             }
             .padding(.horizontal)
 
-            // List with .onMove for drag
-            List {
-                ForEach(Array(fields.enumerated()), id: \.offset) { index, field in
+            // Draggable Items
+            VStack(spacing: 0) {
+                ForEach(Array(fields.enumerated()), id: \.element.id) { index, field in
                     if field.label != "Foto Referensi (optional)" {
+
                         HStack(spacing: 12) {
+                            
+                            Image(systemName: "line.3.horizontal")
+                                .font(.system(size: 16))
+                                .foregroundColor(.gray)
+                                .padding(.trailing, 4)
+                                .draggable(field.id.uuidString)
+                                .onDrag {
+                                    draggingItem = field
+                                    return NSItemProvider(item: field.id.uuidString as NSString, typeIdentifier: UTType.text.identifier)
+                                }
+
                             TextField(
                                 "",
                                 text: Binding(
-                                    get: { fields[index].label },
-                                    set: { fields[index].label = $0 }
+                                    get: { field.label },
+                                    set: { newValue in
+                                        if let i = fields.firstIndex(where: { $0.id == field.id }) {
+                                            fields[i].label = newValue
+                                        }
+                                    }
                                 )
                             )
+                            .focused(focusedIndex, equals: index)
+                            .disabled(!isEditable)
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .font(.body)
                             .multilineTextAlignment(.leading)
@@ -71,17 +94,68 @@ struct DraggableFormSection: View {
                                 }
                             }
                         }
-                        .padding(.horizontal) // Card-style row
+                        .padding(.horizontal)
+                        .background(
+                            (draggingItem?.id == field.id) ? Color(.systemGray5) : Color.clear
+                        )
+                        .onDrop(
+                            of: [UTType.text],
+                            delegate: DropViewDelegate(
+                                item: field,
+                                fields: $fields,
+                                draggingItem: $draggingItem
+                            )
+                        )
+                        .background(
+                            (draggingItem?.id == field.id)
+                            ? Color.gray.opacity(0.3)
+                            : Color.clear
+                        )
+                        .animation(.easeInOut, value: draggingItem)
                     }
                 }
-                .onMove { indices, newOffset in
-                    fields.move(fromOffsets: indices, toOffset: newOffset)
-                }
             }
-            .listStyle(.plain)
-            .listRowSeparator(.hidden)
-            .frame(height: CGFloat(fields.count) * 60 + 50)
-            .environment(\.editMode, .constant(.active))
+            .animation(.easeInOut, value: fields)
         }
     }
 }
+
+
+struct DropViewDelegate: DropDelegate {
+    let item: FormFieldItem
+    @Binding var fields: [FormFieldItem]
+    @Binding var draggingItem: FormFieldItem?
+
+    func dropEntered(info: DropInfo) {
+        print("DROP ENTERED")
+        guard
+            let dragging = draggingItem,
+            let from = fields.firstIndex(where: { $0.id == dragging.id }),
+            let to = fields.firstIndex(where: { $0.id == item.id }),
+            from != to
+        else { return }
+
+        withAnimation {
+            fields.move(
+                fromOffsets: IndexSet(integer: from),
+                toOffset: to > from ? to + 1 : to
+            )
+        }
+    }
+
+    func performDrop(info: DropInfo) -> Bool {
+        draggingItem = nil
+        return true
+    }
+}
+
+//extension FormFieldItem: Transferable {
+//    static var transferRepresentation: some TransferRepresentation {
+//        ProxyRepresentation(exporting: { item in
+//            item.id.uuidString
+//        }, importing: { idString in
+//            FormFieldItem(label: "",
+//                          value: "")
+//        })
+//    }
+//}
