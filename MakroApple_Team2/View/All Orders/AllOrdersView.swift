@@ -35,6 +35,7 @@ struct AllOrdersView: View {
     @AppStorage("showDibatalkanGuide") private var showDibatalkanGuide: Bool = true
     
     @EnvironmentObject var session: SessionManager
+    @EnvironmentObject var deleteBus: DeleteOverlayBus
     
     @State private var viewModel = AllOrdersViewModel()
     @State private var profileImage: UIImage? = nil
@@ -90,7 +91,6 @@ struct AllOrdersView: View {
                             Image(systemName: "plus")
                                 .font(.title2)
                                 .foregroundColor(viewModel.hasTemplates ? .white : .secondary)
-                                .glassEffect()
                         }
                     }
                     .disabled(!viewModel.hasTemplates)
@@ -296,7 +296,6 @@ struct AllOrdersView: View {
             .sheet(isPresented: $showProfile) {
                 NavigationStack{
                     SettingsView(onChangeSettings: $onChangeSettings)
-                   
                 }
             }
             .onChange(of: isDismissed) { newValue in

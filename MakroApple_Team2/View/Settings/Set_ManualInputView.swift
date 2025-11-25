@@ -9,26 +9,23 @@ import SwiftUI
 import Combine
 
 struct Set_ManualInputView: View {
-    
     @EnvironmentObject var session: SessionManager
-    @EnvironmentObject var deleteBus: DeleteOverlayBus
-    @EnvironmentObject var unsavedBus: UnsavedOverlayBus
     @StateObject private var vm = Set_MenuDetailsViewModel()
     @Environment(\.dismiss) private var dismiss
-    
+
     @Binding var isDismissed: Bool
-    
-    // Simpan konteks item yang dihapus (eksekusi via bus)
-    @State private var itemToDelete: (type: DeleteType, sIndex: Int, pIndex: Int?)? = nil
-    enum DeleteType { case category, product }
-    
+
+    // State utk alert lokal
+    @State private var showUnsavedAlert = false
+    @State private var showDeleteAlert = false
+    @State private var itemToDelete: (sIndex: Int, pIndex: Int)? = nil
+
     var body: some View {
         ZStack {
             NavigationStack {
                 VStack(spacing: 12) {
-                    // Header: search + plus di kanan
+                    // Header: search + plus
                     searchHeader
-                    
                     // Konten daftar produk flat
                     contentFlatView
                 }
@@ -42,18 +39,7 @@ struct Set_ManualInputView: View {
                     ToolbarItem(placement: .navigationBarLeading) {
                         Button {
                             if vm.hasPendingChanges {
-                                unsavedBus.request(
-                                    title: "Perubahan Belum Disimpan",
-                                    message: "Apakah Anda yakin ingin membatalkan?",
-                                    cancelTitle: "Tidak",
-                                    confirmTitle: "Ya",
-                                    onCancel: { /* stay */
-                                        unsavedBus.close(false)
-                                    },
-                                    onConfirm: {
-                                        unsavedBus.close(false)        
-                                        dismiss() }
-                                )
+                                showUnsavedAlert = true
                             } else {
                                 dismiss()
                             }
@@ -67,7 +53,6 @@ struct Set_ManualInputView: View {
                         let button = Button {
                             Task {
                                 await vm.saveAll {
-                                    // Dismiss semua sheet (kembali ke SettingsView)
                                     isDismissed = true
                                     dismiss()
                                 }
@@ -91,54 +76,51 @@ struct Set_ManualInputView: View {
                     }
                 }
             }
-
-            // ⬇️ Overlay UNSAVED di atas fullScreenCover ini
-            if unsavedBus.show {
-                Color.black.opacity(0.45)
-                    .ignoresSafeArea()
-                    .transition(.opacity)
-                    .zIndex(996)
-
-                CustomUnsavedAlert(
-                    title: unsavedBus.title,
-                    message: unsavedBus.message,
-                    cancelTitle: unsavedBus.cancelTitle,
-                    confirmTitle: unsavedBus.confirmTitle,
-                    onCancel: { unsavedBus.close(false) },
-                    onConfirm: { unsavedBus.close(true) }
-                )
-                .transition(.scale.combined(with: .opacity))
-                .zIndex(997)
-            }
-
-            // ⬇️ Overlay DELETE
-            if deleteBus.show {
-                Color.black.opacity(0.45)
-                    .ignoresSafeArea()
-                    .transition(.opacity)
-                    .zIndex(998)
-
-                CustomDeleteAlertComponent(
-                    title: "Hapus",
-                    message: deleteBus.message,
+            
+            // === Overlay Unsaved Alert lokal ===
+            if showUnsavedAlert {
+                CustomUnsavedAlertComponent(
+                    title: "Perubahan Belum Disimpan",
+                    message: "Apakah Anda yakin ingin membatalkan?",
                     cancelTitle: "Tidak",
                     confirmTitle: "Ya",
-                    onCancel: { deleteBus.closeConfirm(false) },
+                    onCancel: { showUnsavedAlert = false },
                     onConfirm: {
-                        deleteBus.closeConfirm(true)
-                        executeDelete()
+                        showUnsavedAlert = false
+                        dismiss()
                     }
                 )
-                .transition(.scale.combined(with: .opacity))
                 .zIndex(999)
+                .transition(.opacity.combined(with: .scale))
+                .animation(.spring(response: 0.3, dampingFraction: 0.8), value: showUnsavedAlert)
+            }
+            
+            // === Overlay Delete Alert lokal ===
+            if showDeleteAlert {
+                CustomDeleteAlertComponent(
+                    title: "Hapus",
+                    message: "Apakah Anda yakin ingin menghapus produk ini?",
+                    cancelTitle: "Tidak",
+                    confirmTitle: "Ya",
+                    onCancel: { showDeleteAlert = false },
+                    onConfirm: {
+                        if let del = itemToDelete {
+                            withAnimation {
+                                vm.deleteTemporaryProduct(from: del.sIndex, at: del.pIndex)
+                            }
+                        }
+                        showDeleteAlert = false
+                        itemToDelete = nil
+                    }
+                )
+                .zIndex(999)
+                .transition(.scale.combined(with: .opacity))
+                .animation(.spring(response: 0.3, dampingFraction: 0.8), value: showDeleteAlert)
             }
         }
-        .onTapGesture {
-            hideKeyboard()
-        }
+        .onTapGesture { hideKeyboard() }
         .task {
             vm.configure(userId: session.userId)
-            // Langsung tambahkan 3 produk kosong
             initializeEmptyProducts()
         }
     }
@@ -164,7 +146,6 @@ struct Set_ManualInputView: View {
             .padding(.horizontal, 12)
             .background(Color(.systemGray6))
             .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-
             Button {
                 withAnimation { vm.addTemporaryProductFlat() }
             } label: {
@@ -200,9 +181,9 @@ struct Set_ManualInputView: View {
                             validationErrors: vm.validationErrors,
                             onChanged: { vm.markChanged() }
                         )
-
                         Button {
-                            handleDeleteProduct(sIndex: ref.sectionIndex, pIndex: ref.productIndex)
+                            itemToDelete = (ref.sectionIndex, ref.productIndex)
+                            showDeleteAlert = true
                         } label: {
                             Image(systemName: "trash")
                                 .foregroundColor(.red)
@@ -211,7 +192,6 @@ struct Set_ManualInputView: View {
                     }
                     .padding(.horizontal)
                 }
-
                 Spacer(minLength: 100)
             }
             .padding(.top)
@@ -219,32 +199,13 @@ struct Set_ManualInputView: View {
         .scrollContentBackground(.hidden)
         .background(Color.white)
     }
-    
-    // MARK: - Delete handlers
-    func handleDeleteProduct(sIndex: Int, pIndex: Int) {
-        itemToDelete = (.product, sIndex, pIndex)
-        deleteBus.request(message: "Apakah Anda yakin ingin menghapus produk ini?") {
-            // Eksekusi nyata di executeDelete()
-        }
-    }
-    
-    func executeDelete() {
-        if let item = itemToDelete, item.type == .product, let pIndex = item.pIndex {
-            withAnimation {
-                vm.deleteTemporaryProduct(from: item.sIndex, at: pIndex)
-            }
-        }
-        itemToDelete = nil
-    }
 }
 
 #Preview {
     let session = SessionManager()
     session.isSignedIn = true
     session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
-    
+
     return Set_ManualInputView(isDismissed: .constant(false))
         .environmentObject(session)
-        .environmentObject(DeleteOverlayBus())
-        .environmentObject(UnsavedOverlayBus())
 }
