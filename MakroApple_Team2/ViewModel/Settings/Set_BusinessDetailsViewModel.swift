@@ -31,6 +31,8 @@ final class Set_BusinessDetailsViewModel: ObservableObject {
   
   @Published var fieldErrors: [String: String] = [:]
   @Published var hasChanges = false  // ✅ Track changes
+    
+    @Published var noEmptyFields = false
   
   // ✅ Store original data
   private var originalData: (
@@ -94,6 +96,7 @@ final class Set_BusinessDetailsViewModel: ObservableObject {
   func checkForChanges() {
     guard let original = originalData else {
       hasChanges = false
+        
       return
     }
     
@@ -105,7 +108,32 @@ final class Set_BusinessDetailsViewModel: ObservableObject {
                  bankAccountNumber != original.bankAccountNumber ||
                  bankAccountName != original.bankAccountName ||
                  bankName != original.bankName
+      
+//      noEmptyFields = !(
+//          businessName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ||
+//          businessPhone.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ||
+//          businessAddress.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ||
+//          businessLogoUrl.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ||
+//          businessEmail.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ||
+//          bankAccountNumber.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ||
+//          bankAccountName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ||
+//          bankName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+//      )
+
   }
+    
+    func checkForEmptyFields (){
+        noEmptyFields =
+            !businessName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+            !businessPhone.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+            !businessAddress.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+            !businessEmail.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+            !bankAccountNumber.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+            !bankAccountName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+            !bankName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        
+    }
+    
 
   func validateAllFields() -> Bool {
     fieldErrors.removeAll()
@@ -145,6 +173,9 @@ final class Set_BusinessDetailsViewModel: ObservableObject {
     
     return fieldErrors.isEmpty
   }
+    
+
+
 
   func save() async {
     guard let userId, let uuid = UUID(uuidString: userId) else {
