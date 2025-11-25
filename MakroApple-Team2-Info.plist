@@ -10,7 +10,7 @@
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
 			<key>CFBundleURLName</key>
-			<string>com.jowdohmu.aiva</string>
+			<string>iwak.AIVA</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>makroa2</string>
@@ -19,5 +19,9 @@
 	</array>
 	<key>LSBundleContainsCoreMLmlmodelc</key>
 	<false/>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+	</array>
 </dict>
 </plist>

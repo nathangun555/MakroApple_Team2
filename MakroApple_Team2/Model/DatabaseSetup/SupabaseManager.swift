@@ -20,5 +20,9 @@ final class SupabaseManager {
   private init() {
     client = SupabaseClient(supabaseURL: supabaseURL, supabaseKey: supabaseKey)
   }
+    
+    var currentUser: User? {
+           client.auth.currentUser
+       }
 }
 

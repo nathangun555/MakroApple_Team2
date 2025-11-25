@@ -130,11 +130,19 @@ struct MakroApple_Team2App: App {
     @State private var path: NavigationPath = .init()
 
     let notifDelegate = NotificationDelegate()
+    
+    @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
 
     init() {
         UNUserNotificationCenter.current().delegate = notifDelegate
         NotificationManager.shared.requestPermission()
         UINavigationBar.appearance().tintColor = UIColor(Color.primaryButton)
+        delegate.sessionManager = session
+        
+        Task {
+                   
+            await NotificationManager.shared.fetchAutocancelCountAndNotify()
+                }
     }
 
     var body: some Scene {
