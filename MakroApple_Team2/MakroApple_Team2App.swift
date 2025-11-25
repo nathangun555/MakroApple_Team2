@@ -130,13 +130,16 @@ struct MakroApple_Team2App: App {
     @State private var path: NavigationPath = .init()
 
     let notifDelegate = NotificationDelegate()
+    
+    @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
 
     init() {
         UNUserNotificationCenter.current().delegate = notifDelegate
         NotificationManager.shared.requestPermission()
+        delegate.sessionManager = session
         
         Task {
-                    await RealTimeOrderListener.shared.startListening()
+                   
             await NotificationManager.shared.fetchAutocancelCountAndNotify()
                 }
     }

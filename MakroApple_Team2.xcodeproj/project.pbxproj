@@ -18,6 +18,9 @@
 		2B2ECE7B2ECF1CDB000DB1F5 /* Functions in Frameworks */ = {isa = PBXBuildFile; productRef = 2B2ECE7A2ECF1CDB000DB1F5 /* Functions */; };
 		2B2ECE7D2ECF1CDE000DB1F5 /* Auth in Frameworks */ = {isa = PBXBuildFile; productRef = 2B2ECE7C2ECF1CDE000DB1F5 /* Auth */; };
 		2B41C5AC2EB9FEAB004E99AD /* MakroApple-Team2-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 2B41C5AB2EB9FEAB004E99AD /* MakroApple-Team2-Info.plist */; };
+		2BB908522ED54C75007C8896 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = 2BB908512ED54C75007C8896 /* FirebaseCore */; };
+		2BB908542ED54C75007C8896 /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = 2BB908532ED54C75007C8896 /* FirebaseMessaging */; };
+		2BB908562ED552FC007C8896 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 2BB908552ED552FC007C8896 /* GoogleService-Info.plist */; };
 		351655F92EA62B3E004AD28D /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 351655F82EA62B3E004AD28D /* Supabase */; };
 		35AD8ADF2EA626A9007F83D5 /* Auth in Frameworks */ = {isa = PBXBuildFile; productRef = 35AD8ADE2EA626A9007F83D5 /* Auth */; };
 		35AD8AE12EA626A9007F83D5 /* Functions in Frameworks */ = {isa = PBXBuildFile; productRef = 35AD8AE02EA626A9007F83D5 /* Functions */; };
@@ -65,6 +68,7 @@
 		2B2ECE472ECEC1D0000DB1F5 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 		2B2ECE5E2ECEC994000DB1F5 /* MakroWidgetExtensionExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = MakroWidgetExtensionExtension.entitlements; sourceTree = "<group>"; };
 		2B41C5AB2EB9FEAB004E99AD /* MakroApple-Team2-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "MakroApple-Team2-Info.plist"; sourceTree = "<group>"; };
+		2BB908552ED552FC007C8896 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		7C98DB532E93CAD400F06C20 /* MakroApple_Team2.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MakroApple_Team2.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -160,10 +164,12 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2BB908542ED54C75007C8896 /* FirebaseMessaging in Frameworks */,
 				35AD8AE32EA626A9007F83D5 /* PostgREST in Frameworks */,
 				35AD8AE12EA626A9007F83D5 /* Functions in Frameworks */,
 				351655F92EA62B3E004AD28D /* Supabase in Frameworks */,
 				35AD8ADF2EA626A9007F83D5 /* Auth in Frameworks */,
+				2BB908522ED54C75007C8896 /* FirebaseCore in Frameworks */,
 				35AD8AE72EA626A9007F83D5 /* Storage in Frameworks */,
 				35AD8AE52EA626A9007F83D5 /* Realtime in Frameworks */,
 			);
@@ -191,6 +197,7 @@
 				2B2ECE492ECEC1D0000DB1F5 /* MakroWidgetExtension */,
 				351655F72EA62B3E004AD28D /* Frameworks */,
 				7C98DB542E93CAD400F06C20 /* Products */,
+				2BB908552ED552FC007C8896 /* GoogleService-Info.plist */,
 			);
 			sourceTree = "<group>";
 		};
@@ -283,6 +290,8 @@
 				35AD8AE42EA626A9007F83D5 /* Realtime */,
 				35AD8AE62EA626A9007F83D5 /* Storage */,
 				351655F82EA62B3E004AD28D /* Supabase */,
+				2BB908512ED54C75007C8896 /* FirebaseCore */,
+				2BB908532ED54C75007C8896 /* FirebaseMessaging */,
 			);
 			productName = MakroApple_Team2;
 			productReference = 7C98DB532E93CAD400F06C20 /* MakroApple_Team2.app */;
@@ -320,6 +329,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				35AD8ADD2EA626A9007F83D5 /* XCRemoteSwiftPackageReference "supabase-swift" */,
+				2BB908502ED54C75007C8896 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 7C98DB542E93CAD400F06C20 /* Products */;
@@ -353,6 +363,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				2B41C5AC2EB9FEAB004E99AD /* MakroApple-Team2-Info.plist in Resources */,
+				2BB908562ED552FC007C8896 /* GoogleService-Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -791,6 +802,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		2BB908502ED54C75007C8896 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 12.6.0;
+			};
+		};
 		35AD8ADD2EA626A9007F83D5 /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/supabase/supabase-swift";
@@ -831,6 +850,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 35AD8ADD2EA626A9007F83D5 /* XCRemoteSwiftPackageReference "supabase-swift" */;
 			productName = Auth;
+		};
+		2BB908512ED54C75007C8896 /* FirebaseCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 2BB908502ED54C75007C8896 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseCore;
+		};
+		2BB908532ED54C75007C8896 /* FirebaseMessaging */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 2BB908502ED54C75007C8896 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseMessaging;
 		};
 		351655F82EA62B3E004AD28D /* Supabase */ = {
 			isa = XCSwiftPackageProductDependency;
