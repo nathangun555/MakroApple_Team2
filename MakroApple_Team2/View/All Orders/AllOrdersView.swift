@@ -82,14 +82,14 @@ struct AllOrdersView: View {
                     } label: {
                         ZStack {
                             Circle()
-                                .fill(Color.white)
+                                .fill(viewModel.hasTemplates ? .primaryButton : .white)
                                 .frame(width: 40, height: 40)
                                 .shadow(color: Color(.systemGray4),
                                         radius: 4, x: 0, y: 1)
 
                             Image(systemName: "plus")
                                 .font(.title2)
-                                .foregroundColor(viewModel.hasTemplates ? .primaryButton : .secondary)
+                                .foregroundColor(viewModel.hasTemplates ? .white : .secondary)
                         }
                     }
                     .disabled(!viewModel.hasTemplates)

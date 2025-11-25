@@ -32,6 +32,8 @@ struct SettingsView: View {
     @State private var isDismissedFromTemplate = false
     @State private var isDismissedFromBusiness = false
     
+    @Environment(\.dismiss) var dismiss
+    
     @Binding var onChangeSettings: Bool
 
     var body: some View {
@@ -156,6 +158,15 @@ struct SettingsView: View {
             .background(Color.white)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button {
+                        dismiss()
+                    } label: {
+                        Image(systemName: "xmark")
+                            .font(.title3)
+                            .foregroundColor(.primaryButton)
+                    }
+                }
                 ToolbarItem(placement: .principal) {
                     Text("Pengaturan")
                         .font(.title2.bold())
