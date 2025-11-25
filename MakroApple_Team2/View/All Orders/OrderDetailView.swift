@@ -552,33 +552,34 @@ struct OrderDetailView: View {
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
                 HStack(spacing: 0) {
-                    Menu {
-                        Button {
-                            showEditSheet = true
-                            } label: {
-                                Label("Edit", systemImage: "pencil")
-                            }
-                        
-                            if order.status == "Belum Terbayar" || order.status == "Diproses" {
-                        Button {
-                                activeAlert = .cancel
-                            } label: {
-                                Label("Hapus", systemImage: "trash")
+                    if order.status == "Belum Terbayar" || order.status == "Diproses" {
+                        Menu {
+                            Button {
+                                showEditSheet = true
+                                } label: {
+                                    Label("Edit", systemImage: "pencil")
+                                }
+                            
+                            
+                            Button {
+                                    activeAlert = .cancel
+                                } label: {
+                                    Label("Batalkan Pesanan", systemImage: "trash")
+                                }
+                        } label: {
+                            ZStack {
+                                Circle()
+                                    .fill(Color.white)
+                                    .frame(width: 40, height: 40)
+    //                                .shadow(color: Color(.systemGray4), radius: 4, x: 0, y: 1)
+                                Image(systemName: "ellipsis")
+                                    .font(.title3.weight(.semibold))
+                                    .foregroundColor(.primaryButton)
                             }
                         }
-                    } label: {
-                        ZStack {
-                            Circle()
-                                .fill(Color.white)
-                                .frame(width: 40, height: 40)
-//                                .shadow(color: Color(.systemGray4), radius: 4, x: 0, y: 1)
-                            Image(systemName: "ellipsis")
-                                .font(.title3.weight(.semibold))
-                                .foregroundColor(.primaryButton)
-                        }
+                        .frame(width: 40, height: 40)
+                        .buttonStyle(.plain)
                     }
-                    .frame(width: 40, height: 40)
-                    .buttonStyle(.plain)
                 }
             }
             
@@ -647,6 +648,15 @@ struct OrderDetailView: View {
                     PDFKitView(url: url)
                         .navigationTitle("Invoice Preview")
                         .toolbar {
+                            ToolbarItem(placement: .cancellationAction) {
+                                Button {
+                                    showPDFViewer = false
+                                } label: {
+                                    Image(systemName: "xmark")
+                                        .font(.title3)
+                                        .foregroundColor(.primaryButton)
+                                }
+                            }
                             ToolbarItem(placement: .navigationBarTrailing) {
                                 Button {
                                     if let url = selectedPDFURL {
@@ -658,8 +668,6 @@ struct OrderDetailView: View {
                                     Image(systemName: "square.and.arrow.up")
                                 }
                             }
-                            
-                            
                         }
                 }
             }

@@ -85,6 +85,7 @@ struct EditOrderDetailView: View {
                        } label: {
                            Image(systemName: "xmark")
                                .font(.title3)
+                               .foregroundColor(.primaryButton)
                        }
                 }
                 ToolbarItem(placement: .confirmationAction) {
@@ -106,6 +107,7 @@ struct EditOrderDetailView: View {
                         } else {
                             Image(systemName: "checkmark")
                                 .font(.title2)
+                                .foregroundColor(.primaryButton)
                         }
                     }
                     .disabled(viewModel.isLoading)
