@@ -54,10 +54,7 @@ struct ActiveOrdersView: View {
                               isCollapsed = false
                           } label: {
                               HStack(spacing: 8) {
-                                     Image(systemName: viewMode == .bulanan ? "checkmark" : "checkmark")
-                                         .opacity(viewMode == .bulanan ? 1 : 0)
-
-                                     Image(systemName: "rectangle.grid.1x2")
+                                     Image(systemName: viewMode == .bulanan ? "checkmark" : "rectangle.grid.3x3")
                                      Text("Bulanan")
                                  }
                           }
@@ -67,14 +64,14 @@ struct ActiveOrdersView: View {
                               isCollapsed = true
                           } label: {
                               Label("Mingguan",
-                                    systemImage: viewMode == .mingguan ? "checkmark" : "square.grid.3x1.below.line.grid.1x2")
+                                    systemImage: viewMode == .mingguan ? "checkmark" : "rectangle.grid.1x3")
                           }
 
                           Divider()
 
                           // Section 2 – Sort By
-                          Text("Sort By")
-                              .font(.caption)
+                          Text("Urutkan Berdasarkan")
+                              .font(.footnote)
                               .foregroundColor(.secondary)
 
                           Button {
@@ -82,7 +79,7 @@ struct ActiveOrdersView: View {
                               sortOption = "Waktu"
                           } label: {
                               Label("Waktu",
-                                    systemImage: sortMode == .waktu ? "checkmark" : "square.grid.2x2")
+                                    systemImage: sortMode == .waktu ? "checkmark" : "")
                           }
 
                           Button {
@@ -90,7 +87,7 @@ struct ActiveOrdersView: View {
                               sortOption = "Nama Produk"
                           } label: {
                               Label("Nama Produk",
-                                    systemImage: sortMode == .namaProduk ? "checkmark" : "square.dashed")
+                                    systemImage: sortMode == .namaProduk ? "checkmark" : "")
                           }
                       } label: {
                           ZStack {
@@ -154,23 +151,6 @@ struct ActiveOrdersView: View {
                   
                   Text("Rekap Pesanan")
                   Spacer()
-//                  Menu {
-//                      Section("Sort By") {
-//                          Button {
-//                              sortOption = "Waktu"
-//                          } label: {
-//                              Label("Waktu", systemImage: sortOption == "Waktu" ? "checkmark" : "")
-//                          }
-//
-//                          Button {
-//                              sortOption = "Nama Produk"
-//                          } label: {
-//                              Label("Nama Produk", systemImage: sortOption == "Nama Produk" ? "checkmark" : "")
-//                          }
-//                      }
-//                  } label: {
-//                      Image(systemName: "arrow.up.arrow.down.square.fill")
-//                  }
 
                   
               }
@@ -188,33 +168,6 @@ struct ActiveOrdersView: View {
                       expandedProducts: $expandedProducts
                   )
 
-//                .background(
-//                  GeometryReader { geo in
-//                    let minY = geo.frame(in: .named("ordersSpace")).minY
-//                    Color.clear
-//                      .onChange(of: minY, initial: true) { oldY, newY in
-//                        let rawDelta = newY - oldY
-//
-//                        // Ignore jitter
-//                        guard abs(rawDelta) > 15 else { return }
-//
-//                        // Velocity bias: quick flicks count more, but capped
-//                        let bias = min(max(abs(rawDelta) / 18, 1), 2.0)
-//                        let delta = rawDelta * bias
-//
-//                          withAnimation(.easeInOut(duration: 0)) {
-//                          // Scrolling up (content moves up) => delta negative => collapse
-//                          if delta < -6, !isCollapsed, newY < -20 {
-//                            isCollapsed = true
-//                          }
-//                          // Scrolling down (content moves down) => delta positive => expand if near top
-//                          else if delta > 6, isCollapsed, newY > 20 {
-//                            isCollapsed = false
-//                          }
-//                        }
-//                      }
-//                  }
-//                )
               }
             }
             .coordinateSpace(name: "ordersSpace")
@@ -296,15 +249,15 @@ struct MenuRow: View {
     }
 }
 
-#Preview {
-    // Create a stub session
+#Preview("Active Orders") {
     let session = SessionManager()
+    session.isAuthLoaded = true
     session.isSignedIn = true
-    session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
-    
-    // Create the view
-    let view = ActiveOrdersView()
-    
-    // Inject the environment object
-    return view.environmentObject(session)
+    session.userId = UUID().uuidString
+
+    return ActiveOrdersView()
+        .environmentObject(session)
+        .environmentObject(DeleteOverlayBus())
+        .environmentObject(UnsavedOverlayBus())
 }
+

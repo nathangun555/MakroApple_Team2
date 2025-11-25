@@ -90,7 +90,7 @@ struct AllOrdersView: View {
                             Image(systemName: "plus")
                                 .font(.title2)
                                 .foregroundColor(viewModel.hasTemplates ? .white : .secondary)
-                                .glassEffect()
+//                                .glassEffect()
                         }
                     }
                     .disabled(!viewModel.hasTemplates)
@@ -115,7 +115,7 @@ struct AllOrdersView: View {
                                 Image(systemName: "person.fill")
                                     .font(.title3)
                                     .foregroundColor(.primaryButton)
-                                    .glassEffect()
+//                                    .glassEffect()
                             }
                         }
                     }
@@ -151,27 +151,7 @@ struct AllOrdersView: View {
                 
                 VStack {
                     if filteredOrders.isEmpty {
-                        VStack {
-                            Image(systemName: "doc.text.fill")
-                                .font(.title)
-                                .foregroundColor(.blue)
-                                .padding(12) // jarak dari icon ke tepi circle
-                                .background(
-                                    Circle()
-                                        .fill(Color.blue.opacity(0.1))
-                                )
-
-                                    Text("Belum Ada Pesanan")
-                                        .font(.title3)
-                                        .fontWeight(.bold)
-                                        .foregroundColor(.primary)
-
-                                    Text("Belum ada pesanan yang tercatat.\nTambah pesanan baru untuk mulai kelola penjualanmu dengan mudah.")
-                                        .font(.subheadline)
-                                        .foregroundColor(.gray)
-                                        .multilineTextAlignment(.center)
-                                        .padding(.horizontal, 32)
-                                }
+                        OrderEmptyState()
                     }
                     else {
                         ScrollView {
@@ -325,15 +305,19 @@ struct AllOrdersView: View {
 
 }
 
-//#Preview {
-//    // Create a stub session
-//    let session = SessionManager()
-//    session.isSignedIn = true
-//    session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
-//
-//    // Create the view
-//    let view = AllOrdersView(sharedText: .constant(""))
-//
-//    // Inject the environment object
-//    view.environmentObject(session)
-//}
+#Preview("Signed In") {
+    let session = SessionManager()
+    session.isAuthLoaded = true
+    session.isSignedIn = true
+
+    return MainTabView(
+        selectedTab: .constant(0),
+        sharedText: .constant("Test Text"),
+        hasNewObject: .constant(false),
+        sharedImages: .constant([])
+    )
+    .environmentObject(session)
+    .environmentObject(DeleteOverlayBus())
+    .environmentObject(UnsavedOverlayBus())
+}
+

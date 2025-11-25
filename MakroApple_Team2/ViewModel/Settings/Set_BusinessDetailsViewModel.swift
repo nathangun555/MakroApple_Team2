@@ -111,36 +111,36 @@ final class Set_BusinessDetailsViewModel: ObservableObject {
     fieldErrors.removeAll()
     
     if businessName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-      fieldErrors["businessName"] = "Nama bisnis wajib diisi"
+      fieldErrors["businessName"] = "Lengkapi untuk melanjutkan."
     }
     
     if businessAddress.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-      fieldErrors["businessAddress"] = "Alamat bisnis wajib diisi"
+      fieldErrors["businessAddress"] = "Lengkapi untuk melanjutkan."
     }
     
     if businessPhone.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-      fieldErrors["businessPhone"] = "Nomor telepon wajib diisi"
+      fieldErrors["businessPhone"] = "Lengkapi untuk melanjutkan."
     }
     
     if businessEmail.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-      fieldErrors["businessEmail"] = "Email bisnis wajib diisi"
+      fieldErrors["businessEmail"] = "Lengkapi untuk melanjutkan."
     } else {
       let pattern = #"^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$"#
       if businessEmail.range(of: pattern, options: [.regularExpression, .caseInsensitive]) == nil {
-        fieldErrors["businessEmail"] = "Format email tidak valid"
+        fieldErrors["businessEmail"] = "Lengkapi untuk melanjutkan."
       }
     }
     
     if bankAccountName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-      fieldErrors["bankAccountName"] = "Nama akun wajib diisi"
+      fieldErrors["bankAccountName"] = "Lengkapi untuk melanjutkan."
     }
     
     if bankAccountNumber.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-      fieldErrors["bankAccountNumber"] = "Nomor rekening wajib diisi"
+      fieldErrors["bankAccountNumber"] = "Lengkapi untuk melanjutkan."
     }
     
     if bankName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-      fieldErrors["bankName"] = "Nama bank wajib diisi"
+      fieldErrors["bankName"] = "Lengkapi untuk melanjutkan."
     }
     
     return fieldErrors.isEmpty
