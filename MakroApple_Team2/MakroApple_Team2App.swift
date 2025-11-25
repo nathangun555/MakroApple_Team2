@@ -140,9 +140,8 @@ struct MakroApple_Team2App: App {
         delegate.sessionManager = session
         
         Task {
-                   
             await NotificationManager.shared.fetchAutocancelCountAndNotify()
-                }
+        }
     }
 
     var body: some Scene {
