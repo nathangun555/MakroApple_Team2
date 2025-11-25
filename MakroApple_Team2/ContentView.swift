@@ -53,8 +53,9 @@ struct MainTabView: View {
     @Binding var hasNewObject: Bool
     @Binding var sharedImages: [UIImage]
     @EnvironmentObject var unsavedBus: UnsavedOverlayBus
-
+    @EnvironmentObject var session: SessionManager
     @EnvironmentObject var deleteBus: DeleteOverlayBus
+    @StateObject private var analyticViewModel = AnalyticTabViewModel()
 
     var body: some View {
         ZStack {
@@ -64,12 +65,16 @@ struct MainTabView: View {
                                   sharedText: $sharedText,
                                   hasNewObject: $hasNewObject)
                 }
-                Tab("Kalender", systemImage: "calendar", value: 1) {
+                Tab("Jadwal", systemImage: "calendar", value: 1) {
                     ActiveOrdersView()
                 }
-//                Tab("Analitik", systemImage: "chart.bar", value: 2) {
-//                    AnalyticsView()
+//                Tab("AI", systemImage: "chart.bar", value: 2) {
+//                    ChatBotView()
 //                }
+                Tab("Analitik", systemImage: "chart.bar", value: 2) {
+                    AnalyticTabView()
+                        .environmentObject(analyticViewModel)
+                }
 //                Tab("Pengaturan", systemImage: "gearshape", value: 3) {
 //                    SettingsView()
 //                }
@@ -81,6 +86,21 @@ struct MainTabView: View {
                     }
                 }
             }
+            .onAppear {
+                        // ✅ Prefetch analytics saat app launch
+                        if let userIdStr = session.userId,
+                           let userId = UUID(uuidString: userIdStr) {
+                            analyticViewModel.prefetchInitialData(userId: userId)
+                        }
+                    }
+                    .onChange(of: selectedTab) { newTab in
+                        // ✅ Prefetch analytics saat user di tab lain (sebelum masuk Analytics)
+                        if newTab != 2,  // Bukan di Analytics tab
+                           let userIdStr = session.userId,
+                           let userId = UUID(uuidString: userIdStr) {
+                            analyticViewModel.prefetchInitialData(userId: userId)
+                        }
+                    }
 //            .disabled(deleteBus.show || unsavedBus.show)
             
 //            if unsavedBus.show {
@@ -111,13 +131,9 @@ struct MainTabView: View {
 //                .ignoresSafeArea()
 //            }
         }
-        
     }
 }
 
-
-        
-        
 //        NavigationStack {
 //            ZStack(alignment: .bottom) {
 //                TabView(selection: $selectedTab) {

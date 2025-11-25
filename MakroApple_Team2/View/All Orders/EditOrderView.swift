@@ -20,13 +20,14 @@ struct EditOrderView: View {
     @State private var viewModel = EditOrderViewModel()
     
     @State private var lastOrderId: String = ""
-
-    // Fokus untuk memindahkan caret ke field error
     @FocusState private var focusedField: String?
-    // Simpan id error pertama untuk trigger scroll
     @State private var firstErrorId: String?
     
     @State private var navigateToConfirmInvoice = false
+    
+    // ✅ TAMBAH: State untuk delete alert
+    @State private var showDeleteProductAlert = false
+    @State private var deleteProductIndex: Int?
 
     @EnvironmentObject var session: SessionManager
     @EnvironmentObject var deleteBus: DeleteOverlayBus
@@ -59,18 +60,11 @@ struct EditOrderView: View {
                                 products: $viewModel.products,
                                 onAdd: { viewModel.addProduct() },
                                 onDelete: { index in
-                                    viewModel.deleteProduct(at: index) 
+                                    deleteProductIndex = index
+                                    showDeleteProductAlert = true
                                 },
                                 fieldErrors: viewModel.fieldErrors
                             )
-//                            // Adds On
-//                            AddOnsSection(
-//                                addOns: $viewModel.addOns,
-//                                onAdd: { viewModel.addAddOn() },
-//                                onDelete: { index in
-//                                    deleteBus.request { viewModel.deleteAddOn(at: index) }
-//                                }
-//                            )
                             // Foto
                             PhotoSection(
                                 selectedItems: $selectedItems,
@@ -87,7 +81,7 @@ struct EditOrderView: View {
                         }
                         .padding(.vertical)
                     }
-                    // Ketika set error berubah, scroll ke error pertama dan fokuskan
+                    .disabled(showDeleteProductAlert)  // ✅ PINDAH: Disable hanya ScrollView
                     .onChange(of: viewModel.fieldErrors) { _, newErrors in
                         if let first = firstErrorKey(from: newErrors) {
                             withAnimation(.easeInOut) {
@@ -96,7 +90,6 @@ struct EditOrderView: View {
                             }
                         }
                     }
-                    // Jika firstErrorId di-set manual saat tap Next, lakukan scroll
                     .onChange(of: firstErrorId) { _, newVal in
                         if let id = newVal {
                             withAnimation(.easeInOut) {
@@ -107,33 +100,68 @@ struct EditOrderView: View {
                     }
                 }
             }
+            
+            // ✅ Delete alert (tidak ke-disable, tetap bisa interact)
+            if showDeleteProductAlert {
+                CustomDeleteAlertComponent(
+                    title: "Hapus Produk",
+                    message: "Apakah Anda yakin ingin menghapus produk ini?",
+                    cancelTitle: "Batal",
+                    confirmTitle: "Hapus",
+                    onCancel: {
+                        showDeleteProductAlert = false
+                        deleteProductIndex = nil
+                    },
+                    onConfirm: {
+                        if let index = deleteProductIndex {
+                            viewModel.deleteProduct(at: index)
+                        }
+                        showDeleteProductAlert = false
+                        deleteProductIndex = nil
+                    }
+                )
+                .transition(.scale.combined(with: .opacity))
+                .zIndex(999)
+            }
         }
         .onTapGesture {
             hideKeyboard()
         }
         .navigationTitle("")
         .navigationBarTitleDisplayMode(.inline)
-        .task {
-            let unwrappedImages = selectedImages.compactMap { $0 }
-            viewModel.configure(userId: session.userId, parsedOrderData: parsedOrderData, selectedPhotos: unwrappedImages)
-        }
+        .navigationBarBackButtonHidden(true)
         .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                Button {
+                    if !showDeleteProductAlert {
+                        dismiss()
+                    }
+                } label: {
+                    Image(systemName: "chevron.left")
+                        .font(.title3)
+                        .foregroundColor(showDeleteProductAlert ? .gray : .primaryButton)
+                }
+                .disabled(showDeleteProductAlert)
+            }
+            
             ToolbarItem(placement: .principal) {
                 Text("Tinjauan Pesanan").font(.title2.bold())
             }
+            
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
-                    if viewModel.validateAllFields() {
-                        Task {
-                            let order = await viewModel.saveOrder(photos: selectedImages.compactMap { $0 })
-                            if let order = order {
-                                lastOrderId = order.id.uuidString
-                                viewModel.didSave = true
+                    if !showDeleteProductAlert {
+                        if viewModel.validateAllFields() {
+                            Task {
+                                let order = await viewModel.saveOrder(photos: selectedImages.compactMap { $0 })
+                                if let order = order {
+                                    lastOrderId = order.id.uuidString
+                                    viewModel.didSave = true
+                                }
                             }
+                        } else {
+                            firstErrorId = firstErrorKey(from: viewModel.fieldErrors)
                         }
-                    } else {
-                        // set id error pertama untuk memicu scroll
-                        firstErrorId = firstErrorKey(from: viewModel.fieldErrors)
                     }
                 } label: {
                     if viewModel.isLoading || viewModel.isUploadingPhotos {
@@ -141,13 +169,18 @@ struct EditOrderView: View {
                     } else {
                         Image(systemName: "chevron.right")
                             .font(.title3)
-                            .foregroundColor(.white)
+                            .foregroundColor(showDeleteProductAlert ? .gray : .white)
                     }
                 }
                 .buttonStyle(.glassProminent)
-                .disabled(viewModel.isLoading)
-                .tint(.primaryButton)
+                .disabled(viewModel.isLoading || showDeleteProductAlert)
+                .tint(showDeleteProductAlert ? .gray : .primaryButton)
             }
+        }
+        // ❌ HAPUS: .disabled(showDeleteProductAlert) dari sini
+        .task {
+            let unwrappedImages = selectedImages.compactMap { $0 }
+            viewModel.configure(userId: session.userId, parsedOrderData: parsedOrderData, selectedPhotos: unwrappedImages)
         }
         .alert("Berhasil!", isPresented: $viewModel.didSave) {
             Button("OK") {
@@ -161,7 +194,8 @@ struct EditOrderView: View {
         }
     }
 
-    // Urutkan prioritas: customer -> schedule -> product -> other
+
+
     private func firstErrorKey(from errors: Set<String>) -> String? {
         let sections = ["customer", "schedule", "product", "other"]
         for section in sections {
@@ -174,7 +208,6 @@ struct EditOrderView: View {
 }
 
 
-// MARK: - Products Section
 struct ProductsSection: View {
     @Binding var products: [ProductItem]
     let onAdd: () -> Void
@@ -201,9 +234,6 @@ struct ProductsSection: View {
             ForEach(Array(products.enumerated()), id: \.offset) { index, product in
                 VStack(alignment: .leading, spacing: 8) {
                     HStack {
-//                        Text(product.category.isEmpty ? "Kategori Produk" : product.category)
-//                            .font(.headline)
-//                            .foregroundColor(product.category.isEmpty ? .secondary : .primary)
                         Spacer()
                         if products.count > 1 {
                             Button { onDelete(index) } label: {
@@ -233,9 +263,14 @@ struct ProductsSection: View {
                         )
 
                         if fieldErrors.contains(nameKey) {
-                            Text("Nama produk wajib diisi")
-                                .font(.caption)
-                                .foregroundStyle(.red)
+                            HStack(spacing: 4) {
+                                Image(systemName: "exclamationmark.triangle.fill")
+                                    .font(.caption)
+                                    .foregroundColor(.red)
+                                Text("Nama produk wajib diisi")
+                                    .font(.caption)
+                                    .foregroundStyle(.red)
+                            }
                         }
                     }
                     .id(nameKey)
@@ -253,7 +288,6 @@ struct ProductsSection: View {
                         .focused($focusedField, equals: qtyKey)
                         .textFieldStyle(.roundedBorder)
                         .keyboardType(.numberPad)
-                       
                         .overlay(
                             RoundedRectangle(cornerRadius: 6)
                                 .stroke(
@@ -263,9 +297,14 @@ struct ProductsSection: View {
                         )
 
                         if fieldErrors.contains(qtyKey) {
-                            Text("Jumlah harus lebih dari 0")
-                                .font(.caption)
-                                .foregroundStyle(.red)
+                            HStack(spacing: 4) {
+                                Image(systemName: "exclamationmark.triangle.fill")
+                                    .font(.caption)
+                                    .foregroundColor(.red)
+                                Text("Jumlah harus lebih dari 0")
+                                    .font(.caption)
+                                    .foregroundStyle(.red)
+                            }
                         }
                     }
                     .id(qtyKey)
@@ -278,6 +317,7 @@ struct ProductsSection: View {
         }
     }
 }
+
 
 
 // MARK: - Add-Ons Section
