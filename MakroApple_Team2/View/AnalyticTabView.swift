@@ -230,6 +230,11 @@ struct AnalyticTabView: View {
     @EnvironmentObject var viewModel: AnalyticTabViewModel
     @EnvironmentObject var session: SessionManager
     
+    @State private var logoViewModel = AllOrdersViewModel()
+    @State var showProfile = false
+    @State private var profileImage: UIImage? = nil
+    @State var onChangeSettings = false
+    
     // Tambahkan di dalam struct BarChartStatCard, sebelum body
     func detailedLabel(for entry: BarChartEntry, timeframe: AnalyticTimeframe) -> String {
         // Jika sudah format ringkas (misal "10-16"), parse dan convert ke lengkap
@@ -247,20 +252,33 @@ struct AnalyticTabView: View {
                         .font(.system(size: 32, weight: .bold))
                         .foregroundColor(.black)
                     Spacer()
-                    ZStack {
-                        Circle()
-                            .fill(Color.white)
-                            .frame(width: 40, height: 40)
-                            .shadow(color: Color(.systemGray4), radius: 4, x: 0, y: 1)
+                    Button {
+                        showProfile = true
+                    } label: {
+                        if let logoImage = profileImage {
+                            Image(uiImage: logoImage)
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: 40, height: 40)
+                                .clipShape(Circle())
+                        } else {
+                            ZStack {
+                                Circle()
+                                    .fill(Color.white)
+                                    .frame(width: 40, height: 40)
+                                    .shadow(color: Color(.systemGray4),
+                                            radius: 4, x: 0, y: 1)
 
-                        Image(systemName: "person.fill")
-                            .font(.title3)
-                            .foregroundColor(.primaryButton)
-
+                                Image(systemName: "person.fill")
+                                    .font(.title3)
+                                    .foregroundColor(.primaryButton)
+                            }
+                        }
                     }
                 }
                 .padding(.horizontal, 20)
-                .padding(.top, 16)
+                .padding(.top, 24)
+                
 
                 Picker("Timeframe", selection: $timeframe) {
                     ForEach(AnalyticTimeframe.allCases, id: \.self) { tf in
@@ -338,6 +356,14 @@ struct AnalyticTabView: View {
             .padding()
             Spacer()
         }
+        .task(id: logoViewModel.businessLogoUrl) {
+            await logoViewModel.fetchBusinessName(for: UUID(uuidString: session.userId!))
+            guard let urlString = logoViewModel.businessLogoUrl else {
+                profileImage = nil
+                return
+            }
+            profileImage = await logoViewModel.loadImage(from: urlString)
+        }
         .onAppear {
             guard let userIdStr = session.userId,
                   let userId = UUID(uuidString: userIdStr) else { return }
@@ -364,8 +390,12 @@ struct AnalyticTabView: View {
                 .ignoresSafeArea()
             }
         }
-
-        
+        .sheet(isPresented: $showProfile) {
+            NavigationStack{
+                SettingsView(onChangeSettings: $onChangeSettings)
+               
+            }
+        }
     }
 }
 

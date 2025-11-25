@@ -209,7 +209,7 @@ struct NewOrderView: View {
                     } label: {
                         Image(systemName: "chevron.left")
                             .font(.title3)
-                            .foregroundColor(.primary)
+                            .foregroundStyle(.primaryButton)
                     }
                     
     //                .buttonStyle(.glassProminent)

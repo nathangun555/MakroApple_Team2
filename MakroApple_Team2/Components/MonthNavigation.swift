@@ -38,7 +38,7 @@ struct MonthNavigationView: View {
             Button(action: previousSection) {
                Image(systemName: "chevron.left")
                    .font(.title3)
-                   .foregroundStyle(.primary)
+                   .foregroundStyle(.primaryButton)
            }
             
             Spacer()
