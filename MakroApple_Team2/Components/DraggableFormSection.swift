@@ -16,6 +16,7 @@ struct DraggableFormSection: View {
     var onDelete: ((Int) -> Void)? = nil
     var isEditable: Bool = true
     var focusedIndex: FocusState<Int?>.Binding
+    var onReorder: (([FormFieldItem]) -> Void)? = nil
 
     @State private var draggingItem: FormFieldItem?
 
@@ -51,11 +52,8 @@ struct DraggableFormSection: View {
                                 .font(.system(size: 16))
                                 .foregroundColor(.gray)
                                 .padding(.trailing, 4)
-                                .draggable(field.id.uuidString)
-                                .onDrag {
-                                    draggingItem = field
-                                    return NSItemProvider(item: field.id.uuidString as NSString, typeIdentifier: UTType.text.identifier)
-                                }
+                               
+                                
 
                             TextField(
                                 "",
@@ -94,6 +92,10 @@ struct DraggableFormSection: View {
                                 }
                             }
                         }
+                        .onDrag {
+                            draggingItem = field
+                            return NSItemProvider(item: field.id.uuidString as NSString, typeIdentifier: UTType.text.identifier)
+                        }
                         .padding(.horizontal)
                         .background(
                             (draggingItem?.id == field.id) ? Color(.systemGray5) : Color.clear
@@ -103,7 +105,8 @@ struct DraggableFormSection: View {
                             delegate: DropViewDelegate(
                                 item: field,
                                 fields: $fields,
-                                draggingItem: $draggingItem
+                                draggingItem: $draggingItem,
+                                onReorder: onReorder
                             )
                         )
                         .background(
@@ -125,6 +128,7 @@ struct DropViewDelegate: DropDelegate {
     let item: FormFieldItem
     @Binding var fields: [FormFieldItem]
     @Binding var draggingItem: FormFieldItem?
+    var onReorder: (([FormFieldItem]) -> Void)?
 
     func dropEntered(info: DropInfo) {
         print("DROP ENTERED")
@@ -144,6 +148,7 @@ struct DropViewDelegate: DropDelegate {
     }
 
     func performDrop(info: DropInfo) -> Bool {
+        onReorder?(fields)
         draggingItem = nil
         return true
     }

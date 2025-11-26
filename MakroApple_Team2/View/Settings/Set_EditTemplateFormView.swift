@@ -9,7 +9,7 @@ import SwiftUI
 import Foundation
 
 struct Set_EditTemplateFormView: View {
-    @State private var viewModel = Set_EditTemplateFormViewModel()
+    @State private var viewModel = EditTemplateViewModel()
     @EnvironmentObject var session: SessionManager
     @Environment(\.dismiss) var dismiss
     
@@ -76,7 +76,10 @@ struct Set_EditTemplateFormView: View {
                                 showDeleteFieldAlert = true
                             },
                             isEditable: true,
-                            focusedIndex: $focusedOtherField
+                            focusedIndex: $focusedOtherField,
+                            onReorder: { newOrder in
+                                                                viewModel.otherFields = newOrder
+                                                            }
                         )
 
                         // Referensi Foto (nonaktif dulu)
