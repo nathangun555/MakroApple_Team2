@@ -88,30 +88,27 @@ struct EditTemplateFormView: View {
                         )
                         
                         // Referensi Foto Section
-                        VStack(alignment: .leading, spacing: 12) {
-                            Text("Referensi Foto")
-                                .font(.title3)
-                                .fontWeight(.bold)
-
-                            Button(action: {}) {
-                                ZStack {
-                                    RoundedRectangle(cornerRadius: 12)
-                                        .stroke(style: StrokeStyle(lineWidth: 2, dash: [5]))
-                                        .foregroundColor(.gray.opacity(0.5))
-                                        .frame(width: 200, height: 200)
-                                        .background(Color(.systemGray6))
-                                        .cornerRadius(12)
-                                    VStack {
-                                        Image(systemName: "photo.badge.plus")
-                                            .font(.system(size: 40))
-                                            .foregroundColor(.gray)
-                                    }
-                                }
+                        
+                        HStack{
+                            VStack(alignment: .leading){
+                                Image(systemName: "photo.badge.plus.fill")
+                                    .font(.title)
+                                    .foregroundColor(.gray)
+                                Text("No photos")
+                                    .font(.caption2)
+                                    .foregroundColor(.secondary)
                             }
-                            .disabled(true)
+                            .frame(width: 115, height: 115)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 10)
+                                    .strokeBorder(style: StrokeStyle(lineWidth: 0.5))
+                                    .foregroundStyle(Color.primary)
+                                    .background(.gray.opacity(0.1))
+                                    .cornerRadius(10)
+                            )
+                            Spacer()
                         }
                         .padding(.horizontal)
-                        .frame(maxWidth: .infinity, alignment: .leading)
                     }
                     .padding(.vertical)
                 }

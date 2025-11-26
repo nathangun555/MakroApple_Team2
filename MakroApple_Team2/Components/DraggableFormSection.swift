@@ -87,7 +87,7 @@ struct DraggableFormSection: View {
 
                             if showDelete, let onDelete = onDelete {
                                 Button(action: { onDelete(index) }) {
-                                    Image(systemName: "trash")
+                                    Image(systemName: "trash.fill")
                                         .foregroundColor(.red)
                                 }
                             }
