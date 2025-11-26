@@ -108,18 +108,6 @@ final class Set_BusinessDetailsViewModel: ObservableObject {
                  bankAccountNumber != original.bankAccountNumber ||
                  bankAccountName != original.bankAccountName ||
                  bankName != original.bankName
-      
-//      noEmptyFields = !(
-//          businessName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ||
-//          businessPhone.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ||
-//          businessAddress.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ||
-//          businessLogoUrl.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ||
-//          businessEmail.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ||
-//          bankAccountNumber.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ||
-//          bankAccountName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ||
-//          bankName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-//      )
-
   }
     
     func checkForEmptyFields (){
@@ -127,6 +115,7 @@ final class Set_BusinessDetailsViewModel: ObservableObject {
             !businessName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
             !businessPhone.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
             !businessAddress.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+            !businessLogoUrl.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
             !businessEmail.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
             !bankAccountNumber.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
             !bankAccountName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&

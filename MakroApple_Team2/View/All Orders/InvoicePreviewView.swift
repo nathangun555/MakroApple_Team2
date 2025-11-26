@@ -91,21 +91,6 @@ struct InvoicePreviewView: View {
                                 }
                                 .disabled(isSaving)
                             }
-                        } else {
-                            VStack(spacing: 0) {
-                                Button {
-                                    isDismissed = true
-                                } label: {
-                                    Text("Konfirmasi")
-                                        .frame(maxWidth: .infinity)
-                                        .bold()
-                                        .padding()
-                                        .foregroundColor(.white)
-                                        .glassEffect(.clear.tint(.primaryButton), in: .rect(cornerRadius: 30))
-                                        .padding(.horizontal)
-                                        .padding(.bottom)
-                                }
-                            }
                         }
                     }
                     
@@ -128,6 +113,18 @@ struct InvoicePreviewView: View {
                             }
                         }) {
                             Image(systemName: "square.and.arrow.up")
+                                .font(.title3)
+                                .foregroundColor(.white)
+                        }
+                        .buttonStyle(.glassProminent)
+                        .tint(.primaryButton)
+                    }
+                    
+                    else {
+                        Button(action: {
+                            isDismissed = true
+                        }) {
+                            Image(systemName: "checkmark")
                                 .font(.title3)
                                 .foregroundColor(.white)
                         }

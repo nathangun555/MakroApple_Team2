@@ -25,20 +25,6 @@ struct NewTemplateFormView: View {
                                     .font(.title3)
                                     .fontWeight(.bold)
                                 Spacer()
-                                Button(action: {
-                                    if let clipboard = UIPasteboard.general.string {
-                                        formPesanan = clipboard
-                                    }
-                                }) {
-                                    Label("Tempel", systemImage: "list.clipboard.fill")
-                                        .font(.caption)
-                                        .fontWeight(.bold)
-                                        .padding(8)
-                                        .labelStyle(.titleAndIcon)
-                                        .foregroundColor(.white)
-                                        .background(.primaryButton)
-                                        .cornerRadius(20)
-                                }
                             }
                         
                             TextEditor(text: $formPesanan)
@@ -106,31 +92,49 @@ struct NewTemplateFormView: View {
                     
                     .toolbar {
                         ToolbarItem(placement: .topBarTrailing) {
-                            Button {
-                                Task {
-                                    await viewModel.generateTemplate(from: formPesanan)
+                            if formPesanan.isEmpty{
+                                Button {
+                                    Task {
+                                        
+                                    }
+                                } label: {
+                                    if viewModel.isLoading {
+                                        ProgressView()
+                                            .tint(.white)
+                                            .frame(width: 32, height: 32)
+                                    } else {
+                                        Image(systemName: "chevron.right")
+                                            .font(.title3)
+                                            .foregroundColor(.primaryButton)
+                                            .frame(width: 32, height: 32)
+                                    }
                                 }
-                            } label: {
-                                if viewModel.isLoading {
-                                    ProgressView()
-                                        .tint(.white)
-                                        .frame(width: 32, height: 32)
-                                        .background(
-                                            Circle().fill(Color.blue)
-                                        )
-                                } else {
-                                    Image(systemName: "chevron.right")
-                                        .font(.title3)
-                                        .foregroundColor(.white)
-                                        .frame(width: 32, height: 32)
-                                        .background(
-                                            Circle().fill(Color.blue)
-                                        )
-                                }
+                                .buttonStyle(.glassProminent)
+                                .tint(.white)
                             }
-                            .buttonStyle(.glassProminent)
-                            .tint(.primaryButton)
-                            .disabled(formPesanan.isEmpty || viewModel.isLoading)
+                            else {
+                                
+                                Button {
+                                    Task {
+                                        await viewModel.generateTemplate(from: formPesanan)
+                                    }
+                                } label: {
+                                    if viewModel.isLoading {
+                                        ProgressView()
+                                            .tint(.white)
+                                            .frame(width: 32, height: 32)
+                                    } else {
+                                        Image(systemName: "chevron.right")
+                                            .font(.title3)
+                                            .foregroundColor(.white)
+                                            .frame(width: 32, height: 32)
+                                    }
+                                }
+                                .buttonStyle(.glassProminent)
+                                .tint(.primaryButton)
+                                .disabled(viewModel.isLoading)
+                            }
+                            
                         }
                     }
                     .animation(.easeInOut(duration: 0.3), value: viewModel.isLoading)
@@ -138,6 +142,7 @@ struct NewTemplateFormView: View {
                 .onTapGesture {
                     hideKeyboard()
                 }
+                .navigationTitle("Formulir Pesanan")
                 .navigationDestination(isPresented: $viewModel.didSave) {
                     EditTemplateFormView(isDismissed: $isDismissed)
                 }

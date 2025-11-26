@@ -379,35 +379,94 @@ struct InputBusinessDetailsView: View {
           }
         }
         
-      
-        
-        ToolbarItem(placement: .topBarTrailing) {
-          Button {
-              Task {
-                  await vm.save()
-                  
-                  if vm.saveSuccess {
-                      navigateToMenu = true
+          ToolbarItem(placement: .topBarTrailing) {
+              
+              if vm.noEmptyFields {
+                    Button {
+                        Task {
+                            await vm.save()
+          
+                            if vm.saveSuccess {
+                                navigateToMenu = true
+                            }
+                        }
+                    } label: {
+                      if vm.isSaving {
+                        ProgressView()
+                          .tint(.white)
+                          .frame(width: 32, height: 32)
+//                          .background(Circle().fill(Color.blue))
+                      } else {
+                          Image(systemName: "chevron.right")
+                              .font(.title3)
+                              .fontWeight(.semibold)
+                              .foregroundColor(.white)
+                      }
+          
+                    }
+                    .buttonStyle(.glassProminent)
+                    .tint(Color.primaryButton)
+                    .disabled(vm.isSaving || vm.isLoading)
                   }
+              else {
+                  Button {
+                      Task {
+                          await vm.save()
+        
+                          if vm.saveSuccess {
+                              navigateToMenu = true
+                          }
+                      }
+                  } label: {
+                    if vm.isSaving {
+                      ProgressView()
+                        .tint(.white)
+                        .frame(width: 32, height: 32)
+//                        .background(Circle().fill(Color.blue))
+                    } else {
+                        Image(systemName: "chevron.right")
+                            .font(.title3)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.primaryButton)
+                    }
+        
+                  }
+                  .buttonStyle(.glassProminent)
+                  .tint(Color.white)
+                  .disabled(vm.isSaving || vm.isLoading)
               }
-          } label: {
-            if vm.isSaving {
-              ProgressView()
-                .tint(.white)
-                .frame(width: 32, height: 32)
-                .background(Circle().fill(Color.blue))
-            } else {
-                Image(systemName: "chevron.right")
-                    .font(.title3)
-                    .fontWeight(.semibold)
-                    .foregroundColor(vm.noEmptyFields ? .white : Color.primaryButton )
-            }
-                  
+              
+              
           }
-          .buttonStyle(.glassProminent)
-          .tint(vm.noEmptyFields ? Color.primaryButton : .white)
-          .disabled(vm.isSaving || vm.isLoading)
-        }
+          
+        
+//        ToolbarItem(placement: .topBarTrailing) {
+//          Button {
+//              Task {
+//                  await vm.save()
+//                  
+//                  if vm.saveSuccess {
+//                      navigateToMenu = true
+//                  }
+//              }
+//          } label: {
+//            if vm.isSaving {
+//              ProgressView()
+//                .tint(.white)
+//                .frame(width: 32, height: 32)
+//                .background(Circle().fill(Color.blue))
+//            } else {
+//                Image(systemName: "chevron.right")
+//                    .font(.title3)
+//                    .fontWeight(.semibold)
+//                    .foregroundColor(vm.noEmptyFields ? .white : Color.primaryButton )
+//            }
+//                  
+//          }
+//          .buttonStyle(.glassProminent)
+//          .tint(vm.noEmptyFields ? Color.primaryButton : .white)
+//          .disabled(vm.isSaving || vm.isLoading)
+//        }
       }
       .task {
         vm.configure(userId: session.userId)

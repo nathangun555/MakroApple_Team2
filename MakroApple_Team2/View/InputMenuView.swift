@@ -63,6 +63,37 @@ struct InputMenuView: View {
             } message: {
                 Text(errorMessage)
             }
+            .toolbar{
+                ToolbarItem {
+                    if !uploadedFiles.isEmpty {
+                        
+                        Button(action: {
+                            submitFiles()
+                        }){
+                            Image(systemName: "chevron.right")
+                                .font(.title3)
+                                .fontWeight(.semibold)
+                                .foregroundColor(.white)
+                        }
+                        .buttonStyle(.glassProminent)
+                        .tint(Color.primaryButton)
+                        
+                    }
+                    
+                    else {
+                        Button(action: {
+                            
+                        }){
+                            Image(systemName: "chevron.right")
+                                .font(.title3)
+                                .fontWeight(.semibold)
+                                .foregroundColor(.primaryButton)
+                        }
+                        .buttonStyle(.glassProminent)
+                        .tint(.white)
+                    }
+                }
+            }
             .navigationDestination(isPresented: $showLoading) {
                 LoadingView(model: viewModel, context: "menu")
             }
@@ -84,30 +115,15 @@ struct InputMenuView: View {
                 Button {
                     showManualInput = true
                 } label: {
-                    HStack {
-                        Image(systemName: "square.and.pencil")
-                        Text("Buat Menu Manual")
-                            .fontWeight(.semibold)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color(.systemGray6))
-                    .foregroundColor(.primaryButton)
-                    .cornerRadius(12)
+                    Text("Atau buat menu / katalog secara manual")
+                        .font(.caption)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .underline(true)
                 }
                 .padding(.horizontal)
                 
-                Spacer().frame(height: 20)
-                VStack(alignment: .center, spacing: 12) {
-                    submitButton
-                    if viewModel.isLoading {
-                        Text("Harap menunggu, AI sedang memindai katalog Anda..")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                            .multilineTextAlignment(.center)
-                    }
-                }
-                .frame(maxWidth: .infinity)
+                Spacer()
+
             }
             .padding(.vertical)
         }
@@ -117,15 +133,13 @@ struct InputMenuView: View {
     private var headerSection: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Input List Harga")
-                .font(.title)
+                .font(.body)
                 .bold()
-                .padding(.horizontal)
             
             Text("Menu / Katalog :")
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-                .padding(.horizontal)
+                .font(.footnote)
         }
+        .padding(.horizontal)
     }
     
     // MARK: - Upload Section
@@ -138,17 +152,17 @@ struct InputMenuView: View {
         RoundedRectangle(cornerRadius: 12)
             .strokeBorder(style: StrokeStyle(lineWidth: 2, dash: [8]))
             .foregroundColor(.gray)
-            .frame(height: 200)
+            .frame(height: 120)
             .overlay(
                 VStack(spacing: 12) {
                     Image(systemName: "square.and.arrow.up.fill")
-                        .font(.system(size: 50))
+                        .font(.headline)
                         .foregroundColor(.primaryButton)
                     Text("Unggah katalog bisnis anda di sini untuk\nmenyimpan daftar produk dan harga.")
-                        .font(.body)
+                        .font(.subheadline)
                         .foregroundColor(.primaryButton)
                         .multilineTextAlignment(.center)
-                    Text("format PDF, sampai dengan 10 MB.")
+                    Text("Format PDF maksimal 10 MB.")
                         .font(.caption)
                         .foregroundColor(.secondary)
                         .multilineTextAlignment(.center)
@@ -175,6 +189,11 @@ struct InputMenuView: View {
                 RoundedRectangle(cornerRadius: 8)
                     .fill(Color.gray.opacity(0.1))
                     .frame(width: 50, height: 50)
+                    .overlay(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                            )
+                
                 Text(file.isPDF ? "PDF" : "IMG")
                     .font(.caption)
                     .bold()
@@ -183,10 +202,10 @@ struct InputMenuView: View {
             
             VStack(alignment: .leading, spacing: 4) {
                 Text(file.fileName)
-                    .font(.body)
+                    .font(.footnote)
                     .lineLimit(1)
                 Text(file.fileSize)
-                    .font(.caption)
+                    .font(.caption2)
                     .foregroundColor(.secondary)
                 
             }
@@ -196,33 +215,18 @@ struct InputMenuView: View {
             Button(action: {
                 uploadedFiles.removeAll { $0.id == file.id }
             }) {
-                Image(systemName: "xmark.circle.fill")
+                Image(systemName: "trash.fill")
                     .foregroundColor(.gray)
-                    .font(.title3)
+                    .font(.footnote)
             }
         }
         .padding()
-        .background(Color(.systemGray6))
+        .background(Color.white)
         .cornerRadius(12)
-    }
-    
-    private var submitButton: some View {
-        Button(action: { submitFiles() }) {
-            if submitState == .loading {
-                ProgressView()
-                    .frame(maxWidth: .infinity)
-                    .tint(.white)
-            } else {
-                Text("Pindai Katalog")
-                    .font(.title3)
-                    .fontWeight(.bold)
-                    .frame(maxWidth: .infinity)
-            }
-        }
-        .buttonStyle(.borderedProminent)
-        .tint(.primaryButton)
-        .disabled(uploadedFiles.isEmpty || submitState == .loading)
-        .padding(.horizontal)
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(Color.black.opacity(0.1), lineWidth: 1)
+        )
     }
     
     // MARK: - Helper

@@ -38,7 +38,7 @@ struct ConfirmMenuView: View {
                 .navigationBarBackButtonHidden(true)
                 .toolbar {
                     ToolbarItem(placement: .principal) {
-                        Text("Konfirmasi Hasil Scan")
+                        Text("Rincian Menu / Katalog")
                             .font(.title2.bold())
                     }
                     ToolbarItem(placement: .navigationBarLeading) {
@@ -71,8 +71,9 @@ struct ConfirmMenuView: View {
                         } label: {
                             if vm.isLoading {
                                 ProgressView()
+                                    .tint(.white)
                             } else {
-                                Image(systemName: "checkmark")
+                                Image(systemName: "chevron.right")
                                     .font(.title2)
                                     .foregroundColor(vm.hasPendingChanges ? .white : .gray)
                             }
