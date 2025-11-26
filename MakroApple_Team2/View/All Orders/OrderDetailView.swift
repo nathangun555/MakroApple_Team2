@@ -455,8 +455,10 @@ struct OrderDetailView: View {
                                             do {
                                                 // Download the file (same as toolbar behavior)
                                                 let (data, _) = try await URLSession.shared.data(from: remoteURL)
-                                                let tempURL = FileManager.default.temporaryDirectory
-                                                    .appendingPathComponent("invoice_preview.pdf")
+                                                let sanitizedName = order.customerOrderName
+                                                    .replacingOccurrences(of: " ", with: "_")
+                                                let fileName = "\(order.orderNumber)_\(sanitizedName).pdf"
+                                                let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(fileName)
                                                 try data.write(to: tempURL)
 
                                                 // Use the same sharing logic as toolbar
