@@ -44,22 +44,32 @@ class EditTemplateViewModel {
                 errorMessage = "Template tidak ditemukan"
                 return
             }
-            if customerFields.isEmpty{
+            
+            if customerFields.isEmpty {
                 parseTemplate(templateDict)
             }
+            
         } catch {
             errorMessage = "Gagal memuat template: \(error.localizedDescription)"
         }
     }
     
+    
+    
+    // MARK: - Parse Template
     private func parseTemplate(_ dict: [String: AnyCodable]) {
-        // Define field categories based on common keys
         let customerKeys = ["Nama Pemesan", "No. Telp Pemesan", "Nama Penerima", "No. Telp Penerima", "Alamat Kirim"]
         let scheduleKeys = ["Tanggal Pesanan", "Jam Kirim"]
         let orderKeys = ["Pesanan"]
-        let otherKeys = ["Foto Referensi (optional)"]
+        
+        // Load saved order for "other fields"
+        let savedOrder = (dict["_other_order"]?.value as? [String]) ?? []
+        
+        var tempOther: [FormFieldItem] = []
         
         for (key, anyValue) in dict {
+            if key == "_other_order" { continue } // metadata, skip
+            
             let stringValue: String
             if let str = anyValue.value as? String {
                 stringValue = str
@@ -77,42 +87,42 @@ class EditTemplateViewModel {
                 scheduleFields.append(field)
             } else if orderKeys.contains(key) {
                 orderFields.append(field)
-            } else if otherKeys.contains(key) {
-                otherFields.append(field)
             } else {
-                otherFields.append(field)
+                tempOther.append(field)
             }
         }
         
-        customerFields.sort { customerKeys.firstIndex(of: $0.label) ?? 999 < customerKeys.firstIndex(of: $1.label) ?? 999 }
-        scheduleFields.sort { scheduleKeys.firstIndex(of: $0.label) ?? 999 < scheduleKeys.firstIndex(of: $1.label) ?? 999 }
-        orderFields.sort { orderKeys.firstIndex(of: $0.label) ?? 999 < orderKeys.firstIndex(of: $1.label) ?? 999 }
+        // FIXED: customer/schedule/order keep sorted
+        customerFields.sort { customerKeys.firstIndex(of: $0.label)! < customerKeys.firstIndex(of: $1.label)! }
+        scheduleFields.sort { scheduleKeys.firstIndex(of: $0.label)! < scheduleKeys.firstIndex(of: $1.label)! }
+        orderFields.sort { orderKeys.firstIndex(of: $0.label)! < orderKeys.firstIndex(of: $1.label)! }
+        
+        // Option B: otherFields are purely user-defined order
+        if !savedOrder.isEmpty {
+            otherFields = tempOther.sorted {
+                (savedOrder.firstIndex(of: $0.label) ?? 999) <
+                (savedOrder.firstIndex(of: $1.label) ?? 999)
+            }
+        } else {
+            // First-time user → preserve Supabase order as-is (NO SORTING)
+            otherFields = tempOther
+        }
     }
     
-    func addCustomerField() {
-        customerFields.append(FormFieldItem(label: "New Field", value: ""))
-    }
     
-    func addScheduleField() {
-        scheduleFields.append(FormFieldItem(label: "New Field", value: ""))
-    }
-    
-    func addOrderField() {
-        orderFields.append(FormFieldItem(label: "New Field", value: ""))
-    }
-    
+    // MARK: - Field Modification
+    func addCustomerField() { customerFields.append(FormFieldItem(label: "New Field", value: "")) }
+    func addScheduleField() { scheduleFields.append(FormFieldItem(label: "New Field", value: "")) }
+    func addOrderField() { orderFields.append(FormFieldItem(label: "New Field", value: "")) }
     func addOtherField() {
         otherFields.insert(FormFieldItem(label: "New Field", value: ""), at: 0)
     }
     
-    func deleteOrderField(at index: Int) {
-        orderFields.remove(at: index)
-    }
+    func deleteOrderField(at index: Int) { orderFields.remove(at: index) }
+    func deleteOtherField(at index: Int) { otherFields.remove(at: index) }
     
-    func deleteOtherField(at index: Int) {
-        otherFields.remove(at: index)
-    }
     
+    // MARK: - Save Template
     func saveTemplate() async {
         guard let userId, let uuid = UUID(uuidString: userId) else {
             errorMessage = "User belum login atau UID tidak valid."
@@ -125,29 +135,27 @@ class EditTemplateViewModel {
         
         var templateDict: [String: Any] = [:]
         
+        // Save all fields normally
         for field in customerFields + scheduleFields + orderFields + otherFields {
-                
-            guard !field.label.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-                continue
-            }
+            let key = field.label.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !key.isEmpty else { continue }
             
             if let data = field.value.data(using: .utf8),
                let array = try? JSONSerialization.jsonObject(with: data) as? [Any] {
-                templateDict[field.label] = array
+                templateDict[key] = array
             } else {
-                templateDict[field.label] = field.value
+                templateDict[key] = field.value
             }
         }
         
-        print(templateDict)
+        // 🔥 SAVE the user-defined order for otherFields
+        templateDict["_other_order"] = otherFields.map { $0.label }
         
         guard let jsonData = try? JSONSerialization.data(withJSONObject: templateDict),
               let jsonString = String(data: jsonData, encoding: .utf8) else {
             errorMessage = "Gagal mengkonversi template"
             return
         }
-        
-        print(jsonString)
         
         do {
             _ = try await SupabaseManager.shared.upsertFormTemplate(
@@ -162,7 +170,7 @@ class EditTemplateViewModel {
 }
 
 
-// MARK: - Data Models
+// MARK: - Data Model
 struct FormFieldItem: Identifiable, Hashable {
     let id = UUID()
     var label: String

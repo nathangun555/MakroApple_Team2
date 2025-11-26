@@ -23,15 +23,12 @@ struct RecipientSectionView: View {
             
             Text(recipientName)
                 .font(.system(size: 10))
-                .italic()
             
             Text(recipientPhone)
                 .font(.system(size: 10))
-                .italic()
             
             Text(deliveryAddress)
                 .font(.system(size: 10))
-                .italic()
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }

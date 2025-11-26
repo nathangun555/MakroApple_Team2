@@ -134,6 +134,15 @@ class EditOrderViewModel {
             otherFields.append(OrderField(label: "\(key)", value: stringValue))
         }
         
+        if let savedOrder = data["_other_order"] as? [String] {
+            otherFields.sort { a, b in
+                let aIndex = savedOrder.firstIndex(of: a.label) ?? 999
+                let bIndex = savedOrder.firstIndex(of: b.label) ?? 999
+                return aIndex < bIndex
+            }
+        }
+        
+        // 6. Apply saved ordering for otherFields if exists
         print("📋 Parsed Order Data:")
         print("  Customer fields: \(customerFields.count)")
         print("  Schedule fields: \(scheduleFields.count)")

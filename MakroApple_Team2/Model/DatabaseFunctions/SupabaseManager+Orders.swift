@@ -290,6 +290,6 @@ extension SupabaseManager {
 
         print("🗑️ Deleted order \(orderId)")
     }
-
+    
 }
 
