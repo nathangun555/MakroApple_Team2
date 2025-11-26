@@ -72,9 +72,13 @@ class InvoicePreviewViewModel {
         
         guard let pdfData = exportAsPDF(view: invoiceView) else { return nil }
         
-        let invoiceCode = invoiceData.invoiceNumber.isEmpty ? "Invoice" : invoiceData.invoiceNumber
+        let sanitizedName = invoiceData.customerName
+            .replacingOccurrences(of: " ", with: "_")
+        let fileName = "\(invoiceData.invoiceNumber)_\(sanitizedName).pdf"
+        let invoiceCode = invoiceData.invoiceNumber.isEmpty ? "Invoice" : fileName
+        
         let tempURL = FileManager.default.temporaryDirectory
-            .appendingPathComponent("\(invoiceCode.replacingOccurrences(of: "/", with: "_")).pdf")
+            .appendingPathComponent("\(invoiceCode.replacingOccurrences(of: "/", with: "_"))")
         
         do {
             try pdfData.write(to: tempURL)
@@ -388,7 +392,9 @@ class InvoicePreviewViewModel {
             throw NSError(domain: "InvoiceError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Invalid order ID"])
         }
         
-        let fileName = "\(invoiceData.invoiceNumber.replacingOccurrences(of: "/", with: "_")).pdf"
+        let sanitizedName = invoiceData.customerName
+            .replacingOccurrences(of: " ", with: "_")
+        let fileName = "\(invoiceData.invoiceNumber)_\(sanitizedName).pdf"
 
         let tempURL = FileManager.default.temporaryDirectory
             .appendingPathComponent(fileName)
