@@ -394,7 +394,9 @@ class InvoicePreviewViewModel {
         
         let sanitizedName = invoiceData.customerName
             .replacingOccurrences(of: " ", with: "_")
-        let fileName = "\(invoiceData.invoiceNumber)_\(sanitizedName).pdf"
+        let invoiceCode = invoiceData.invoiceNumber
+            .replacingOccurrences(of: "/", with: "_")
+        let fileName = "\(invoiceCode)_\(sanitizedName).pdf"
 
         let tempURL = FileManager.default.temporaryDirectory
             .appendingPathComponent(fileName)

@@ -86,12 +86,22 @@ struct InputBusinessDetailsView: View {
 
           // Nama Bisnis dengan error
           VStack(alignment: .leading, spacing: 4) {
-            LabeledRow(label: "Nama Bisnis :", labelWidth: labelWidth) {
-              PillTextField(placeholder: "Silakan isi nama bisnis anda",
-                            text: $vm.businessName,
-                            contentType: .organizationName)
-                .focused($focusedField, equals: .businessName)
-            }
+              LabeledRow(label: "Nama Bisnis :", labelWidth: labelWidth) {
+                  AutoGrowingTextEditor(
+                      text: $vm.businessName,
+                      placeholder: "Silakan isi nama bisnis anda",
+                      isEditing: true,
+                      font: .system(size: 16),
+                      lineHeight: 20,
+                      verticalPadding: 4,
+                      maxChars: 70,
+                      cornerRadius: 12,
+                      borderColor: Color(.secondaryLabel),
+                      borderWidth: 0.8
+                  )
+                  .frame(maxWidth: .infinity, alignment: .leading)
+                  .focused($focusedField, equals: .businessName)
+              }
             if let error = vm.fieldErrors["businessName"] {
                 
                 HStack{
@@ -112,11 +122,22 @@ struct InputBusinessDetailsView: View {
 
           // Alamat Bisnis dengan error
           VStack(alignment: .leading, spacing: 4) {
-            LabeledRow(label: "Alamat Bisnis :", labelWidth: labelWidth) {
-              PillTextField(placeholder: "Silakan isi alamat bisnis anda",
-                            text: $vm.businessAddress)
-                .focused($focusedField, equals: .businessAddress)
-            }
+              LabeledRow(label: "Alamat Bisnis :", labelWidth: labelWidth) {
+                  AutoGrowingTextEditor(
+                      text: $vm.businessAddress,
+                      placeholder: "Silakan isi nama bisnis anda",
+                      isEditing: true,
+                      font: .system(size: 16),
+                      lineHeight: 20,
+                      verticalPadding: 4,
+                      maxChars: 120,
+                      cornerRadius: 12,
+                      borderColor: Color(.secondaryLabel),
+                      borderWidth: 0.8
+                  )
+                  .frame(maxWidth: .infinity, alignment: .leading)
+                  .focused($focusedField, equals: .businessAddress)
+              }
             if let error = vm.fieldErrors["businessAddress"] {
                 HStack{
                     Image(systemName: "exclamationmark.triangle.fill")
@@ -135,13 +156,23 @@ struct InputBusinessDetailsView: View {
 
           // No Telp Bisnis dengan error
           VStack(alignment: .leading, spacing: 4) {
-            LabeledRow(label: "No Telp Bisnis :", labelWidth: labelWidth) {
-              PillTextField(placeholder: "Silakan isi no telp bisnis anda",
-                            text: $vm.businessPhone,
-                            keyboard: .numbersAndPunctuation,
-                            contentType: .telephoneNumber)
-                .focused($focusedField, equals: .businessPhone)
-            }
+              LabeledRow(label: "No Telp Bisnis :", labelWidth: labelWidth) {
+                  AutoGrowingTextEditor(
+                    text: $vm.businessPhone,
+                    placeholder: "Silakan isi no telp bisnis anda",
+                    isEditing: true,
+                    font: .system(size: 16),
+                    lineHeight: 20,
+                    verticalPadding: 4,
+                    maxChars: 30,
+                    cornerRadius: 12,
+                    borderColor: Color(.secondaryLabel),
+                    borderWidth: 0.8
+                  )
+                  .frame(maxWidth: .infinity, alignment: .leading)
+                  .focused($focusedField, equals: .businessPhone)
+                  .keyboardType(.numbersAndPunctuation)
+              }
             if let error = vm.fieldErrors["businessPhone"] {
                 HStack{
                     Image(systemName: "exclamationmark.triangle.fill")
@@ -160,15 +191,25 @@ struct InputBusinessDetailsView: View {
 
           // Email Bisnis dengan error
           VStack(alignment: .leading, spacing: 4) {
-            LabeledRow(label: "Email Bisnis :", labelWidth: labelWidth) {
-              PillTextField(placeholder: "Silakan isi alamat email bisnis anda",
-                            text: $vm.businessEmail,
-                            keyboard: .emailAddress,
-                            contentType: .emailAddress,
-                            autocap: .never,
-                            autocorrect: false)
-                .focused($focusedField, equals: .businessEmail)
-            }
+              LabeledRow(label: "Email Bisnis :", labelWidth: labelWidth) {
+                  AutoGrowingTextEditor(
+                      text: $vm.businessEmail,
+                      placeholder: "Silakan isi alamat email bisnis anda",
+                      isEditing: true,
+                      font: .system(size: 16),
+                      lineHeight: 20,
+                      verticalPadding: 4,
+                      maxChars: 80,
+                      cornerRadius: 12,
+                      borderColor: Color(.secondaryLabel),
+                      borderWidth: 0.8
+                  )
+                  .frame(maxWidth: .infinity, alignment: .leading)
+                  .focused($focusedField, equals: .businessEmail)
+                  .textInputAutocapitalization(.never)
+                  .autocorrectionDisabled(true)
+                  .keyboardType(.emailAddress)
+              }
             if let error = vm.fieldErrors["businessEmail"] {
                 
                 HStack{
@@ -273,11 +314,22 @@ struct InputBusinessDetailsView: View {
 
           // Nama Akun dengan error
           VStack(alignment: .leading, spacing: 4) {
-            LabeledRow(label: "Nama Akun :", labelWidth: labelWidth) {
-              PillTextField(placeholder: "Silakan isi nama akun anda",
-                            text: $vm.bankAccountName)
-                .focused($focusedField, equals: .bankAccountName)
-            }
+              LabeledRow(label: "Nama Akun :", labelWidth: labelWidth) {
+                  AutoGrowingTextEditor(
+                      text: $vm.bankAccountName,
+                      placeholder: "Silakan isi nama akun anda",
+                      isEditing: true,
+                      font: .system(size: 16),
+                      lineHeight: 20,
+                      verticalPadding: 4,
+                      maxChars: 70,
+                      cornerRadius: 12,
+                      borderColor: Color(.secondaryLabel),
+                      borderWidth: 0.8
+                  )
+                  .frame(maxWidth: .infinity, alignment: .leading)
+                  .focused($focusedField, equals: .bankAccountName)
+              }
             if let error = vm.fieldErrors["bankAccountName"] {
                 
                 HStack{
@@ -297,13 +349,23 @@ struct InputBusinessDetailsView: View {
 
           // Nomor Rekening dengan error
           VStack(alignment: .leading, spacing: 4) {
-            LabeledRow(label: "Nomor Rekening :", labelWidth: labelWidth) {
-              PillTextField(placeholder: "Silakan isi no rekening anda",
-                            text: $vm.bankAccountNumber,
-                            keyboard: .phonePad)
-                .focused($focusedField, equals: .bankAccountNumber)
-                
-            }
+              LabeledRow(label: "No Rekening :", labelWidth: labelWidth) {
+                  AutoGrowingTextEditor(
+                      text: $vm.bankAccountNumber,
+                      placeholder: "Silakan isi no rekening anda",
+                      isEditing: true,
+                      font: .system(size: 16),
+                      lineHeight: 20,
+                      verticalPadding: 4,
+                      maxChars: 30,
+                      cornerRadius: 12,
+                      borderColor: Color(.secondaryLabel),
+                      borderWidth: 0.8
+                  )
+                  .frame(maxWidth: .infinity, alignment: .leading)
+                  .focused($focusedField, equals: .bankAccountNumber)
+                  .keyboardType(.numberPad)
+              }
             if let error = vm.fieldErrors["bankAccountNumber"] {
                 
                 HStack{
@@ -323,11 +385,22 @@ struct InputBusinessDetailsView: View {
 
           // Nama Bank dengan error
           VStack(alignment: .leading, spacing: 4) {
-            LabeledRow(label: "Nama Bank :", labelWidth: labelWidth) {
-              PillTextField(placeholder: "Silakan isi nama bank anda",
-                            text: $vm.bankName)
-                .focused($focusedField, equals: .bankName)
-            }
+              LabeledRow(label: "Nama Bank :", labelWidth: labelWidth) {
+                  AutoGrowingTextEditor(
+                      text: $vm.bankName,
+                      placeholder: "Silakan isi nama bank anda",
+                      isEditing: true,
+                      font: .system(size: 16),
+                      lineHeight: 20,
+                      verticalPadding: 4,
+                      maxChars: 50,
+                      cornerRadius: 12,
+                      borderColor: Color(.secondaryLabel),
+                      borderWidth: 0.8
+                  )
+                  .frame(maxWidth: .infinity, alignment: .leading)
+                  .focused($focusedField, equals: .bankName)
+              }
             if let error = vm.fieldErrors["bankName"] {
                 
                 HStack{
