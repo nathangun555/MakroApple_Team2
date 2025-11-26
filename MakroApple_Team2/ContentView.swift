@@ -56,7 +56,9 @@ struct MainTabView: View {
     @EnvironmentObject var session: SessionManager
     @EnvironmentObject var deleteBus: DeleteOverlayBus
     @StateObject private var analyticViewModel = AnalyticTabViewModel()
+    @State private var shouldNavigateToActiveOrders = false
 
+    
     var body: some View {
         ZStack {
             TabView(selection: $selectedTab) {
@@ -69,16 +71,10 @@ struct MainTabView: View {
                 Tab("Jadwal", systemImage: "calendar", value: 1) {
                     ActiveOrdersView()
                 }
-//                Tab("AI", systemImage: "chart.bar", value: 2) {
-//                    ChatBotView()
-//                }
                 Tab("Analitik", systemImage: "chart.bar", value: 2) {
                     AnalyticTabView()
                         .environmentObject(analyticViewModel)
                 }
-//                Tab("Pengaturan", systemImage: "gearshape", value: 3) {
-//                    SettingsView()
-//                }
                 if selectedTab == 0 || selectedTab == 4 {
                     Tab("Cari Nama atau Pesanan", systemImage: "magnifyingglass", value: 4, role: .search) {
                         AllOrdersView(sharedImages: $sharedImages,
@@ -89,177 +85,29 @@ struct MainTabView: View {
             }
             .tint(.primaryButton)
             .onAppear {
-                        // ✅ Prefetch analytics saat app launch
-                        if let userIdStr = session.userId,
-                           let userId = UUID(uuidString: userIdStr) {
-                            analyticViewModel.prefetchInitialData(userId: userId)
-                        }
-                    }
-                    .onChange(of: selectedTab) { newTab in
-                        // ✅ Prefetch analytics saat user di tab lain (sebelum masuk Analytics)
-                        if newTab != 2,  // Bukan di Analytics tab
-                           let userIdStr = session.userId,
-                           let userId = UUID(uuidString: userIdStr) {
-                            analyticViewModel.prefetchInitialData(userId: userId)
-                        }
-                    }
-//            .disabled(deleteBus.show || unsavedBus.show)
-            
-//            if unsavedBus.show {
-//                Color.black.opacity(0.45).ignoresSafeArea().transition(.opacity).zIndex(996)
-//
-//                CustomUnsavedAlert(
-//                  title: unsavedBus.title,
-//                  message: unsavedBus.message,
-//                  cancelTitle: unsavedBus.cancelTitle,
-//                  confirmTitle: unsavedBus.confirmTitle,
-//                  onCancel: { unsavedBus.close(false) },
-//                  onConfirm: { unsavedBus.close(true) }
-//                )
-//                .transition(.scale.combined(with: .opacity))
-//                .zIndex(997)
-//              }
-//            if deleteBus.show {
-//                CustomDeleteAlertComponent(
-//                    title: "Hapus",
-//                    message: deleteBus.message,
-//                    cancelTitle: "Tidak",
-//                    confirmTitle: "Ya",
-//                    onCancel: { deleteBus.closeConfirm(false) },
-//                    onConfirm: { deleteBus.closeConfirm(true) }
-//                )
-//                .transition(.scale.combined(with: .opacity))
-//                .zIndex(999)
-//                .ignoresSafeArea()
-//            }
+                if let userIdStr = session.userId,
+                   let userId = UUID(uuidString: userIdStr) {
+                    analyticViewModel.prefetchInitialData(userId: userId)
+                }
+
+                // 🚀 Handle notification tap
+                if UserDefaults.standard.bool(forKey: "shouldNavigateToActiveOrders") {
+                    selectedTab = 1 // ActiveOrdersView tab
+                    UserDefaults.standard.removeObject(forKey: "shouldNavigateToActiveOrders")
+                }
+
+                NotificationCenter.default.addObserver(forName: .navigateToActiveOrders, object: nil, queue: .main) { _ in
+                    selectedTab = 1
+                }
+            }
+            .onChange(of: selectedTab) { newTab in
+                if newTab != 2,  // Bukan di Analytics tab
+                   let userIdStr = session.userId,
+                   let userId = UUID(uuidString: userIdStr) {
+                    analyticViewModel.prefetchInitialData(userId: userId)
+                }
+            }
         }
     }
 }
 
-//        NavigationStack {
-//            ZStack(alignment: .bottom) {
-//                TabView(selection: $selectedTab) {
-//                    AllOrdersView()
-//                        .tabItem { Label("Pesanan", systemImage: "basket.fill") }
-//                        .tag(0)
-//
-//                    ActiveOrdersView()
-//                        .tabItem { Label("Jadwal", systemImage: "tray.full") }
-//                        .tag(1)
-//
-//                    AnalyticsView()
-//                        .tabItem { Label("Analitik", systemImage: "chart.bar") }
-//                        .tag(2)
-//
-//                    SettingsView()
-//                        .tabItem { Label("Pengaturan", systemImage: "gearshape") }
-//                        .tag(3)
-//
-//                }
-//
-////                if selectedTab == 0 {
-////                    Button(action: { showNewOrder = true }) {
-////                        HStack {
-////                            Image(systemName: "plus")
-////                            Text("Tambah Pesanan")
-////                        }
-////                        .frame(maxWidth: .infinity)
-////                        .padding()
-////                        .background(Color.blue)
-////                        .foregroundColor(.white)
-////                        .cornerRadius(12)
-////                        .shadow(radius: 4)
-////                    }
-////                    .padding(.horizontal)
-////                    .padding(.bottom, 8)
-////                }
-//            }
-////            .navigationDestination(isPresented: $showNewOrder) {
-////                NewOrderView()
-////                    .navigationBarBackButtonHidden(false)
-////            }
-//        }
-//    }
-//}
-//
-//#Preview {
-//    ContentView()
-//        .environmentObject(SessionManager())
-//}
-
-
-
-
-
-
-//
-//  ContentView.swift
-//  MakroApple_Team2
-//
-//  Created by Nathan Gunawan on 06/10/25.
-//
-
-
-//import SwiftUI
-//import Foundation
-//
-//struct ContentView: View {
-//
-//    @SceneStorage("selectedTab") var selectedTab = 0
-//    @State private var showNewOrder = false
-//    @Environment(\.colorScheme) private var scheme
-//    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
-//
-//    @State private var searchText: String = ""
-//
-//    var body: some View {
-//
-//        GeometryReader { geometry in
-//
-//            NavigationStack {
-//                TabView(selection: $selectedTab) {
-//                    Tab("Pesanan", systemImage: "basket.fill", value: 0) {
-//                        AllOrdersView()
-//                    }
-//                    Tab("Jadwal", systemImage: "tray.full", value: 1) {
-//                        ActiveOrdersView()
-//                    }
-//                    Tab("Analitik", systemImage: "chart.bar", value: 2) {
-//                        AnalyticsView()
-//                    }
-//                    Tab("Pengaturan", systemImage: "gearshape", value: 3) {
-//                        SettingsView()
-//                    }
-//                    if selectedTab == 0 || selectedTab == 4 {
-//                        Tab("Cari Nama atau Pesanan", systemImage: "magnifyingglass", value: 4, role: .search) {
-//                            AllOrdersView()
-//                        }
-//                    }
-//                }
-//
-//
-////                            .tabBarMinimizeBehavior(.onScrollDown)
-//                .tabViewBottomAccessory {
-//                    if selectedTab == 0 {
-//                        Button(action: {
-//                            showNewOrder = true
-//                        }) {
-//                            HStack {
-//                                Image(systemName: "plus")
-//                                Text("Tambah Pesanan")
-//                            }
-//                            .frame(width: geometry.size.width, height: geometry.size.height)
-//                            .background(Color.blue)
-//                            .foregroundStyle(Color.white)
-//                        }
-//                    }
-//                }
-//                .navigationDestination(isPresented: $showNewOrder) {
-//                    NewOrderView()
-//                        .navigationBarBackButtonHidden(false)
-//                }
-//            }
-//        }
-//    }
-//}
-//
