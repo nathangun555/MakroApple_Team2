@@ -188,6 +188,7 @@ struct NewOrderView: View {
                 hideKeyboard()
             }
             .navigationTitle("Add New Order")
+            .navigationBarTitleDisplayMode( .inline)
             .task {
                 viewModel.configure(userId: session.userId)
             }
@@ -217,26 +218,47 @@ struct NewOrderView: View {
                 }
                 
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        Task {
-                            await viewModel.parseOrder(text: formPesanan)
-                        }
-                    } label: {
-                        if viewModel.isLoading {
-                            ProgressView()
-                                .tint(.white)
-                        }
-                        else {
-                            Image(systemName: "chevron.right")
-                                .font(.title3)
-                                .foregroundColor(.white)
-                        }
-                        
+                    
+                    if formPesanan.isEmpty {
+                        Button {
+                            Task {
+                              
+                            }
+                        } label: {
+                                Image(systemName: "chevron.right")
+                                    .font(.title3)
+                                    .foregroundColor(.primaryButton)
                             
+                            
+                                
+                        }
+                        .buttonStyle(.glassProminent)
+                        .tint(.white)
                     }
-                    .buttonStyle(.glassProminent)
-                    .disabled(viewModel.isLoading || formPesanan.isEmpty)
-                    .tint(.primaryButton)
+                    
+                    else{
+                        Button {
+                            Task {
+                                await viewModel.parseOrder(text: formPesanan)
+                            }
+                        } label: {
+                            if viewModel.isLoading {
+                                ProgressView()
+                                    .tint(.white)
+                            }
+                            else {
+                                Image(systemName: "chevron.right")
+                                    .font(.title3)
+                                    .foregroundColor(.white)
+                            }
+                            
+                            
+                        }
+                        .buttonStyle(.glassProminent)
+                        .disabled(viewModel.isLoading || formPesanan.isEmpty)
+                        .tint(.primaryButton)
+                        
+                    }
                 }
             }
             .animation(.easeInOut(duration: 0.3), value: viewModel.isLoading)

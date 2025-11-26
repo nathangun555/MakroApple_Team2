@@ -32,6 +32,17 @@ struct EditOrderView: View {
     @EnvironmentObject var session: SessionManager
     @EnvironmentObject var deleteBus: DeleteOverlayBus
     @Environment(\.dismiss) var dismiss
+    
+    var hasEmptyFields: Bool {
+        if viewModel.customerFields.contains(where: { $0.label.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }) { return true }
+        if viewModel.scheduleFields.contains(where: { $0.label.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }) { return true }
+        if viewModel.otherFields.contains(where: { $0.label.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }) { return true }
+
+        if viewModel.products.contains(where: { $0.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }) { return true }
+        if viewModel.products.contains(where: { $0.quantity <= 0 }) { return true }
+
+        return false
+    }
 
     var body: some View {
         ZStack {
@@ -149,32 +160,61 @@ struct EditOrderView: View {
             }
             
             ToolbarItem(placement: .topBarTrailing) {
-                Button {
-                    if !showDeleteProductAlert {
-                        if viewModel.validateAllFields() {
-                            Task {
-                                let order = await viewModel.saveOrder(photos: selectedImages.compactMap { $0 })
-                                if let order = order {
-                                    lastOrderId = order.id.uuidString
-                                    viewModel.didSave = true
+                if hasEmptyFields {
+                    Button {
+                        if !showDeleteProductAlert {
+                            if viewModel.validateAllFields() {
+                                Task {
+                                    let order = await viewModel.saveOrder(photos: selectedImages.compactMap { $0 })
+                                    if let order = order {
+                                        lastOrderId = order.id.uuidString
+                                        viewModel.didSave = true
+                                    }
                                 }
+                            } else {
+                                firstErrorId = firstErrorKey(from: viewModel.fieldErrors)
                             }
+                        }
+                    } label: {
+                        if viewModel.isLoading || viewModel.isUploadingPhotos {
+                            ProgressView()
                         } else {
-                            firstErrorId = firstErrorKey(from: viewModel.fieldErrors)
+                            Image(systemName: "chevron.right")
+                                .font(.title3)
+                                .foregroundColor(.primaryButton)
                         }
                     }
-                } label: {
-                    if viewModel.isLoading || viewModel.isUploadingPhotos {
-                        ProgressView()
-                    } else {
-                        Image(systemName: "chevron.right")
-                            .font(.title3)
-                            .foregroundColor(showDeleteProductAlert ? .gray : .white)
+                    .buttonStyle(.glassProminent)
+                    .disabled(viewModel.isLoading || showDeleteProductAlert)
+                    .tint(.white)
+                } else {
+                    Button {
+                        if !showDeleteProductAlert {
+                            if viewModel.validateAllFields() {
+                                Task {
+                                    let order = await viewModel.saveOrder(photos: selectedImages.compactMap { $0 })
+                                    if let order = order {
+                                        lastOrderId = order.id.uuidString
+                                        viewModel.didSave = true
+                                    }
+                                }
+                            } else {
+                                firstErrorId = firstErrorKey(from: viewModel.fieldErrors)
+                            }
+                        }
+                    } label: {
+                        if viewModel.isLoading || viewModel.isUploadingPhotos {
+                            ProgressView()
+                        } else {
+                            Image(systemName: "chevron.right")
+                                .font(.title3)
+                                .foregroundColor(showDeleteProductAlert ? .gray : .white)
+                        }
                     }
+                    .buttonStyle(.glassProminent)
+                    .disabled(viewModel.isLoading || showDeleteProductAlert)
+                    .tint(showDeleteProductAlert ? .gray : .primaryButton)
                 }
-                .buttonStyle(.glassProminent)
-                .disabled(viewModel.isLoading || showDeleteProductAlert)
-                .tint(showDeleteProductAlert ? .gray : .primaryButton)
             }
         }
         // ❌ HAPUS: .disabled(showDeleteProductAlert) dari sini

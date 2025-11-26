@@ -106,10 +106,6 @@ Foto Referensi (optional):
                                 Image(systemName: "chevron.right")
                                     .font(.title3)
                                     .foregroundColor(.white)
-                                    .frame(width: 32, height: 32)
-                                    .background(
-                                        Circle().fill(Color.blue)
-                                    )
                             }
                         }
                         .buttonStyle(.glassProminent)

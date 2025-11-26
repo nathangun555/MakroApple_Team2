@@ -374,7 +374,6 @@ struct InputBusinessDetailsView: View {
           } label: {
             Image(systemName: "chevron.left")
                   .font(.title3)
-                  .fontWeight(.semibold)
               .foregroundStyle(.primaryButton)
           }
         }
@@ -399,7 +398,6 @@ struct InputBusinessDetailsView: View {
                       } else {
                           Image(systemName: "chevron.right")
                               .font(.title3)
-                              .fontWeight(.semibold)
                               .foregroundColor(.white)
                       }
           
@@ -426,7 +424,6 @@ struct InputBusinessDetailsView: View {
                     } else {
                         Image(systemName: "chevron.right")
                             .font(.title3)
-                            .fontWeight(.semibold)
                             .foregroundColor(.primaryButton)
                     }
         

@@ -10,38 +10,35 @@ struct NewTemplateFormView: View {
     
     @Binding var isDismissed: Bool
     
+    @Environment(\.dismiss) private var dismiss
+    
     var body: some View {
         GeometryReader { geometry in
-            if viewModel.isLoading {
-                LoadingView(context: "template form")
-                        .transition(.opacity)
-                        .zIndex(1)
-            } else {
-                ZStack(alignment: .bottom){
-                    ScrollView{
-                        VStack(alignment: .leading){
-                            HStack{
-                                Text("Masukan/Buat Formulir Pesanan")
-                                    .font(.title3)
-                                    .fontWeight(.bold)
-                                Spacer()
-                            }
+            ZStack(alignment: .bottom){
+                ScrollView{
+                    VStack(alignment: .leading){
+                        HStack{
+                            Text("Masukan/Buat Formulir Pesanan")
+                                .font(.title3)
+                                .fontWeight(.bold)
+                            Spacer()
+                        }
                         
-                            TextEditor(text: $formPesanan)
-                                .padding(3)
-                                .frame(height: geometry.size.height / 3)
-                                .focused($isTextEditorFocused)
-                                .cornerRadius(10)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 10)
-                                        .stroke(Color.gray.opacity(5), lineWidth: 0.5)
-                                )
-                                .overlay(
-                                    Group {
-                                        if formPesanan.isEmpty && !isTextEditorFocused {
-                                            Text("""
+                        TextEditor(text: $formPesanan)
+                            .padding(3)
+                            .frame(height: geometry.size.height / 3)
+                            .focused($isTextEditorFocused)
+                            .cornerRadius(10)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 10)
+                                    .stroke(Color.gray.opacity(5), lineWidth: 0.5)
+                            )
+                            .overlay(
+                                Group {
+                                    if formPesanan.isEmpty && !isTextEditorFocused {
+                                        Text("""
                                         Paste or write your Form Order here ✨(e.g. for your F&B or custom order form)
-
+                                        
                                             Example:
                                             Nama Pemesan:
                                             No. Telp Pemesan:
@@ -57,97 +54,110 @@ struct NewTemplateFormView: View {
                                             Notes:
                                             Foto Referensi (optional):
                                         """)
-                                            .foregroundColor(.gray)
-                                            .padding(.horizontal, 14)
-                                            .padding(.vertical, 12)
-                                            .frame(maxWidth: .infinity, alignment: .leading)
-                                            .allowsHitTesting(false)
-                                        }
-                                    }
-                                )
-                            
-    //                        // ✅ Show result from ViewModel
-    //                        if let json = viewModel.resultJSON {
-    //                            Text("✅ Template JSON:")
-    //                                .font(.headline)
-    //                                .padding(.top)
-    //                            ScrollView {
-    //                                Text(json)
-    //                                    .font(.system(.caption, design: .monospaced))
-    //                                    .padding()
-    //                                    .background(Color(.secondarySystemBackground))
-    //                                    .cornerRadius(10)
-    //                            }
-    //                        }
-    //
-    //                        // ✅ Show error from ViewModel
-    //                        if let error = viewModel.errorMessage {
-    //                            Text("❌ Error: \(error)")
-    //                                .foregroundColor(.red)
-    //                                .padding(.top)
-    //                        }
-                        }
-                        .padding()
-                    }
-                    
-                    .toolbar {
-                        ToolbarItem(placement: .topBarTrailing) {
-                            if formPesanan.isEmpty{
-                                Button {
-                                    Task {
-                                        
-                                    }
-                                } label: {
-                                    if viewModel.isLoading {
-                                        ProgressView()
-                                            .tint(.white)
-                                            .frame(width: 32, height: 32)
-                                    } else {
-                                        Image(systemName: "chevron.right")
-                                            .font(.title3)
-                                            .foregroundColor(.primaryButton)
-                                            .frame(width: 32, height: 32)
+                                        .foregroundColor(.gray)
+                                        .padding(.horizontal, 14)
+                                        .padding(.vertical, 12)
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                        .allowsHitTesting(false)
                                     }
                                 }
-                                .buttonStyle(.glassProminent)
-                                .tint(.white)
-                            }
-                            else {
-                                
-                                Button {
-                                    Task {
-                                        await viewModel.generateTemplate(from: formPesanan)
-                                    }
-                                } label: {
-                                    if viewModel.isLoading {
-                                        ProgressView()
-                                            .tint(.white)
-                                            .frame(width: 32, height: 32)
-                                    } else {
-                                        Image(systemName: "chevron.right")
-                                            .font(.title3)
-                                            .foregroundColor(.white)
-                                            .frame(width: 32, height: 32)
-                                    }
-                                }
-                                .buttonStyle(.glassProminent)
-                                .tint(.primaryButton)
-                                .disabled(viewModel.isLoading)
-                            }
-                            
+                            )
+                        
+                        //                        // ✅ Show result from ViewModel
+                        //                        if let json = viewModel.resultJSON {
+                        //                            Text("✅ Template JSON:")
+                        //                                .font(.headline)
+                        //                                .padding(.top)
+                        //                            ScrollView {
+                        //                                Text(json)
+                        //                                    .font(.system(.caption, design: .monospaced))
+                        //                                    .padding()
+                        //                                    .background(Color(.secondarySystemBackground))
+                        //                                    .cornerRadius(10)
+                        //                            }
+                        //                        }
+                        //
+                        //                        // ✅ Show error from ViewModel
+                        //                        if let error = viewModel.errorMessage {
+                        //                            Text("❌ Error: \(error)")
+                        //                                .foregroundColor(.red)
+                        //                                .padding(.top)
+                        //                        }
+                    }
+                    .padding()
+                }
+                
+                .toolbar {
+                    ToolbarItem(placement: .topBarLeading) {
+                        Button {
+                            dismiss()
+                        } label: {
+                            Image(systemName: "chevron.left")
+                                .font(.title3)
+                                .foregroundStyle(.primaryButton)
                         }
                     }
-                    .animation(.easeInOut(duration: 0.3), value: viewModel.isLoading)
+                    ToolbarItem(placement: .topBarTrailing) {
+                        if formPesanan.isEmpty{
+                            Button {
+                                Task {
+                                    
+                                }
+                            } label: {
+                                if viewModel.isLoading {
+                                    ProgressView()
+                                        .tint(.white)
+                                } else {
+                                    Image(systemName: "chevron.right")
+                                        .font(.title3)
+                                        .foregroundColor(.primaryButton)
+                                }
+                            }
+                            .buttonStyle(.glassProminent)
+                            .tint(.white)
+                        }
+                        else {
+                            
+                            Button {
+                                Task {
+                                    await viewModel.generateTemplate(from: formPesanan)
+                                }
+                            } label: {
+                                if viewModel.isLoading {
+                                    ProgressView()
+                                        .tint(.white)
+                                } else {
+                                    Image(systemName: "chevron.right")
+                                        .font(.title3)
+                                        .foregroundColor(.white)
+                                }
+                            }
+                            .buttonStyle(.glassProminent)
+                            .tint(.primaryButton)
+                            .disabled(viewModel.isLoading)
+                        }
+                        
+                    }
                 }
-                .onTapGesture {
-                    hideKeyboard()
-                }
-                .navigationTitle("Formulir Pesanan")
-                .navigationDestination(isPresented: $viewModel.didSave) {
-                    EditTemplateFormView(isDismissed: $isDismissed)
-                }
+                .animation(.easeInOut(duration: 0.3), value: viewModel.isLoading)
             }
-            
+            .opacity(viewModel.isLoading ? 0 : 1)
+            .onTapGesture {
+                hideKeyboard()
+            }
+            .navigationTitle("Formulir Pesanan")
+            .navigationBarBackButtonHidden(true)
+            .navigationDestination(isPresented: $viewModel.didSave) {
+                EditTemplateFormView(isDismissed: $isDismissed)
+            }
+            if viewModel.isLoading {
+                LoadingView(context: "template form")
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+                    .background(.ultraThinMaterial)
+                    .ignoresSafeArea()
+                    .transition(.opacity)
+                    .zIndex(999)
+            }
         }
         .task {
             viewModel.configure(userId: session.userId)
