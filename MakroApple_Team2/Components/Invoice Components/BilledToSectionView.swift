@@ -21,11 +21,9 @@ struct BilledToSectionView: View {
             
             Text(customerName)
                 .font(.system(size: 10))
-                .italic()
             
             Text(customerPhone)
                 .font(.system(size: 10))
-                .italic()
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
