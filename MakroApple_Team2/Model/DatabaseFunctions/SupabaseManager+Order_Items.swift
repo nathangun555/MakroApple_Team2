@@ -86,6 +86,17 @@ extension SupabaseManager {
         return try JSONDecoder().decode([OrderItemRecord].self, from: response.data)
     }
     
+    func deleteOrder(for orderId: UUID) async throws {
+        let response = try await client
+            .from("orders")
+            .delete()
+            .eq("id", value: orderId.uuidString)
+            .execute()
+        
+        print("🗑️ Deleted order for order_id:", orderId)
+        print("Response:", String(data: response.data, encoding: .utf8) ?? "No response data")
+    }
+    
     func deleteOrderItems(for orderId: UUID) async throws {
         let response = try await client
             .from("order_items")

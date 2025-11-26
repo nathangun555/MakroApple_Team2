@@ -209,21 +209,14 @@ class EditOrderViewModel {
             
             if let orderId = orderIdNow {
                 try await SupabaseManager.shared.deleteOrderItems(for: UUID(uuidString: orderId)!)
-                
-                order = try await SupabaseManager.shared.createOrder(
-                    orderId: orderId,
-                    userId: uuid,
-                    parsedOrder: orderData,
-                    photoURLs: uploadedPhotoURLs
-                )
-            } else {
-                order = try await SupabaseManager.shared.createOrder(
-                    orderId: "",
-                    userId: uuid,
-                    parsedOrder: orderData,
-                    photoURLs: uploadedPhotoURLs
-                )
+                try await SupabaseManager.shared.deleteOrder(for: UUID(uuidString: orderId)!)
             }
+            order = try await SupabaseManager.shared.createOrder(
+                orderId: "",
+                userId: uuid,
+                parsedOrder: orderData,
+                photoURLs: uploadedPhotoURLs
+            )
             
             orderIdNow = order.id.uuidString
             print("✅ Order saved: \(order.id)")
