@@ -183,7 +183,9 @@ struct OrderDetailView: View {
                                 Text("Jam Kirim")
                                 HStack{
                                     Text(":")
-                                    Text("\(DateFormatterHelper.formattedTime(order.orderDdayDate ?? "g")) WIB")
+                                    let formatted = DateFormatterHelper.formattedTime(order.orderDdayDate ?? "")
+
+                                    Text(formatted == "23:59" ? "-" : "\(formatted) WIB")
                                         .padding(.vertical, 3)
                                         .frame(maxWidth: .infinity)
                                         .background(

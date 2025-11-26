@@ -50,6 +50,7 @@ struct InputMenuView: View {
         mainContent
             .navigationTitle("Rincian Menu / Katalog")
             .navigationBarTitleDisplayMode(.inline)
+            .navigationBarBackButtonHidden(true)
             .task { viewModel.configure(userId: session.userId) }
             .fileImporter(
                 isPresented: $showUploadOptions,
@@ -63,7 +64,16 @@ struct InputMenuView: View {
             } message: {
                 Text(errorMessage)
             }
-            .toolbar{
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                  Button {
+                      dismiss()
+                  } label: {
+                    Image(systemName: "chevron.left")
+                          .font(.title3)
+                      .foregroundStyle(.primaryButton)
+                  }
+                }
                 ToolbarItem {
                     if !uploadedFiles.isEmpty {
                         
@@ -72,7 +82,6 @@ struct InputMenuView: View {
                         }){
                             Image(systemName: "chevron.right")
                                 .font(.title3)
-                                .fontWeight(.semibold)
                                 .foregroundColor(.white)
                         }
                         .buttonStyle(.glassProminent)
@@ -86,7 +95,6 @@ struct InputMenuView: View {
                         }){
                             Image(systemName: "chevron.right")
                                 .font(.title3)
-                                .fontWeight(.semibold)
                                 .foregroundColor(.primaryButton)
                         }
                         .buttonStyle(.glassProminent)

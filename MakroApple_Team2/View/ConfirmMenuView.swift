@@ -22,6 +22,16 @@ struct ConfirmMenuView: View {
 
     @State private var productToDelete: (sectionIndex: Int, productIndex: Int)?
     
+    var hasEmptyFields: Bool {
+        for ref in vm.visibleFlat {
+                let item = ref.item
+                
+                if item.name.trimmingCharacters(in: .whitespaces).isEmpty { return true }
+                if item.price == 0 { return true }
+            }
+            return false
+    }
+    
     var body: some View {
         ZStack {
             NavigationStack {
@@ -62,28 +72,46 @@ struct ConfirmMenuView: View {
                         }
                     }
                     ToolbarItem(placement: .navigationBarTrailing) {
-                        let saveBtn = Button {
-                            Task {
-                                await vm.saveAll {
-                                    navigateToTemplateForm = true
+                        if hasEmptyFields {
+                            Button {
+                                Task {
+                                    await vm.saveAll {
+                                        navigateToTemplateForm = true
+                                    }
+                                }
+                            } label: {
+                                if vm.isLoading {
+                                    ProgressView()
+                                        .tint(.white)
+                                } else {
+                                    Image(systemName: "chevron.right")
+                                        .font(.title2)
+                                        .foregroundColor(.primaryButton)
                                 }
                             }
-                        } label: {
-                            if vm.isLoading {
-                                ProgressView()
-                                    .tint(.white)
-                            } else {
-                                Image(systemName: "chevron.right")
-                                    .font(.title2)
-                                    .foregroundColor(vm.hasPendingChanges ? .white : .gray)
-                            }
-                        }
-                        .disabled(!vm.hasPendingChanges || vm.isLoading)
-
-                        if vm.hasPendingChanges {
-                            saveBtn.buttonStyle(BorderedProminentButtonStyle()).tint(.primaryButton)
+                            .buttonStyle(.glassProminent)
+                            .tint(Color.white)
+                            .disabled(!vm.hasPendingChanges || vm.isLoading)
                         } else {
-                            saveBtn.buttonStyle(BorderlessButtonStyle())
+                            Button {
+                                Task {
+                                    await vm.saveAll {
+                                        navigateToTemplateForm = true
+                                    }
+                                }
+                            } label: {
+                                if vm.isLoading {
+                                    ProgressView()
+                                        .tint(.white)
+                                } else {
+                                    Image(systemName: "chevron.right")
+                                        .font(.title2)
+                                        .foregroundColor(.white)
+                                }
+                            }
+                            .buttonStyle(.glassProminent)
+                            .tint(Color.primaryButton)
+                            .disabled(!vm.hasPendingChanges || vm.isLoading)
                         }
                     }
                 }

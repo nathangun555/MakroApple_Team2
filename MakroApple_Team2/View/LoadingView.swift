@@ -57,6 +57,7 @@ struct LoadingView: View {
                 }
             }
             .onAppear { animate = true }
+            .padding(.bottom, 8)
             
             // MARK: – Main Text
             VStack(spacing: 6) {
