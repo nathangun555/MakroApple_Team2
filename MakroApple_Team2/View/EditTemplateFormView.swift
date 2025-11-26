@@ -80,7 +80,11 @@ struct EditTemplateFormView: View {
                                 showDeleteFieldAlert = true
                             },
                             isEditable: true,
-                            focusedIndex: $focusedOtherField
+                            focusedIndex: $focusedOtherField,
+                            onReorder: { newOrder in
+                                                                viewModel.otherFields = newOrder
+                                                            }
+                            
                         )
                         
                         // Referensi Foto Section
