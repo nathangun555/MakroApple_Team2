@@ -25,7 +25,7 @@ struct MakroApple_Team2App: App {
             UserDefaults.standard.set(false, forKey: "shouldNavigateToActiveOrders")
             return 1
         }
-        return 2
+        return 0
     }()
     
     @State private var sharedText: String = ""
