@@ -148,9 +148,9 @@ final class SessionManager: ObservableObject {
     // ✅ Dev mode setup - instant, synchronous
     private func setupDevSession() {
         self.isSignedIn = true
-        self.userId = "7da0e817-f18e-44ac-8b10-24275f64c627" // new
+        self.userId = "2ee21096-fecd-4acd-b38b-be4ed8eed327" // new
 //        self.userId = "ec7eea39-e2b6-4e46-b847-646019276f67" // has template
-//        self.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f" // nathan menu
+//        self.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f" // nathan analytics
         
 //        self.userId = "49b3ba69-293d-496c-a52c-3e4f5b57329d" // Le.Aure
 //        self.userId = "bade0678-f878-4168-b605-c26e105b1936" // Petito
