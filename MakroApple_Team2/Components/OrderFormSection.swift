@@ -91,6 +91,8 @@ struct OrderFormSection: View {
                                 .opacity(!fields[index].useTime ? 0.7 : 1.0)
                                 .background(!fields[index].useTime ? Color.gray.opacity(0.1) : Color.white)
                                 .cornerRadius(20)
+                                
+                                Spacer()
 
                                 Toggle("", isOn: Binding(
                                     get: { fields[index].useTime },

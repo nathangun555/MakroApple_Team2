@@ -69,6 +69,12 @@ struct AllOrdersView: View {
                         showDikirimGuide = true
                         showSelesaiGuide = true
                         showDibatalkanGuide = true
+                        
+                        NotificationManager.shared.scheduleImmediateDebugNotification(
+                            title: "Pesanan Hari Ini!",
+                            body: "Kamu memiliki 3 pesanan yang harus dikirim besok. Lihat detailnya di kalender sekarang.",
+                            seconds: 3 // akan muncul 3 detik setelah tekan tombol
+                        )
                     } label: {
                         Text("Pesanan")
                             .font(.largeTitle)
@@ -130,13 +136,7 @@ struct AllOrdersView: View {
                 }
                 
                 DeadlineCard(orders: viewModel.orders, hastemplates: viewModel.hasTemplates, isTutorial: $showTutorial)
-                Button("Test Notif") {
-                    NotificationManager.shared.scheduleImmediateDebugNotification(
-                        title: "Tes Pesanan",
-                        body: "Ini notif debug untuk Active Orders",
-                        seconds: 3 // akan muncul 3 detik setelah tekan tombol
-                    )
-                }
+                
                 CustomTabBar(activeTab: $activeTab)
                 
                 GuideMessage(
