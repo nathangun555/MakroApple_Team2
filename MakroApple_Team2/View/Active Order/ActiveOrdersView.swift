@@ -54,7 +54,7 @@ struct ActiveOrdersView: View {
                               isCollapsed = false
                           } label: {
                               HStack(spacing: 8) {
-                                     Image(systemName: viewMode == .bulanan ? "checkmark" : "rectangle.grid.3x3")
+                                     Image(systemName: viewMode == .bulanan ? "checkmark" : "")
                                      Text("Bulanan")
                                  }
                           }
@@ -64,7 +64,7 @@ struct ActiveOrdersView: View {
                               isCollapsed = true
                           } label: {
                               Label("Mingguan",
-                                    systemImage: viewMode == .mingguan ? "checkmark" : "rectangle.grid.1x3")
+                                    systemImage: viewMode == .mingguan ? "checkmark" : "")
                           }
 
                           Divider()
