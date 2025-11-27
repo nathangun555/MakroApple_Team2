@@ -273,87 +273,93 @@ struct ProductsSection: View {
             .padding(.horizontal)
 
             ForEach(Array(products.enumerated()), id: \.offset) { index, product in
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack {
-                        Spacer()
+                HStack(alignment: .top){
+                    
+                    VStack(alignment: .leading, spacing: 8) {
+                        
+                        
+                        let nameKey = "product-\(index)-name"
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Nama Produk :")
+                                .font(.subheadline)
+                                .foregroundColor(.primary)
+                            
+                            TextField("Nama Produk", text: Binding(
+                                get: { products[index].name },
+                                set: { products[index].name = $0 }
+                            ))
+                            .focused($focusedField, equals: nameKey)
+                            .textFieldStyle(.roundedBorder)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 6)
+                                    .stroke(
+                                        fieldErrors.contains(nameKey) ? Color.red : Color.clear,
+                                        lineWidth: fieldErrors.contains(nameKey) ? 2 : 0
+                                    )
+                            )
+                            
+                            if fieldErrors.contains(nameKey) {
+                                HStack(spacing: 4) {
+                                    Image(systemName: "exclamationmark.triangle.fill")
+                                        .font(.caption)
+                                        .foregroundColor(.red)
+                                    Text("Nama produk wajib diisi")
+                                        .font(.caption)
+                                        .foregroundStyle(.red)
+                                }
+                            }
+                        }
+                        .id(nameKey)
+                        
+                        let qtyKey = "product-\(index)-quantity"
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Jumlah Produk :")
+                                .font(.subheadline)
+                                .foregroundColor(.primary)
+                            
+                            TextField("0", text: Binding(
+                                get: { String(products[index].quantity) },
+                                set: { products[index].quantity = Int($0) ?? 0 }
+                            ))
+                            .focused($focusedField, equals: qtyKey)
+                            .textFieldStyle(.roundedBorder)
+                            .keyboardType(.numberPad)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 6)
+                                    .stroke(
+                                        fieldErrors.contains(qtyKey) ? Color.red : Color.clear,
+                                        lineWidth: fieldErrors.contains(qtyKey) ? 2 : 0
+                                    )
+                            )
+                            
+                            if fieldErrors.contains(qtyKey) {
+                                HStack(spacing: 4) {
+                                    Image(systemName: "exclamationmark.triangle.fill")
+                                        .font(.caption)
+                                        .foregroundColor(.red)
+                                    Text("Jumlah harus lebih dari 0")
+                                        .font(.caption)
+                                        .foregroundStyle(.red)
+                                }
+                            }
+                        }
+                        .id(qtyKey)
+                    }
+                    .padding()
+                    .background(Color(.deadlineCard))
+                    .cornerRadius(12)
+                    .padding(products.count > 1 ? .leading : .horizontal)
+                    
+                    HStack(alignment: .top) {
+                        
                         if products.count > 1 {
                             Button { onDelete(index) } label: {
                                 Image(systemName: "trash").foregroundColor(.red)
+                                    .padding(.trailing)
                             }
                         }
                     }
-
-                    let nameKey = "product-\(index)-name"
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Nama Produk :")
-                            .font(.subheadline)
-                            .foregroundColor(.primary)
-
-                        TextField("Nama Produk", text: Binding(
-                            get: { products[index].name },
-                            set: { products[index].name = $0 }
-                        ))
-                        .focused($focusedField, equals: nameKey)
-                        .textFieldStyle(.roundedBorder)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 6)
-                                .stroke(
-                                    fieldErrors.contains(nameKey) ? Color.red : Color.clear,
-                                    lineWidth: fieldErrors.contains(nameKey) ? 2 : 0
-                                )
-                        )
-
-                        if fieldErrors.contains(nameKey) {
-                            HStack(spacing: 4) {
-                                Image(systemName: "exclamationmark.triangle.fill")
-                                    .font(.caption)
-                                    .foregroundColor(.red)
-                                Text("Nama produk wajib diisi")
-                                    .font(.caption)
-                                    .foregroundStyle(.red)
-                            }
-                        }
-                    }
-                    .id(nameKey)
-
-                    let qtyKey = "product-\(index)-quantity"
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Jumlah Produk :")
-                            .font(.subheadline)
-                            .foregroundColor(.primary)
-
-                        TextField("0", text: Binding(
-                            get: { String(products[index].quantity) },
-                            set: { products[index].quantity = Int($0) ?? 0 }
-                        ))
-                        .focused($focusedField, equals: qtyKey)
-                        .textFieldStyle(.roundedBorder)
-                        .keyboardType(.numberPad)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 6)
-                                .stroke(
-                                    fieldErrors.contains(qtyKey) ? Color.red : Color.clear,
-                                    lineWidth: fieldErrors.contains(qtyKey) ? 2 : 0
-                                )
-                        )
-
-                        if fieldErrors.contains(qtyKey) {
-                            HStack(spacing: 4) {
-                                Image(systemName: "exclamationmark.triangle.fill")
-                                    .font(.caption)
-                                    .foregroundColor(.red)
-                                Text("Jumlah harus lebih dari 0")
-                                    .font(.caption)
-                                    .foregroundStyle(.red)
-                            }
-                        }
-                    }
-                    .id(qtyKey)
                 }
-                .padding()
-                .background(Color(.systemGray6))
-                .cornerRadius(12)
-                .padding(.horizontal)
             }
         }
     }

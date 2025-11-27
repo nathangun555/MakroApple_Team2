@@ -472,11 +472,11 @@ struct OrderDetailView: View {
                                     }
                                 } label: {
                                     Label("Bagikan", systemImage: "square.and.arrow.up")
-                                        .glassEffect(.clear.tint(.red))
+                                        .padding()
+                                        .foregroundColor(.primary)
+                                        .glassEffect(.clear.tint(.deadlineCard))
                                     
                                 }
-//                                .buttonStyle(.bordered)
-//                                .tint(.gray)
 
                                 
                                 Spacer()
