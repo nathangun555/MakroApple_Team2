@@ -71,7 +71,7 @@ class AppDelegate: NSObject, UIApplicationDelegate, /*UNUserNotificationCenterDe
 
                 let _: PostgrestResponse<Void> = try await SupabaseManager.shared.client
                     .from("device_tokens")
-                    .upsert(tokenBody, onConflict: "token")
+                    .upsert(tokenBody, onConflict: "user_id,token")
                     .execute()
 
                 print("📤 FCM token berhasil dikirim ke Supabase untuk user \(userId)")
