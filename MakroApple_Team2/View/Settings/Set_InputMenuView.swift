@@ -283,7 +283,7 @@ struct Set_InputMenuView: View {
     private func getFileSize(url: URL) -> String {
         guard let attributes = try? FileManager.default.attributesOfItem(atPath: url.path),
               let fileSize = attributes[.size] as? Int64 else {
-            return "00 MB of 25 MB"
+            return "00 MB of 10 MB"
         }
         let sizeInMB = Double(fileSize) / (1024 * 1024)
         return String(format: "%.2f MB of 10 MB", sizeInMB)

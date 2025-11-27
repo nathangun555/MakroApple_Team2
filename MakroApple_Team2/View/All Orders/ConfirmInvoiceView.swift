@@ -94,6 +94,9 @@ struct ConfirmInvoiceView: View {
                             )
                             .labelsHidden()
                             .datePickerStyle(.compact)
+                            .disabled(!hasDueDate)
+                            .opacity(hasDueDate ? 1.0 : 0.7)
+                            .background(!hasDueDate ? Color.gray.opacity(0.1) : Color.white)
 
                       // development
                         // DatePicker

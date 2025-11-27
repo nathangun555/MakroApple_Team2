@@ -47,7 +47,8 @@ struct EditOrderView: View {
     var body: some View {
         ZStack {
             if viewModel.isLoading {
-                ProgressView("Menyimpan pesanan...")
+                LoadingView(context: "pesanan")
+                    .navigationBarHidden(true)
             } else {
                 ScrollViewReader { proxy in
                     ScrollView {
