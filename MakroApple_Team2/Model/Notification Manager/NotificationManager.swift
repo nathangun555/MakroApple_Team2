@@ -32,18 +32,26 @@ final class NotificationManager {
 
     // MARK: - Schedule notifications rutin
         func scheduleDailyNotifications() {
-            scheduleNotification(
-                identifier: "order_tomorrow_7am",
-                hour: 14, minute: 55,
-                title: "Pesanan Besok",
-                bodyGetter: { "Kamu memiliki \(self.readTomorrowCount()) pesanan yang harus dikirim besok. Lihat detailnya di kalender sekarang." }
-            )
-            scheduleNotification(
-                identifier: "order_today_8am",
-                hour: 8, minute: 0,
-                title: "Pesanan Hari Ini!",
-                bodyGetter: { "Anda memiliki \(self.readTodayCount()) pesanan dijadwalkan hari ini. Lihat detail pesanan sekarang." }
-            )
+            
+            if readTodayCount() > 0 {
+                
+                scheduleNotification(
+                    identifier: "order_tomorrow_7am",
+                    hour: 7, minute: 00,
+                    title: "Pesanan Besok",
+                    bodyGetter: { "Kamu memiliki \(self.readTomorrowCount()) pesanan yang harus dikirim besok. Lihat detailnya di kalender sekarang." }
+                )
+            }
+            
+            if readTodayCount() > 0 {
+                scheduleNotification(
+                    identifier: "order_today_8am",
+                    hour: 8, minute: 0,
+                    title: "Pesanan Hari Ini!",
+                    bodyGetter: { "Anda memiliki \(self.readTodayCount()) pesanan dijadwalkan hari ini. Lihat detail pesanan sekarang." }
+                )
+                
+            }
         }
      
 
@@ -68,7 +76,10 @@ final class NotificationManager {
         comps.minute = minute
 
         let trigger = UNCalendarNotificationTrigger(dateMatching: comps, repeats: true)
-        let req = UNNotificationRequest(identifier: identifier, content: content, trigger: trigger)
+        let req = UNNotificationRequest(
+            identifier: identifier,
+            content: content,
+            trigger: trigger)
 
         UNUserNotificationCenter.current().add(req) { error in
             if let e = error {

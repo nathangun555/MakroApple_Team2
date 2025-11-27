@@ -6,7 +6,7 @@ import Supabase
 import PostgREST
 import SwiftUI
 
-class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDelegate, MessagingDelegate {
+class AppDelegate: NSObject, UIApplicationDelegate, /*UNUserNotificationCenterDelegate,*/ MessagingDelegate {
 
     var sessionManager: SessionManager? // inject dari Scene / Environment
 
@@ -14,7 +14,7 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
 
         FirebaseApp.configure()
-        UNUserNotificationCenter.current().delegate = self
+        UNUserNotificationCenter.current().delegate = NotificationDelegate.shared
         Messaging.messaging().delegate = self
 
         UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound]) { granted, _ in
@@ -71,7 +71,7 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
 
                 let _: PostgrestResponse<Void> = try await SupabaseManager.shared.client
                     .from("device_tokens")
-                    .upsert(tokenBody, onConflict: "token")
+                    .upsert(tokenBody, onConflict: "user_id,token")
                     .execute()
 
                 print("📤 FCM token berhasil dikirim ke Supabase untuk user \(userId)")
