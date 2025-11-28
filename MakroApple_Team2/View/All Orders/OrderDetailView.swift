@@ -38,7 +38,7 @@ struct OrderDetailView: View {
     
     let source: OrderSource
     
-    
+    @EnvironmentObject var analyticViewModel: AnalyticTabViewModel 
     
     @Binding var activeTab: TabModel
 
@@ -527,6 +527,10 @@ struct OrderDetailView: View {
             if activeAlert != nil {
                 CustomAlert(activeAlert: $activeAlert) { status in
                     await handleStatusUpdate(to: status)
+                    
+                    if status == "Selesai" {
+                               refreshAnalyticsIfNeeded(for: status)
+                           }
                         
                 }
             }
@@ -760,12 +764,36 @@ struct OrderDetailView: View {
                 dismiss()
             }
             
+            refreshAnalyticsIfNeeded(for: finalStatus)
+            
           
 
         } catch {
             print("❌ Failed to update status:", error.localizedDescription)
         }
     }
+    
+    // Add this new function after handleStatusUpdate
+    private func refreshAnalyticsIfNeeded(for status: String) {
+        guard status == "Selesai" else { return }
+        
+        guard let userIdString = session.userId,
+              let userId = UUID(uuidString: userIdString) else { return }
+        
+        Task {
+            // Clear cache
+            await MainActor.run {
+                analyticViewModel.invalidateAllCurrentWindows()
+                // ✅ Reset prefetch flag to avoid onAppear waiting
+                analyticViewModel.isPrefetching = false
+                print("🗑️ Cache cleared, isPrefetching = false")
+            }
+            
+            // Prefetch silently in background
+            analyticViewModel.prefetchAllTimeframes(userId: userId)
+        }
+    }
+
 
 
 }

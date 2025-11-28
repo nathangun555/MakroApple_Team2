@@ -23,6 +23,7 @@ struct AllOrdersView: View {
     @State var onChangeSettings = false
     
     @Environment(\.dismiss) var dismiss
+    @EnvironmentObject var analyticViewModel: AnalyticTabViewModel
     
     // 🧠 These caches temporarily store data per navigation ID
     @State private var orderDataCache: [UUID: [String: Any]] = [:]
@@ -173,6 +174,7 @@ struct AllOrdersView: View {
                                                 )
                                                 .toolbar(.hidden, for: .tabBar)
                                                 .environmentObject(session)
+                                                .environmentObject(analyticViewModel)
                                         ) {
                                             OrderCard(order: order, orderItem: orderItems)
                                         }

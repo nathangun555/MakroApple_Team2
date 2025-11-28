@@ -309,7 +309,14 @@ class AnalyticTabViewModel: ObservableObject {
         }
     }
 
-
+    func invalidateAllCurrentWindows() {
+        for tf in AnalyticTimeframe.allCases {
+            let key = cacheKey(tf: tf, offset: 0)
+            revenueCache.removeValue(forKey: key)
+            produkCache.removeValue(forKey: key)
+            print("🗑️ Cleared cache for \(key)")
+        }
+    }
 
     
     func resetOffset() {

@@ -63,11 +63,12 @@ struct MainTabView: View {
                 Tab("Pesanan", systemImage: "book.pages.fill", value: 0) {
                     AllOrdersView(sharedImages: $sharedImages,
                                   sharedText: $sharedText,
-                                  hasNewObject: $hasNewObject)
+                                  hasNewObject: $hasNewObject).environmentObject(analyticViewModel)
                 }
                 
                 Tab("Jadwal", systemImage: "calendar", value: 1) {
                     ActiveOrdersView()
+                        .environmentObject(analyticViewModel)
                 }
 //                Tab("AI", systemImage: "chart.bar", value: 2) {
 //                    ChatBotView()
@@ -84,7 +85,9 @@ struct MainTabView: View {
                         AllOrdersView(sharedImages: $sharedImages,
                                       sharedText: $sharedText,
                                       hasNewObject: $hasNewObject)
+                        .environmentObject(analyticViewModel)
                     }
+                    
                 }
             }
             .tint(.primaryButton)
