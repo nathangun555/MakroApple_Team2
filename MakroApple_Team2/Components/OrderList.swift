@@ -12,6 +12,7 @@ import Foundation
 struct OrderListView: View {
     
     @EnvironmentObject var session: SessionManager
+    @EnvironmentObject var analyticViewModel: AnalyticTabViewModel
     
     let selectedDate: Date
     let calendar = Calendar.current
@@ -205,6 +206,7 @@ struct OrderListView: View {
                                                                 activeTab: .constant(.belumBayar)
                                                             )
                                                             .environmentObject(session)
+                                                            .environmentObject(analyticViewModel)
                                                     ) {
                                                         OrderCard(order: order, orderItem: [item])
                                                     }
