@@ -66,10 +66,12 @@ struct MainTabView: View {
                     AllOrdersView(sharedImages: $sharedImages,
                                   sharedText: $sharedText,
                                   hasNewObject: $hasNewObject)
+                    .environmentObject(analyticViewModel)
                 }
                 
                 Tab("Jadwal", systemImage: "calendar", value: 1) {
                     ActiveOrdersView()
+                        .environmentObject(analyticViewModel)
                 }
                 Tab("Analitik", systemImage: "chart.bar", value: 2) {
                     AnalyticTabView()
@@ -80,7 +82,9 @@ struct MainTabView: View {
                         AllOrdersView(sharedImages: $sharedImages,
                                       sharedText: $sharedText,
                                       hasNewObject: $hasNewObject)
+                        .environmentObject(analyticViewModel)
                     }
+                   
                 }
             }
             .tint(.primaryButton)

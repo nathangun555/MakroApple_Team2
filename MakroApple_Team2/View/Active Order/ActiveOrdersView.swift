@@ -208,6 +208,8 @@ struct ActiveOrdersView: View {
 //          .navigationBarTitleDisplayMode(.large)
         }
     }
+    
+    
 }
 
 // MARK: - Scroll Offset Preference Key

@@ -22,6 +22,8 @@ struct AllOrdersView: View {
     @State var isDismissed = false
     @State var onChangeSettings = false
     
+    @EnvironmentObject var analyticViewModel: AnalyticTabViewModel
+    
     @Environment(\.dismiss) var dismiss
     
     // 🧠 These caches temporarily store data per navigation ID
@@ -179,6 +181,7 @@ struct AllOrdersView: View {
                                                 )
                                                 .toolbar(.hidden, for: .tabBar)
                                                 .environmentObject(session)
+                                                .environmentObject(analyticViewModel)
                                         ) {
                                             OrderCard(order: order, orderItem: orderItems)
                                         }
