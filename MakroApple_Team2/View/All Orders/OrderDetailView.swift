@@ -21,6 +21,7 @@ struct OrderDetailView: View {
     @State private var activeAlert: CustomAlertType?
     
     @State private var viewModel = AllOrdersViewModel()
+    @EnvironmentObject var analyticViewModel: AnalyticTabViewModel
     @State private var invoiceViewModel = InvoicePreviewViewModel()
     @EnvironmentObject var session: SessionManager
     @State var order: OrderRecord
@@ -558,28 +559,30 @@ struct OrderDetailView: View {
         )
         .navigationTitle("Rincian Pesanan")
         .toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
-                HStack(spacing: 0) {
-                    if order.status == "Belum Terbayar" || order.status == "Diproses" {
+            
+            if order.status == "Belum Terbayar" || order.status == "Diproses" {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    HStack(spacing: 0) {
+                        
                         Menu {
                             Button {
                                 showEditSheet = true
-                                } label: {
-                                    Label("Edit", systemImage: "pencil")
-                                }
+                            } label: {
+                                Label("Edit", systemImage: "pencil")
+                            }
                             
                             
                             Button(role: .destructive) {
-                                    activeAlert = .cancel
-                                } label: {
-                                    Label("Batalkan Pesanan", systemImage: "xmark.bin.fill")
-                                }
+                                activeAlert = .cancel
+                            } label: {
+                                Label("Batalkan Pesanan", systemImage: "xmark.bin.fill")
+                            }
                         } label: {
                             ZStack {
                                 Circle()
                                     .fill(Color.white)
                                     .frame(width: 40, height: 40)
-    //                                .shadow(color: Color(.systemGray4), radius: 4, x: 0, y: 1)
+                                //                                .shadow(color: Color(.systemGray4), radius: 4, x: 0, y: 1)
                                 Image(systemName: "ellipsis")
                                     .font(.title3.weight(.semibold))
                                     .foregroundColor(.primaryButton)
@@ -587,9 +590,12 @@ struct OrderDetailView: View {
                         }
                         .frame(width: 40, height: 40)
                         .buttonStyle(.plain)
+                        
                     }
                 }
+                
             }
+            
             
 //            if order.status == "Belum Terbayar" || order.status == "Diproses" {
 //                ToolbarItem(placement: .topBarTrailing) {
@@ -762,12 +768,33 @@ struct OrderDetailView: View {
                 dismiss()
             }
             
-          
+            refreshAnalyticsIfNeeded(for: finalStatus)
 
         } catch {
             print("❌ Failed to update status:", error.localizedDescription)
         }
     }
+    
+    // Add this new function after handleStatusUpdate
+       private func refreshAnalyticsIfNeeded(for status: String) {
+           guard status == "Selesai" else { return }
+           
+           guard let userIdString = session.userId,
+                 let userId = UUID(uuidString: userIdString) else { return }
+           
+           Task {
+               // Clear cache
+               await MainActor.run {
+                   analyticViewModel.invalidateAllCurrentWindows()
+                   // ✅ Reset prefetch flag to avoid onAppear waiting
+                   analyticViewModel.isPrefetching = false
+                   print("🗑️ Cache cleared, isPrefetching = false")
+               }
+               
+               // Prefetch silently in background
+               analyticViewModel.prefetchAllTimeframes(userId: userId)
+           }
+       }
 
 
 }

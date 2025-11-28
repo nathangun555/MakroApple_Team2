@@ -47,7 +47,7 @@ class AnalyticTabViewModel: ObservableObject {
     @Published var selectedProdukIndex: Int = 6
     @Published var windowOffset: Int = 0
     @Published var canGoBack: Bool = true
-    @Published var isLoading: Bool = false  // ← BARU: Loading state
+    @Published var isLoading: Bool = false  
     @Published var isPrefetching: Bool = false
     
     private var earliestOrderDate: Date?
@@ -225,6 +225,15 @@ class AnalyticTabViewModel: ObservableObject {
         windowOffset += 1
         loadHistory(userId: userId, tf: tf, offset: windowOffset)
     }
+    
+    func invalidateAllCurrentWindows() {
+            for tf in AnalyticTimeframe.allCases {
+                let key = cacheKey(tf: tf, offset: 0)
+                revenueCache.removeValue(forKey: key)
+                produkCache.removeValue(forKey: key)
+                print("🗑️ Cleared cache for \(key)")
+            }
+        }
     
     // ✅ BARU: Prefetch first window untuk semua timeframe
     // ✅ BARU: Prefetch first window untuk semua timeframe
