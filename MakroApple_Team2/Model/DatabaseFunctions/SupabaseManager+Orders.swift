@@ -213,9 +213,14 @@ extension SupabaseManager {
             let discountDouble = NSDecimalNumber(decimal: discountAmount).doubleValue
             let downDouble = NSDecimalNumber(decimal: downPayment ?? 0).doubleValue
             
+            let today = DateFormatterHelper.formatIndonesianDate(Date())
+            
+            let dueDateText = invoiceDueDate ?? today
+            let dueDateISO: String = DateFormatterHelper.dateToISO(dueDateText) ?? ISO8601DateFormatter().string(from: Date())
+            
             var updateData: [String: AnyCodable] = [
 //                "invoice_date": AnyCodable(ISO8601DateFormatter().string(from: Date())),
-                "invoice_due_date": AnyCodable(invoiceDueDate),
+                "invoice_due_date": AnyCodable(dueDateISO),
                 "subtotal": AnyCodable(subtotalDouble),
                 "shipping_cost": AnyCodable(shippingDouble),
                 "total_amount": AnyCodable(totalDouble),
