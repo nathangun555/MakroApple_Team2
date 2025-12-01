@@ -77,7 +77,7 @@ struct MainTabView: View {
                     AnalyticTabView()
                         .environmentObject(analyticViewModel)
                 }
-                if selectedTab == 0 || selectedTab == 5 {
+                if selectedTab == 0 || selectedTab == 4 {
                     Tab("Cari Nama atau Pesanan", systemImage: "magnifyingglass", value: 4, role: .search) {
                         AllOrdersView(sharedImages: $sharedImages,
                                       sharedText: $sharedText,
@@ -86,7 +86,7 @@ struct MainTabView: View {
                     }
                    
                 }
-                Tab("AIVA AI", systemImage: "ellipsis.message.fill", value: 4) {
+                Tab("AIVA AI", systemImage: "ellipsis.message.fill", value: 3) {
                     ChatBotView()
                 }
             }
