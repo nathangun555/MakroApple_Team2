@@ -9,26 +9,58 @@ import Foundation
 
 struct DateFormatterHelper {
     
+//    static func formattedDate(_ dateString: String, showTime: Bool = false) -> String {
+//        let inputFormatter = ISO8601DateFormatter()
+//        inputFormatter.formatOptions = [.withInternetDateTime]
+//        
+//        guard let date = inputFormatter.date(from: dateString) else {
+//            print("❌ Gagal parse tanggal ke formattedDate:", dateString)
+//            return dateString
+//        }
+//        
+//        let outputFormatter = DateFormatter()
+//        outputFormatter.locale = Locale(identifier: "id_ID")
+//        
+//        if showTime {
+//            outputFormatter.dateFormat = "d MMMM YYYY, HH.mm"
+//        } else {
+//            outputFormatter.dateFormat = "d MMMM YYYY"
+//        }
+//        
+//        return outputFormatter.string(from: date)
+//    }
     static func formattedDate(_ dateString: String, showTime: Bool = false) -> String {
-        let inputFormatter = ISO8601DateFormatter()
-        inputFormatter.formatOptions = [.withInternetDateTime]
+        // Try ISO8601 with fractional seconds first, then without.
+        let isoWithFrac = ISO8601DateFormatter()
+        isoWithFrac.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
         
-        guard let date = inputFormatter.date(from: dateString) else {
-            print("❌ Gagal parse tanggal:", dateString)
+        let isoNoFrac = ISO8601DateFormatter()
+        isoNoFrac.formatOptions = [.withInternetDateTime]
+        
+        let date: Date?
+        if let d = isoWithFrac.date(from: dateString) {
+            date = d
+        } else if let d = isoNoFrac.date(from: dateString) {
+            date = d
+        } else {
+            print("❌ Gagal parse tanggal ke formattedDate:", dateString)
             return dateString
         }
         
         let outputFormatter = DateFormatter()
         outputFormatter.locale = Locale(identifier: "id_ID")
+        outputFormatter.timeZone = .current // or specify UTC if you prefer
         
         if showTime {
-            outputFormatter.dateFormat = "d MMMM YYYY, HH.mm"
+            // you used dot as time separator before (HH.mm) — you can keep it or use "HH:mm"
+            outputFormatter.dateFormat = "d MMMM yyyy, HH.mm"
         } else {
-            outputFormatter.dateFormat = "d MMMM YYYY"
+            outputFormatter.dateFormat = "d MMMM yyyy"
         }
         
-        return outputFormatter.string(from: date)
+        return outputFormatter.string(from: date!)
     }
+
     
     static func formattedTime(_ dateString: String) -> String {
         let isoFormatter = ISO8601DateFormatter()
@@ -44,7 +76,7 @@ struct DateFormatterHelper {
         }
         
         guard let validDate = date else {
-            print("❌ Gagal parse tanggal:", dateString)
+            print("❌ Gagal parse tanggal ke formattedTime:", dateString)
             return "-"
         }
         

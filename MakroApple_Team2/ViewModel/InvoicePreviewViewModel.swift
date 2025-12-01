@@ -179,8 +179,8 @@ class InvoicePreviewViewModel {
     // MARK: - Populate from Real Order
     private func populateFromOrder(order: OrderRecord, items: [OrderItemRecord], user: UserRecord) async {
         invoiceData.invoiceNumber = order.orderNumber
-        invoiceData.invoiceDate = order.invoiceDate ?? "-"
-        invoiceData.invoiceDueDate = order.invoiceDueDate ?? "-"
+        invoiceData.invoiceDate = DateFormatterHelper.formattedDate(order.invoiceDate ?? "-")
+        invoiceData.invoiceDueDate = DateFormatterHelper.formattedDate(order.invoiceDueDate ?? "-")
         
         invoiceData.businessName = user.businessName ?? "AIVA Bakery"
         invoiceData.businessAddress = user.businessAddress ?? "Orchard Road"
