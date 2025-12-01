@@ -42,7 +42,7 @@ struct ChatBotView: View {
 
     private var header: some View {
         HStack(spacing: 12) {
-            Image("AIVABot")
+            Image("AIVAAI")
                 .resizable()
                 .scaledToFill()
                 .frame(width: 36, height: 36)
@@ -50,7 +50,7 @@ struct ChatBotView: View {
                 .shadow(radius: 4)
 
             VStack(alignment: .leading, spacing: 2) {
-                Text("AIVA AI")
+                Text("AiVA AI")
                     .font(.headline)
 
                 Text("Asisten AI untuk bisnismu")
