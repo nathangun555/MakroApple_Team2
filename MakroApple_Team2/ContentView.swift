@@ -86,7 +86,7 @@ struct MainTabView: View {
                     }
                    
                 }
-                Tab("AIVA AI", systemImage: "ellipsis.message.fill", value: 3) {
+                Tab("AiVA AI", systemImage: "ellipsis.message.fill", value: 3) {
                     ChatBotView()
                 }
             }
