@@ -272,8 +272,7 @@ class ConfirmInvoiceViewModel {
         
             let updatedOrder = try await SupabaseManager.shared.updateOrder(
                 orderId: orderUUID,
-                invoiceDate: invoiceDate,
-                invoiceDueDate: invoiceDueDate,
+                invoiceDueDate: DateFormatterHelper.dateToISO(invoiceDueDate ?? ""),
                 subtotal: totalProductSubtotal,
                 shippingCost: shippingCost,
                 totalAmount: totalAfterDiscount,
