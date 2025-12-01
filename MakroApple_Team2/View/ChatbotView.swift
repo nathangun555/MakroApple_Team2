@@ -10,6 +10,18 @@ import SwiftUI
 struct ChatBotView: View {
     @EnvironmentObject var session: SessionManager
     @StateObject private var viewModel = ChatBotViewModel()
+    
+    private let suggestions = [
+        "Apa pesanan saya dalam minggu ini?",
+        "Berikan saya rangkuman penjualan dalam bulan ini",
+        "Produk apa yang paling banyak dibeli pelanggan saya?",
+        "Siapa pelanggan yang paling aktif?",
+        "Berapa total pendapatan saya hari ini?",
+        "Beri saya insight singkat dari performa toko minggu ini",
+        "Bagaimana tren penjualan dibandingkan bulan lalu?",
+        "Tolong rekomendasikan promosi terbaik untuk minggu ini"
+    ]
+
 
     var body: some View {
         ZStack {
@@ -38,7 +50,7 @@ struct ChatBotView: View {
                 .shadow(radius: 4)
 
             VStack(alignment: .leading, spacing: 2) {
-                Text("AIVA Assistant")
+                Text("AIVA AI")
                     .font(.headline)
 
                 Text("Asisten AI untuk bisnismu")
@@ -58,6 +70,10 @@ struct ChatBotView: View {
     private var messagesList: some View {
         ScrollViewReader { proxy in
             ScrollView {
+                if viewModel.messages.isEmpty {
+                    suggestedQuestions
+                }
+                
                 LazyVStack(alignment: .leading, spacing: 12) {
                     ForEach(viewModel.messages) { msg in
                         messageRow(msg)
@@ -82,6 +98,48 @@ struct ChatBotView: View {
             }
         }
     }
+    
+    private var suggestedQuestions: some View {
+        VStack(alignment: .leading, spacing: 12) {
+
+            Text("Pertanyaan cepat")
+                .font(.headline)
+                .foregroundColor(.primary)
+                .padding(.horizontal)
+
+            LazyVStack(spacing: 10) {
+                ForEach(suggestions, id: \.self) { question in
+                    Button(action: {
+                        Task {
+                            viewModel.inputText = question
+                            if let userId = session.userId {
+                                await viewModel.sendMessage(userId: userId)
+                            }
+                        }
+                    }) {
+                        HStack {
+                            Text(question)
+                                .font(.subheadline)
+                                .foregroundColor(.primary)
+                            Spacer()
+                            Image(systemName: "arrow.up.right")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                        .padding()
+                        .background(
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(Color(.secondarySystemBackground))
+                        )
+                    }
+                    .buttonStyle(.plain)
+                    .padding(.horizontal)
+                }
+            }
+        }
+        .padding(.vertical, 4)
+    }
+
 
     private func scrollToBottom(proxy: ScrollViewProxy) {
         if viewModel.isSending {
@@ -113,7 +171,7 @@ struct ChatBotView: View {
                         .font(.caption2)
                         .foregroundColor(.secondary)
 
-                    Text(msg.text)
+                    Text(.init(msg.text))
                         .font(.subheadline)
                         .foregroundColor(.primary)
                         .padding(12)
@@ -121,6 +179,7 @@ struct ChatBotView: View {
                             RoundedRectangle(cornerRadius: 18, style: .continuous)
                                 .fill(Color(.secondarySystemBackground))
                         )
+                        .textSelection(.enabled)
                         .shadow(color: Color.black.opacity(0.05), radius: 6, x: 0, y: 2)
                 }
 
