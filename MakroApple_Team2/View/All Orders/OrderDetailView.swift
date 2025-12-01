@@ -172,13 +172,14 @@ struct OrderDetailView: View {
                                 Text("Tanggal Pesanan")
                                 HStack{
                                     Text(":")
-                                    Text("\(DateFormatterHelper.formattedDate(order.orderDdayDate ?? "-"))")
-                                        .padding(.vertical, 3)
-                                        .frame(maxWidth: .infinity)
-                                        .background(
-                                            RoundedRectangle(cornerRadius: 10)
-                                                .fill(.secondary.opacity(0.2))
-                                        )
+                                    Text(DateFormatterHelper.formattedDateOrderDetail(order.orderDdayDate ?? "-"))
+                                        .font(.body)
+                                            .padding(.vertical, 6)
+                                            .padding(.horizontal, 12)
+                                            .background(.secondary.opacity(0.2), in: Capsule())
+                                    
+                                    Spacer()
+                                    
                                 }
                                 
                                 Text("Jam Kirim")
@@ -187,12 +188,12 @@ struct OrderDetailView: View {
                                     let formatted = DateFormatterHelper.formattedTime(order.orderDdayDate ?? "")
 
                                     Text(formatted == "23:59" ? "-" : "\(formatted) WIB")
-                                        .padding(.vertical, 3)
-                                        .frame(maxWidth: .infinity)
-                                        .background(
-                                            RoundedRectangle(cornerRadius: 10)
-                                                .fill(.secondary.opacity(0.2))
-                                        )
+                                        .font(.body)
+                                            .padding(.vertical, 6)
+                                            .padding(.horizontal, 12)
+                                            .background(.secondary.opacity(0.2), in: Capsule())
+                                    
+                                    Spacer()
                                 }
                                 
                                 
@@ -212,13 +213,13 @@ struct OrderDetailView: View {
                                 Text("Tanggal")
                                 HStack{
                                     Text(":")
-                                    Text("\(DateFormatterHelper.formattedDate(order.invoiceDueDate ?? "-"))")
-                                        .padding(.vertical, 3)
-                                        .frame(maxWidth: .infinity)
-                                        .background(
-                                            RoundedRectangle(cornerRadius: 10)
-                                                .fill(.secondary.opacity(0.2))
-                                        )
+                                    Text("\(DateFormatterHelper.formattedDateOrderDetail(order.invoiceDueDate ?? "-"))")
+                                        .font(.body)
+                                            .padding(.vertical, 6)
+                                            .padding(.horizontal, 12)
+                                            .background(.secondary.opacity(0.2), in: Capsule())
+                                    
+                                    Spacer()
                                 }
                                 
                                 

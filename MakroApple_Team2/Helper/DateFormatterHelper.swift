@@ -9,28 +9,45 @@ import Foundation
 
 struct DateFormatterHelper {
     
-//    static func formattedDate(_ dateString: String, showTime: Bool = false) -> String {
-//        let inputFormatter = ISO8601DateFormatter()
-//        inputFormatter.formatOptions = [.withInternetDateTime]
-//        
-//        guard let date = inputFormatter.date(from: dateString) else {
-//            print("❌ Gagal parse tanggal ke formattedDate:", dateString)
-//            return dateString
-//        }
-//        
-//        let outputFormatter = DateFormatter()
-//        outputFormatter.locale = Locale(identifier: "id_ID")
-//        
-//        if showTime {
-//            outputFormatter.dateFormat = "d MMMM YYYY, HH.mm"
-//        } else {
-//            outputFormatter.dateFormat = "d MMMM YYYY"
-//        }
-//        
-//        return outputFormatter.string(from: date)
-//    }
+    static func formattedDateOrderCard(_ dateString: String, showTime: Bool = false) -> String {
+        let inputFormatter = ISO8601DateFormatter()
+        inputFormatter.formatOptions = [.withInternetDateTime]
+        
+        guard let date = inputFormatter.date(from: dateString) else {
+            print("❌ Gagal parse tanggal ke formattedDate:", dateString)
+            return dateString
+        }
+        
+        let outputFormatter = DateFormatter()
+        outputFormatter.locale = Locale(identifier: "id_ID")
+        
+        if showTime {
+            outputFormatter.dateFormat = "d MMM YYYY, HH.mm"
+        } else {
+            outputFormatter.dateFormat = "d MMM YYYY"
+        }
+        
+        return outputFormatter.string(from: date)
+    }
+    
+    static func formattedDateOrderDetail(_ dateString: String) -> String {
+        let inputFormatter = ISO8601DateFormatter()
+        inputFormatter.formatOptions = [.withInternetDateTime]
+        
+        guard let date = inputFormatter.date(from: dateString) else {
+            print("❌ Gagal parse tanggal ke formattedDate:", dateString)
+            return dateString
+        }
+        
+        let outputFormatter = DateFormatter()
+        outputFormatter.locale = Locale(identifier: "id_ID")
+        outputFormatter.dateFormat = "d MMM, yyyy"
+        
+        
+        return outputFormatter.string(from: date)
+    }
+    
     static func formattedDate(_ dateString: String, showTime: Bool = false) -> String {
-        // Try ISO8601 with fractional seconds first, then without.
         let isoWithFrac = ISO8601DateFormatter()
         isoWithFrac.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
         
@@ -174,21 +191,6 @@ struct DateFormatterHelper {
         return formatter.string(from: date)
     }
 
-    
-//    static func indonesianDateAndTime(from isoString: String) -> (tanggal: String, jam: String) {
-//        let isoFormatter = ISO8601DateFormatter()
-//        isoFormatter.formatOptions = [.withInternetDateTime]
-//        guard let date = isoFormatter.date(from: isoString) else {
-//            return (isoString, "")
-//        }
-//        let dateFormatter = DateFormatter()
-//        dateFormatter.locale = Locale(identifier: "id_ID")
-//        dateFormatter.dateFormat = "d MMMM yyyy"
-//        let timeFormatter = DateFormatter()
-//        timeFormatter.locale = Locale(identifier: "id_ID")
-//        timeFormatter.dateFormat = "HH:mm"
-//        return (dateFormatter.string(from: date), timeFormatter.string(from: date))
-//    }
     
     // For Date and Time Picker
     static func parseIndonesianDate(_ text: String) -> Date? {

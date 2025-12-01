@@ -99,6 +99,7 @@ struct ActiveOrdersView: View {
                               Image(systemName: "ellipsis")
                                   .font(.title3.weight(.semibold))
                                   .foregroundColor(.primaryButton)
+                              
                           }
                       }
                       .buttonStyle(.plain)
@@ -113,6 +114,9 @@ struct ActiveOrdersView: View {
                               .scaledToFill()
                               .frame(width: 40, height: 40)
                               .clipShape(Circle())
+                              .shadow(color: Color(.systemGray4),
+                                      radius: 4, x: 0, y: 1)
+                          
                       } else {
                           ZStack {
                               Circle()
@@ -124,6 +128,7 @@ struct ActiveOrdersView: View {
                               Image(systemName: "person.fill")
                                   .font(.title3)
                                   .foregroundColor(.primaryButton)
+                              
                           }
                       }
                   }
