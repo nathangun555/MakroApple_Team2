@@ -80,24 +80,33 @@ struct ConfirmInvoiceView: View {
 
                         Spacer()
 
-                        DatePicker(
-                                "",
-                                selection: Binding(
-                                    get: { selectedDueDate ?? Date() },
-                                    set: { newDate in
-                                        selectedDueDate = newDate
-                                        viewModel.invoiceDueDate = DateFormatterHelper.isoDateString(from: newDate)
-                                    }
-                                ),
-                                in: Date()...,
-                                displayedComponents: .date
-                            )
-                            .labelsHidden()
-                            .datePickerStyle(.compact)
-                            .disabled(!hasDueDate)
-                            .opacity(hasDueDate ? 1.0 : 0.7)
-                            .background(!hasDueDate ? Color.gray.opacity(0.1) : Color.white)
-
+                        ZStack {
+                            DatePicker(
+                                    "",
+                                    selection: Binding(
+                                        get: { if let dd = selectedDueDate {
+                                                    return Calendar.current.startOfDay(for: dd)
+                                                }
+                                                return Calendar.current.startOfDay(for: Date()) },
+                                        set: { newDate in
+                                            selectedDueDate = newDate
+                                            viewModel.invoiceDueDate = DateFormatterHelper.formatIndonesianDate(newDate)
+                                        }
+                                    ),
+                                    in: Date()...,
+                                    displayedComponents: .date
+                                )
+                                .labelsHidden()
+                                .datePickerStyle(.compact)
+                                .frame(width: 110)
+                                .disabled(!hasDueDate)
+                                .opacity(hasDueDate ? 1.0 : 0.7)
+                                .background(!hasDueDate ? Color.gray.opacity(0.1) : Color.white)
+                        }
+                        .allowsHitTesting(hasDueDate)
+                        .frame(height: 36)
+                        .background(Color.white)
+                        .cornerRadius(16)
                       // development
                         // DatePicker
 //                         DatePicker(
@@ -129,7 +138,7 @@ struct ConfirmInvoiceView: View {
                                     // Default to today ketika toggle dinyalakan
                                     let today = Date()
                                     selectedDueDate = today
-                                    viewModel.invoiceDueDate = DateFormatterHelper.isoDateString(from: today)
+                                    viewModel.invoiceDueDate = DateFormatterHelper.formatIndonesianDate(today)
                                 }
                             }
                     }

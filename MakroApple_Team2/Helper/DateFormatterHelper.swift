@@ -100,17 +100,39 @@ struct DateFormatterHelper {
     }
     
     static func dateToISO(_ dateString: String) -> String? {
-        let locale = Locale(identifier: "id_ID")
-        let formatter = DateFormatter()
-        formatter.locale = locale
-        formatter.dateFormat = "dd MMMM yyyy"
-        if let date = formatter.date(from: dateString) {
-            let isoFormatter = ISO8601DateFormatter()
-            isoFormatter.formatOptions = [.withInternetDateTime, .withDashSeparatorInDate, .withColonSeparatorInTime]
-            return isoFormatter.string(from: date)
+
+        let isoFormatter = ISO8601DateFormatter()
+        isoFormatter.formatOptions = [.withInternetDateTime]
+
+        // 1️⃣ If already ISO → return as-is (but normalized)
+        if let alreadyISO = isoFormatter.date(from: dateString) {
+            return isoFormatter.string(from: alreadyISO)
         }
+
+        // 2️⃣ Try Indonesian format: "dd MMMM yyyy"
+        let indo = DateFormatter()
+        indo.locale = Locale(identifier: "id_ID")
+        indo.timeZone = .current
+        indo.dateFormat = "dd MMMM yyyy"
+
+        if let indoDate = indo.date(from: dateString) {
+            return isoFormatter.string(from: indoDate)
+        }
+
+        // 3️⃣ Try simple yyyy-MM-dd
+        let simple = DateFormatter()
+        simple.locale = .current
+        simple.timeZone = .current
+        simple.dateFormat = "yyyy-MM-dd"
+
+        if let simpleDate = simple.date(from: dateString) {
+            return isoFormatter.string(from: simpleDate)
+        }
+
+        // ❌ Nothing matched
         return nil
     }
+
     
     static func dateTimeToISO(dateString: String, timeString: String) -> String? {
         let locale = Locale(identifier: "id_ID")
@@ -147,9 +169,11 @@ struct DateFormatterHelper {
     static func isoDateString(from date: Date) -> String {
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "id_ID")
+        formatter.timeZone = .current
         formatter.dateFormat = "d MMMM yyyy"
         return formatter.string(from: date)
     }
+
     
 //    static func indonesianDateAndTime(from isoString: String) -> (tanggal: String, jam: String) {
 //        let isoFormatter = ISO8601DateFormatter()
@@ -167,28 +191,28 @@ struct DateFormatterHelper {
 //    }
     
     // For Date and Time Picker
-    func parseIndonesianDate(_ text: String) -> Date? {
+    static func parseIndonesianDate(_ text: String) -> Date? {
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "id_ID")
         formatter.dateFormat = "dd MMMM yyyy"
         return formatter.date(from: text)
     }
 
-    func formatIndonesianDate(_ date: Date) -> String {
+    static func formatIndonesianDate(_ date: Date) -> String {
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "id_ID")
         formatter.dateFormat = "dd MMMM yyyy"
         return formatter.string(from: date)
     }
 
-    func parseTime(_ text: String) -> Date? {
+    static func parseTime(_ text: String) -> Date? {
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "id_ID")
         formatter.dateFormat = "HH:mm"
         return formatter.date(from: text)
     }
 
-    func formatTime(_ date: Date) -> String {
+    static func formatTime(_ date: Date) -> String {
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "id_ID")
         formatter.dateFormat = "HH:mm"
