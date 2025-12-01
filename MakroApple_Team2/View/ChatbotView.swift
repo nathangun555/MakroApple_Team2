@@ -159,7 +159,7 @@ struct ChatBotView: View {
         HStack(alignment: .bottom, spacing: 10) {
             if msg.role == .assistant {
                 // Avatar AIVA
-                Image("AIVABot")
+                Image("AIVAAI")
                     .resizable()
                     .scaledToFill()
                     .frame(width: 30, height: 30)
@@ -167,7 +167,7 @@ struct ChatBotView: View {
                     .shadow(radius: 2)
 
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("AIVA Assistant")
+                    Text("AiVA AI Assistant")
                         .font(.caption2)
                         .foregroundColor(.secondary)
 
@@ -222,7 +222,7 @@ struct ChatBotView: View {
 
     private var typingRow: some View {
         HStack(alignment: .bottom, spacing: 10) {
-            Image("AIVABot")
+            Image("AIVAAI")
                 .resizable()
                 .scaledToFill()
                 .frame(width: 30, height: 30)
@@ -230,12 +230,12 @@ struct ChatBotView: View {
                 .shadow(radius: 2)
 
             VStack(alignment: .leading, spacing: 4) {
-                Text("AIVA Assistant")
+                Text("AiVA AI Assistant")
                     .font(.caption2)
                     .foregroundColor(.secondary)
 
                 HStack(spacing: 8) {
-                    Text("AIVA is typing…")
+                    Text("AiVA AI is typing…")
                         .font(.caption)
                         .foregroundColor(.secondary)
 
