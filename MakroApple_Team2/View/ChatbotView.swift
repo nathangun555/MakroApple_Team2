@@ -159,7 +159,7 @@ struct ChatBotView: View {
         HStack(alignment: .bottom, spacing: 10) {
             if msg.role == .assistant {
                 // Avatar AIVA
-                Image("AIVABot")
+                Image("AIVAAI")
                     .resizable()
                     .scaledToFill()
                     .frame(width: 30, height: 30)
