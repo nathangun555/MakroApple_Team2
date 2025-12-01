@@ -7,8 +7,6 @@
 
 import SwiftUI
 
-private let dateFormatterHelper = DateFormatterHelper()
-
 struct OrderFormSection: View {
     @State private var useTime = false
     let title: String
@@ -48,10 +46,10 @@ struct OrderFormSection: View {
                                 "",
                                 selection: Binding(
                                     get: {
-                                        dateFormatterHelper.parseIndonesianDate(fields[index].value) ?? Date()
+                                        DateFormatterHelper.parseIndonesianDate(fields[index].value) ?? Date()
                                     },
                                     set: {
-                                        fields[index].value = dateFormatterHelper.formatIndonesianDate($0)
+                                        fields[index].value = DateFormatterHelper.formatIndonesianDate($0)
                                     }
                                 ),
                                 in: Date()...,
@@ -63,7 +61,7 @@ struct OrderFormSection: View {
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .onAppear {
                                 if fields[index].value.isEmpty {
-                                    fields[index].value = dateFormatterHelper.formatIndonesianDate(Date())
+                                    fields[index].value = DateFormatterHelper.formatIndonesianDate(Date())
                                 }
                             }
 
@@ -74,11 +72,11 @@ struct OrderFormSection: View {
                                     "",
                                     selection: Binding(
                                         get: {
-                                            dateFormatterHelper.parseTime(fields[index].value) ?? Date()
+                                            DateFormatterHelper.parseTime(fields[index].value) ?? Date()
                                         },
                                         set: {
                                             if fields[index].useTime {
-                                                fields[index].value = dateFormatterHelper.formatTime($0)
+                                                fields[index].value = DateFormatterHelper.formatTime($0)
                                             }
                                         }
                                     ),
@@ -99,7 +97,7 @@ struct OrderFormSection: View {
                                     set: { newValue in
                                         fields[index].useTime = newValue
                                         if newValue && fields[index].value.isEmpty {
-                                            fields[index].value = dateFormatterHelper.formatTime(Date())
+                                            fields[index].value = DateFormatterHelper.formatTime(Date())
                                         }
                                         if !newValue {
                                             fields[index].value = ""

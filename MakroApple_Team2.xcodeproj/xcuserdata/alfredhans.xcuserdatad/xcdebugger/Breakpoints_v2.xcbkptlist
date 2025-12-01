@@ -100,5 +100,67 @@
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "8A4DBEF8-511B-4D73-BD44-0F8615D16869"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "MakroApple_Team2/ViewModel/ConfirmInvoiceViewModel.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "275"
+            endingLineNumber = "275"
+            landmarkName = "saveOrderDetails()"
+            landmarkType = "7">
+            <Locations>
+               <Location
+                  uuid = "8A4DBEF8-511B-4D73-BD44-0F8615D16869 - 528858d8daed5513"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "(1) suspend resume partial function for MakroApple_Team2.ConfirmInvoiceViewModel.saveOrderDetails() async throws -&gt; ()"
+                  moduleName = "MakroApple_Team2.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/alfredhans/Apple%20Developer/MakroApple_Team2/MakroApple_Team2/ViewModel/ConfirmInvoiceViewModel.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "275"
+                  endingLineNumber = "275">
+               </Location>
+               <Location
+                  uuid = "8A4DBEF8-511B-4D73-BD44-0F8615D16869 - 18bf0c1b56dc5fcd"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "(2) await resume partial function for MakroApple_Team2.ConfirmInvoiceViewModel.saveOrderDetails() async throws -&gt; ()"
+                  moduleName = "MakroApple_Team2.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/alfredhans/Apple%20Developer/MakroApple_Team2/MakroApple_Team2/ViewModel/ConfirmInvoiceViewModel.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "275"
+                  endingLineNumber = "275">
+               </Location>
+            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "3E9CF7B4-4173-4650-BA87-7F8B3B37BC12"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "MakroApple_Team2/Model/DatabaseFunctions/SupabaseManager+Orders.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "219"
+            endingLineNumber = "219"
+            landmarkName = "updateOrder(orderId:invoiceDueDate:subtotal:shippingCost:totalAmount:discountAmount:customFields:downPayment:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
    </Breakpoints>
 </Bucket>

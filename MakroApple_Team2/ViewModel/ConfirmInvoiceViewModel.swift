@@ -116,7 +116,7 @@ class ConfirmInvoiceViewModel {
         let tomorrow = Calendar.current.date(byAdding: .day, value: 1, to: now)!
         
         self.invoiceDate = DateFormatterHelper.isoDateString(from: now)
-        self.invoiceDueDate = order.invoiceDueDate ?? DateFormatterHelper.isoDateString(from: tomorrow)
+        self.invoiceDueDate = order.invoiceDueDate ?? DateFormatterHelper.isoDateString(from: now)
         
         self.businessName = user.businessName ?? "AIVA Bakery"
         self.businessAddress = user.businessAddress ?? "Orchard Road"
@@ -270,9 +270,11 @@ class ConfirmInvoiceViewModel {
         
         let shippingCost = Decimal(string: shippingCostText) ?? 0
         
+        print("AHAHAHHA\(invoiceDueDate)")
+        
             let updatedOrder = try await SupabaseManager.shared.updateOrder(
                 orderId: orderUUID,
-                invoiceDueDate: DateFormatterHelper.dateToISO(invoiceDueDate ?? ""),
+                invoiceDueDate: invoiceDueDate,
                 subtotal: totalProductSubtotal,
                 shippingCost: shippingCost,
                 totalAmount: totalAfterDiscount,
