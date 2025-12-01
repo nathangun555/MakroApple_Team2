@@ -86,6 +86,9 @@ struct MainTabView: View {
                     }
                    
                 }
+                Tab("AIVA AI", systemImage: "ellipsis.message.fill", value: 3) {
+                    ChatBotView()
+                }
             }
             .tint(.primaryButton)
             .onAppear {
