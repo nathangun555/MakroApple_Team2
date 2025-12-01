@@ -65,27 +65,19 @@ struct EditTemplateFormView: View {
                         )
                         
                         // Lain-Lain Section
-                        DraggableFormSection(
+                        FormSection(
                             title: "Lain - Lain",
                             fields: $viewModel.otherFields,
-                            onAddColumn: {
-                                viewModel.addOtherField()
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                                    focusedOtherField = 0
-                                }
-                            },
+                            onAddColumn: { viewModel.addOtherField() },
                             showDelete: true,
                             onDelete: { index in
                                 deleteFieldIndex = index
                                 showDeleteFieldAlert = true
                             },
                             isEditable: true,
-                            focusedIndex: $focusedOtherField,
-                            onReorder: { newOrder in
-                                                                viewModel.otherFields = newOrder
-                                                            }
-                            
+                            focusedIndex: $focusedOtherField
                         )
+
                         
                         // Referensi Foto Section
                         
