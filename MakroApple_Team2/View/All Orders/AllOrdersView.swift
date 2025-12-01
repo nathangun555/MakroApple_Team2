@@ -55,8 +55,9 @@ struct AllOrdersView: View {
             }
             .sorted { a, b in
                 guard let dateA = a.orderDdayDate, let dateB = b.orderDdayDate else { return false }
-                return dateA < dateB
+                return dateA > dateB
             }
+        
     }
 
     var body: some View {
@@ -112,6 +113,8 @@ struct AllOrdersView: View {
                                 .scaledToFill()
                                 .frame(width: 40, height: 40)
                                 .clipShape(Circle())
+                                .shadow(color: Color(.systemGray4),
+                                        radius: 4, x: 0, y: 1)
                         } else {
                             ZStack {
                                 Circle()
@@ -188,6 +191,7 @@ struct AllOrdersView: View {
                                         .buttonStyle(PlainButtonStyle())
                                     }
                                 }
+                                .padding(.bottom, 5)
                             }
                             .padding(.bottom, 20)
                             

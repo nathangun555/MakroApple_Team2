@@ -48,7 +48,7 @@ struct OrderCard: View {
                     let timeString = DateFormatterHelper.formattedTime(order.orderDdayDate ?? "")
                     let showTime = timeString != "23:59"
 
-                    Text(DateFormatterHelper.formattedDate(order.orderDdayDate ?? "", showTime: showTime))
+                    Text(DateFormatterHelper.formattedDateOrderCard(order.orderDdayDate ?? "", showTime: showTime))
                     
                     Image(systemName: "chevron.right")
                     
