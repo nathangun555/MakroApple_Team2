@@ -28,6 +28,12 @@ extension SupabaseManager {
           return try JSONDecoder().decode([OrderRecord].self, from: response.data)
         } else {
           let response = try await base.execute()
+            
+            print("🔥 RAW ORDERS DATA:")
+               print(String(data: response.data, encoding: .utf8) ?? "Cannot decode")
+               print("🔥 ------------------")
+
+            
           return try JSONDecoder().decode([OrderRecord].self, from: response.data)
         }
     }

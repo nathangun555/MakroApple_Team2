@@ -10,12 +10,15 @@ import Supabase
 
 extension SupabaseManager {
     
-    // Ambil semua item berdasarkan user_id
     func fetchOrderItems(userId: UUID) async throws -> [OrderItemRecord] {
-        
+
         let orders = try await fetchAllOrders(for: userId)
-        let orderIds = orders.map { $0.id }
-        
+
+        if let first = orders.first {
+            print("🔍 TYPE CHECK:", type(of: first.id))
+            print("🔍 VALUE:", first.id)
+        }
+        let orderIds = orders.map { $0.id }   // pastikan ini UUID, bukan String
         guard !orderIds.isEmpty else { return [] }
 
         let response = try await client
@@ -27,6 +30,7 @@ extension SupabaseManager {
         let items = try JSONDecoder().decode([OrderItemRecord].self, from: response.data)
         return items
     }
+
     
     // Ambil semua item berdasarkan orderId
     func fetchOrderItem(orderId: UUID) async throws -> [OrderItemRecord] {

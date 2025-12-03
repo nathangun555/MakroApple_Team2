@@ -93,7 +93,7 @@ struct MakroApple_Team2App: App {
             .onOpenURL { url in
                 guard url.host == "fromwhatsapp" else { return }
 
-                if let defaults = UserDefaults(suiteName: "group.com.please.shared") {
+                if let defaults = UserDefaults(suiteName: "group.com.please.shared2") {
 
                     // Ambil shared text
                     if let text = defaults.string(forKey: "sharedText") {
