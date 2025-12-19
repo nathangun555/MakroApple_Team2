@@ -60,74 +60,6 @@ struct OrderListView: View {
 
                         
                     }
-//                    else {
-//                        // --- SORT BY NAME (GROUPED BY PRODUCT TYPE) ---
-//                        
-//                        // Ambil semua item order yang relevan dengan tanggal itu
-//                        let itemsForDate = viewModel.orderItems.filter { item in
-//                            ordersForSelectedDate.contains { $0.id == item.orderId }
-//                        }
-//                        
-//                        // Kelompokkan berdasarkan productType
-//                        let groupedItems = Dictionary(grouping: itemsForDate) { $0.productName }
-//                        
-//                        // Urutkan productType secara alfabet
-//                        let sortedTypes = groupedItems.keys.sorted()
-//                        
-//                        ForEach(sortedTypes, id: \.self) { type in
-//                            if let items = groupedItems[type] {
-//                                VStack(alignment: .leading, spacing: 8) {
-//                                    
-//                                    HStack {
-//                                        Text(type.uppercased())
-//                                            .font(.title3.bold())
-//                                        
-//                                        Spacer()
-//                                        
-//                                        Text("\(items.count)")
-//                                            .padding(.vertical, 3)
-//                                            .padding(.horizontal, 6)
-//                                            .font(.headline.bold())
-//                                            .foregroundColor(.blue)
-//                                            .background(Color.clear)
-//                                            .overlay(
-//                                                RoundedRectangle(cornerRadius: 8)
-//                                                    .stroke(Color.blue, lineWidth: 2)
-//                                            )
-//                                        
-//                                    }
-//                                    .padding(.horizontal)
-//                                    
-//                                    Divider()
-//                                        .padding(.bottom, 3)
-//                                    
-//                                    // Urutkan nama produk di dalam group
-//                                    let sortedItems = items.sorted {
-//                                        $0.productName.localizedCaseInsensitiveCompare($1.productName) == .orderedAscending
-//                                    }
-//                                    
-//                                    ForEach(sortedItems) { item in
-//                                        if let order = ordersForSelectedDate.first(where: { $0.id == item.orderId }) {
-//                                            NavigationLink(
-//                                                destination:
-//                                                    OrderDetailView(
-//                                                        order: order,
-//                                                        orderItem: [item],
-//                                                        source: .allOrders,
-//                                                        activeTab: .constant(.belumBayar)
-//                                                    )
-//                                                    .environmentObject(session)
-//                                            ) {
-//                                                OrderCard(order: order, orderItem: item)
-//                                            }
-//                                            .buttonStyle(PlainButtonStyle())
-//                                        }
-//                                    }
-//                                }
-//                                .padding(.bottom, 12)
-//                            }
-//                        }
-//                    }
                     else {
                         // --- SORT BY NAME (GROUPED BY PRODUCT TYPE) ---
 
@@ -196,12 +128,14 @@ struct OrderListView: View {
 
                                         VStack(spacing: 8) {
                                             ForEach(sortedItems) { item in
+                                                let itemsForOrder = itemsForDate.filter { $0.orderId == item.orderId }
+                                                
                                                 if let order = ordersForSelectedDate.first(where: { $0.id == item.orderId }) {
                                                     NavigationLink(
                                                         destination:
                                                             OrderDetailView(
                                                                 order: order,
-                                                                orderItem: [item],
+                                                                orderItem:itemsForOrder,
                                                                 source: .allOrders,
                                                                 activeTab: .constant(.belumBayar)
                                                             )

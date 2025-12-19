@@ -35,6 +35,9 @@ struct ChatBotView: View {
                     inputBar
                 }
         }
+        .onTapGesture {
+            hideKeyboard()
+        }
         .navigationBarHidden(true)
     }
 
