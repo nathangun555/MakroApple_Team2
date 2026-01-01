@@ -299,6 +299,9 @@ class InputMenuViewModel {
                 }
             }
             isLoading = false
+            Task {
+                await deleteUploadedImages()
+            }
         } catch {
             print("❌ Failed to decode scan result: \(error)")
             errorMessage = "Failed to parse menu data: \(error.localizedDescription)"
@@ -328,6 +331,20 @@ class InputMenuViewModel {
     func setProgress(_ value: Double) {
         withAnimation {
             progress = min(max(value, 0.0), 1.0)
+        }
+    }
+
+    private func deleteUploadedImages() async {
+        guard !uploadedPhotoURLs.isEmpty else { return }
+
+        do {
+            try await SupabaseManager.shared
+                .deleteFiles(fromPublicURLs: uploadedPhotoURLs)
+
+            print("🧹 Deleted \(uploadedPhotoURLs.count) images from bucket")
+            uploadedPhotoURLs.removeAll()
+        } catch {
+            print("❌ Failed to delete images: \(error)")
         }
     }
 
