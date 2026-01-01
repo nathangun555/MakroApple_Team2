@@ -100,4 +100,21 @@ extension SupabaseManager {
 
         throw lastError ?? NSError(domain: "upload", code: -1, userInfo: [NSLocalizedDescriptionKey: "Upload failed"])
     }
+    
+    func deleteFiles(fromPublicURLs urls: [String]) async throws {
+            let paths: [String] = urls.compactMap { urlString in
+                guard let url = URL(string: urlString) else { return nil }
+                
+                // Example:
+                // https://xxx.supabase.co/storage/v1/object/public/order-references/abc.jpg
+                guard let range = url.path.range(of: "/object/public/") else { return nil }
+                return String(url.path[range.upperBound...])
+            }
+            
+            guard !paths.isEmpty else { return }
+            
+            try await client.storage
+                .from("MakroAppleTeam2_Bucket")
+                .remove(paths: paths)
+        }
 }

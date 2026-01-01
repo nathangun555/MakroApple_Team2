@@ -14,6 +14,10 @@ struct TotalSectionView : View {
     var total : Decimal
     var downPayment : Decimal
     
+    var sisaPelunasan: Decimal {
+        total - downPayment
+    }
+    
     var body: some View {
         VStack(spacing: 6) {
             HStack {
@@ -44,14 +48,26 @@ struct TotalSectionView : View {
                     .font(.system(size: 10, weight: .bold))
             }
             
-            Divider()
-            
-            HStack {
-                Text("Down Payment")
-                    .font(.system(size: 10))
-                Spacer()
-                Text("Rp. \(downPayment.formatted())")
-                    .font(.system(size: 10))
+            if downPayment > 0 {
+                Divider()
+                
+                HStack {
+                    Text("Down Payment")
+                        .font(.system(size: 10))
+                    Spacer()
+                    Text("Rp. \(downPayment.formatted())")
+                        .font(.system(size: 10))
+                }
+                
+                Divider()
+                
+                HStack {
+                    Text("Sisa Pelunasan")
+                        .font(.system(size: 10))
+                    Spacer()
+                    Text("Rp. \(sisaPelunasan.formatted())")
+                        .font(.system(size: 10))
+                }
             }
         }
         .frame(maxWidth: 250)
