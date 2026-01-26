@@ -149,9 +149,9 @@ final class SessionManager: ObservableObject {
     private func setupDevSession() {
         self.isSignedIn = true
         
-        self.userId = "dbbc99ea-1746-4673-afb1-a64754ed0312" // SHOWCASE
+//        self.userId = "dbbc99ea-1746-4673-afb1-a64754ed0312" // SHOWCASE
         
-//        self.userId = "a4a00bc9-a7c7-47a6-8001-89c6fb8d760c" // new
+        self.userId = "76393da3-89a0-4a36-b64e-e5285787b738lao" // new
 //        self.userId = "ec7eea39-e2b6-4e46-b847-646019276f67" // has template
 //        self.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f" // nathan analytics
         
