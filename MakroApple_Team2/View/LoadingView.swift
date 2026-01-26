@@ -32,6 +32,7 @@ struct LoadingView: View {
         "Pastikan koneksi internet stabil.",
         "Jangan tutup aplikasi saat proses berjalan.",
         "AI kami sedang menganalisis data Anda.",
+        "Periksa hasil dari AI untuk menghindari kesalahan.",
         "Proses biasanya selesai dalam beberapa detik.",
         "Terima kasih sudah menunggu!"
     ]
