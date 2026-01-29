@@ -167,10 +167,12 @@ struct ActiveOrdersView: View {
             ScrollView {
               LazyVStack(spacing: 0) {
                   OrderListView(
+//                    mode: .calendar,
                       selectedDate: selectedDate,
                       viewModel: viewModel,
                       sortOption: sortOption,
-                      expandedProducts: $expandedProducts
+                      expandedProducts: $expandedProducts,
+                     
                   )
 
               }

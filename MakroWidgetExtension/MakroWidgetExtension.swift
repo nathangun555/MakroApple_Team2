@@ -16,15 +16,14 @@ struct OrderWidget: Widget {
     }
 }
 
-// MARK: - Timeline Entry
 struct SimpleEntry: TimelineEntry {
     let date: Date
     let configuration: OrderWidgetIntent
-    let orders: [OrderRecord] // langsung OrderRecord
+    let orders: [OrderRecord]
     let orderItems: [OrderItemRecord]
+    let mode: OrderWidgetMode
 }
 
-// MARK: - Provider
 struct Provider: AppIntentTimelineProvider {
 
     func placeholder(in context: Context) -> SimpleEntry {
@@ -32,7 +31,8 @@ struct Provider: AppIntentTimelineProvider {
             date: Date(),
             configuration: OrderWidgetIntent(),
             orders: [],
-            orderItems: []
+            orderItems: [],
+            mode: .customer
         )
     }
 
@@ -41,7 +41,8 @@ struct Provider: AppIntentTimelineProvider {
             date: Date(),
             configuration: configuration,
             orders: WidgetDataManager.shared.loadOrders(),
-            orderItems: WidgetDataManager.shared.loadOrderItems()
+            orderItems: WidgetDataManager.shared.loadOrderItems(),
+            mode: configuration.mode ?? .customer
         )
     }
 
@@ -49,34 +50,53 @@ struct Provider: AppIntentTimelineProvider {
         let allOrders = WidgetDataManager.shared.loadOrders()
         let allItems = WidgetDataManager.shared.loadOrderItems()
 
-        let filteredOrders = filterOrders(allOrders, by: configuration)
-        
+        let mode = configuration.mode ?? .customer
+
+        let filteredOrders = filterOrders(allOrders, mode: mode)
+
+        let orderIds = Set(filteredOrders.map { $0.id })
+        let filteredItems = allItems.filter {
+            orderIds.contains($0.orderId)
+        }
+
         let entry = SimpleEntry(
             date: Date(),
             configuration: configuration,
             orders: Array(filteredOrders.prefix(20)),
-            orderItems: allItems // ambil semua order items
+            orderItems: filteredItems,
+            mode: mode
         )
-        
+
         let nextRefresh = Calendar.current.date(byAdding: .minute, value: 30, to: Date())!
         return Timeline(entries: [entry], policy: .after(nextRefresh))
     }
 
-    private func filterOrders(_ orders: [OrderRecord], by configuration: OrderWidgetIntent) -> [OrderRecord] {
-        switch configuration.mode {
-        case .status:
-            let target = (configuration.status?.rawValue ?? "Diproses").lowercased()
-            return orders.filter { $0.status.lowercased() == target }
-        case .calendar:
-            guard let selected = configuration.selectedDate else { return [] }
-            return orders.filter { order in
-                guard let iso = order.orderDdayDate,
-                      let d = DateFormatterHelper.toDate(iso) else { return false }
-                return Calendar.current.isDate(d, inSameDayAs: selected)
+    
+    
+    private func filterOrders(
+        _ orders: [OrderRecord],
+        mode: OrderWidgetMode
+    ) -> [OrderRecord] {
+
+        let today = Date()
+
+        return orders.filter { order in
+            // FILTER STATUS
+            let status = order.status.lowercased()
+            if status == "belum terbayar" || status == "dibatalkan" {
+                return false
             }
-        default:
-            return orders
+
+            // FILTER TANGGAL (HARI INI)
+            guard let iso = order.orderDdayDate,
+                  let d = DateFormatterHelper.toDate(iso) else {
+                return false
+            }
+
+            return Calendar.current.isDate(d, inSameDayAs: today)
         }
     }
+
+
 }
 
