@@ -12,7 +12,7 @@ class NewTemplateViewModel {
     var resultJSON: String? = nil  // ✅ Add this
     
     private(set) var userId: String?
-    let edgeFunctionURL = URL(string: "https://iznjcwyoziqjgfjahemb.supabase.co/functions/v1/form-template")!
+    let edgeFunctionURL = URL(string: "https://hddpofvkwanymugjtlpp.supabase.co/functions/v1/form-template")!
     
     func configure(userId: String?) {
         self.userId = userId
@@ -29,7 +29,7 @@ class NewTemplateViewModel {
             var request = URLRequest(url: edgeFunctionURL)
             request.httpMethod = "POST"
             request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-            request.addValue("Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml6bmpjd3lvemlxamdmamFoZW1iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY3MTg3NjksImV4cCI6MjA3MjI5NDc2OX0.J9zQpQajTg3V6qAN18W5Fkv2jCDobL_XzuRS3BdPmdA", forHTTPHeaderField: "Authorization")
+            request.addValue("Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkZHBvZnZrd2FueW11Z2p0bHBwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc3ODczMTIsImV4cCI6MjA4MzM2MzMxMn0.47Ts6UPaoQHQhrQ2nVx8LnTxFuJxdjZUXbr0mkLw9cA", forHTTPHeaderField: "Authorization")
             
             let body = ["input": input]
             request.httpBody = try JSONSerialization.data(withJSONObject: body)

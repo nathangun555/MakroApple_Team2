@@ -96,7 +96,7 @@ class Set_InputMenuViewModel {
 
     // MARK: - Call Edge Function (single batch)
     func menuScanBatch(imageUrls: [String], completion: @escaping (String?) -> Void) {
-        guard let url = URL(string: "https://ynxrqdbpovgmhhoobfjt.supabase.co/functions/v1/menu-parser") else {
+        guard let url = URL(string: "https://hddpofvkwanymugjtlpp.supabase.co/functions/v1/menu-parser") else {
             print("❌ URL is invalid.")
             completion(nil)
             return
@@ -109,7 +109,7 @@ class Set_InputMenuViewModel {
         request.timeoutInterval = 90
 
         // NOTE: ganti key ini jika perlu
-        let supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlueHJxZGJwb3ZnbWhob29iZmp0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwODkwMjksImV4cCI6MjA3NTY2NTAyOX0.1da8SzP39NVbIt7gLgRbPA6wG3aDpL0es5nb-GCNfG4"
+        let supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkZHBvZnZrd2FueW11Z2p0bHBwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc3ODczMTIsImV4cCI6MjA4MzM2MzMxMn0.47Ts6UPaoQHQhrQ2nVx8LnTxFuJxdjZUXbr0mkLw9cA"
         request.setValue("Bearer \(supabaseAnonKey)", forHTTPHeaderField: "Authorization")
 
         let body: [String: Any] = ["imageUrls": imageUrls, "detail": "low"]

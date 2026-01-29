@@ -161,7 +161,17 @@ struct AllOrdersView: View {
                 // 📋 Orders List
                 
                 VStack {
-                    if filteredOrders.isEmpty {
+                    if viewModel.isLoading {
+                        ScrollView {
+                            LazyVStack(spacing: 12) {
+                                ForEach(0..<5, id: \.self) { _ in
+                                    OrderCardPlaceholder()
+                                }
+                                .padding(.bottom, 5)
+                            }
+                            .padding(.bottom, 20)
+                        }
+                    } else if filteredOrders.isEmpty {
                         OrderEmptyState()
                     }
                     else {

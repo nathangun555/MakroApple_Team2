@@ -16,7 +16,7 @@ struct HeaderSectionView: View {
     var businessPhone : String?
     var businessEmail : String?
     var invoiceNumber: String
-    var url2: URL = URL(string: "https://ynxrqdbpovgmhhoobfjt.supabase.co/storage/v1/object/public/MakroAppleTeam2_Bucket/business-logos/3A0A83FE-2480-42F5-82AE-D2A419AAFF89.jpg") ?? URL(string: "google.com")!
+    var url2: URL = URL(string: "https://hddpofvkwanymugjtlpp.supabase.co/storage/v1/object/public/MakroAppleTeam2_Bucket/business-logos/3A0A83FE-2480-42F5-82AE-D2A419AAFF89.jpg") ?? URL(string: "google.com")!
     
     @State private var isLogoLoaded = false
     
@@ -100,12 +100,12 @@ struct HeaderSectionView: View {
     }
 }
 //#Preview {
-//    HeaderSectionView(businessLogoUrl: "https://ynxrqdbpovgmhhoobfjt.supabase.co/storage/v1/object/public/MakroAppleTeam2_Bucket/business-logos/3A0A83FE-2480-42F5-82AE-D2A419AAFF89.jpg", businessName: "Toko Subur", businessAddress: "Ngagel Jaya", businessPhone: "62812345678", businessEmail: "bejo@gmail.com", invoiceNumber: "1234")
+//    HeaderSectionView(businessLogoUrl: "https://hddpofvkwanymugjtlpp.supabase.co/storage/v1/object/public/MakroAppleTeam2_Bucket/business-logos/3A0A83FE-2480-42F5-82AE-D2A419AAFF89.jpg", businessName: "Toko Subur", businessAddress: "Ngagel Jaya", businessPhone: "62812345678", businessEmail: "bejo@gmail.com", invoiceNumber: "1234")
 //}
 
 #Preview("Valid URL loads image") {
     HeaderSectionView(
-        businessLogoUrl: "https://ynxrqdbpovgmhhoobfjt.supabase.co/storage/v1/object/public/MakroAppleTeam2_Bucket/business-logos/3A0A83FE-2480-42F5-82AE-D2A419AAFF89.jpg",
+        businessLogoUrl: "https://hddpofvkwanymugjtlpp.supabase.co/storage/v1/object/public/MakroAppleTeam2_Bucket/business-logos/3A0A83FE-2480-42F5-82AE-D2A419AAFF89.jpg",
         businessName: "Toko Subur",
         businessAddress: "Ngagel Jaya",
         businessPhone: "62812345678",
