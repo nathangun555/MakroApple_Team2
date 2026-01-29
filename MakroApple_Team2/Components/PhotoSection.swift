@@ -8,10 +8,6 @@ struct PhotoSection: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Masukkan Foto Referensi")
-                .font(.title3)
-                .fontWeight(.bold)
-
             HStack(spacing: 12) {
                 ForEach(0..<selectedImages.count, id: \.self) { index in
                     VStack {

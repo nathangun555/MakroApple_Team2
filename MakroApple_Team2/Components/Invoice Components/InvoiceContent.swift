@@ -16,7 +16,7 @@ struct InvoiceContentView: View {
             HeaderSectionView(businessLogoUrl: viewModel.businessLogoUrl, businessName: viewModel.businessName, businessAddress: viewModel.businessAddress, businessPhone: viewModel.businessPhone, businessEmail: viewModel.businessEmail, invoiceNumber: viewModel.invoiceNumber)
             
 //            HeaderSectionView(
-//                businessLogoUrl: "https://ynxrqdbpovgmhhoobfjt.supabase.co/storage/v1/object/public/MakroAppleTeam2_Bucket/business-logos/3A0A83FE-2480-42F5-82AE-D2A419AAFF89.jpg",
+//                businessLogoUrl: "https://hddpofvkwanymugjtlpp.supabase.co/storage/v1/object/public/MakroAppleTeam2_Bucket/business-logos/3A0A83FE-2480-42F5-82AE-D2A419AAFF89.jpg",
 //                businessName: "Toko Subur",
 //                businessAddress: "Ngagel Jaya",
 //                businessPhone: "62812345678",

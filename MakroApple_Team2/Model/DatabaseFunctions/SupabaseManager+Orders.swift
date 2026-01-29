@@ -42,6 +42,21 @@ extension SupabaseManager {
         return try JSONDecoder().decode(OrderRecord.self, from: response.data)
     }
     
+    func getOrderCountForYear(userId: UUID, year: Int) async throws -> Int {
+        let startDate = "\(year)-01-01 00:00:00+00"
+        let endDate = "\(year)-12-31 23:59:59+00"
+        
+        let response = try await client
+            .from("orders")
+            .select("id", count: CountOption.exact)
+            .eq("user_id", value: userId)
+            .gte("invoice_date", value: startDate)
+            .lte("invoice_date", value: endDate)
+            .execute()
+        
+        return response.count ?? 0
+    }
+    
     func createOrder(
         orderId: String,
         userId: UUID,

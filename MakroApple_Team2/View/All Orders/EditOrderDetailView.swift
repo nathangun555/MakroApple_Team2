@@ -121,7 +121,11 @@ struct EditOrderDetailView: View {
                 Text("Pesanan berhasil disimpan!")
             }
             .navigationDestination(isPresented: $showConfirmInvoice) {
-                ConfirmInvoiceView(orderId: orderId, isDismissed: $isDismissed)
+                InvoicePreviewView(
+                    orderId: lastOrderId.isEmpty ? orderId : lastOrderId,
+                    isViewOnly: true,
+                    isDismissed: $isDismissed
+                )
             }
             .onAppear {
                 viewModel.configure(userId: session.userId, parsedOrderData: parsedOrderData)
