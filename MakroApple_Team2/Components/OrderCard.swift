@@ -55,6 +55,7 @@ struct OrderCard: View {
                 }
                 .font(.subheadline)
                 .foregroundColor(.secondary)
+                .padding(.bottom, 4)
                 
                 Spacer()
                 
@@ -97,7 +98,7 @@ struct OrderCard: View {
             )
         )
         .cornerRadius(10)
-        .frame(height: 85)
+//        .frame(height: 85)
         .padding(.horizontal, 20)
         
         

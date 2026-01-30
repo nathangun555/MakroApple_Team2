@@ -26,7 +26,7 @@ struct AllOrdersView: View {
     
     @Environment(\.dismiss) var dismiss
     
-    // 🧠 These caches temporarily store data per navigation ID
+    // These caches temporarily store data per navigation ID
     @State private var orderDataCache: [UUID: [String: Any]] = [:]
     @State private var orderImagesCache: [UUID: [UIImage]] = [:]
     
@@ -41,6 +41,11 @@ struct AllOrdersView: View {
     
     @State private var viewModel = AllOrdersViewModel()
     @State private var profileImage: UIImage? = nil
+
+    
+    @State private var selectedOrder: OrderRecord?
+    @State private var showOrderDetail = false
+
 
     private var filteredOrders: [OrderRecord] {
         viewModel.orders
@@ -126,7 +131,6 @@ struct AllOrdersView: View {
                                 Image(systemName: "person.fill")
                                     .font(.title3)
                                     .foregroundColor(.primaryButton)
-//                                    .glassEffect()
                             }
                         }
                     }
@@ -175,39 +179,47 @@ struct AllOrdersView: View {
                         OrderEmptyState()
                     }
                     else {
-                        ScrollView {
-                            LazyVStack(spacing: 12) {
-                                
+                        List {
+                            ForEach(filteredOrders) { order in
+                                let orderItems = viewModel.orderItems.filter { $0.orderId == order.id }
 
-                                
-                                ForEach(filteredOrders) { order in
-                                    let orderItems = viewModel.orderItems.filter { $0.orderId == order.id }
-                                    
-                                    if !orderItems.isEmpty {
-                                        NavigationLink(
-                                            destination:
-                                                OrderDetailView(
-                                                    order: order,
-                                                    orderItem: orderItems,
-                                                    source: .allOrders,
-                                                    activeTab: $activeTab
-                                                )
-                                                .toolbar(.hidden, for: .tabBar)
-                                                .environmentObject(session)
-                                                .environmentObject(analyticViewModel)
-                                        ) {
-                                            OrderCard(order: order, orderItem: orderItems)
+                                if !orderItems.isEmpty {
+
+                                    ZStack {
+                                        OrderCard(order: order, orderItem: orderItems)
+                                    }
+                                    .padding(.vertical, 6)
+                                    .listRowInsets(.init())
+                                    .listRowSeparator(.hidden)
+                                    .listRowBackground(Color.clear)
+                                    .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+
+                                        Button{
+                                            Task {
+                                                await handleStatusUpdate(for: order)
+
+                                            }
+                                            
+                                            print("Selesai")
+                                        } label: {
+                                            Label("Selesai", systemImage: "chevron.right")
                                         }
-                                        .buttonStyle(PlainButtonStyle())
+                                        .tint(statusColors[order.status])
+//                                        .padding(.trailing)
+
+                                        
+                                    }
+                                    .onTapGesture {
+                                        selectedOrder = order
+                                        showOrderDetail = true
                                     }
                                 }
-                                .padding(.bottom, 5)
                             }
-                            .padding(.bottom, 20)
-                            
-                            
                         }
-                      
+                        .listStyle(.plain)
+                        .scrollContentBackground(.hidden)
+                        .background(Color.clear)
+
                     }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -307,10 +319,60 @@ struct AllOrdersView: View {
                     isDismissed = false
                 }
             }
+            .navigationDestination(isPresented: $showOrderDetail) {
+                if let order = selectedOrder {
+                    OrderDetailView(
+                                order: order,
+                                orderItem: viewModel.orderItems.filter { $0.orderId == order.id },
+                                source: .allOrders,
+                                activeTab: $activeTab
+                            )
+                            .toolbar(.hidden, for: .tabBar)
+                            .environmentObject(session)
+                            .environmentObject(analyticViewModel)
+                }
+            }
         }
         
         .searchable(text: $searchText, prompt: "Cari Nama Pelanggan")
     }
+    
+    
+    private func handleStatusUpdate(for order: OrderRecord) async {
+        guard let userIdString = session.userId,
+              let userId = UUID(uuidString: userIdString) else { return }
+
+        do {
+            let finalStatus: String
+
+            switch order.status.lowercased() {
+            case "belum terbayar":
+                finalStatus = "Diproses"
+            case "diproses":
+                finalStatus = "Terkirim"
+            case "terkirim":
+                finalStatus = "Selesai"
+            case "dibatalkan":
+                finalStatus = "Belum Terbayar"
+            default:
+                return
+            }
+
+            try await SupabaseManager.shared.updateOrderStatus(
+                orderId: order.id,
+                newStatus: finalStatus
+            )
+
+            print("✅ Updated status to:", finalStatus)
+
+            // Refresh list
+            await viewModel.fetchOrders(for: userId)
+
+        } catch {
+            print("❌ Failed to update status:", error.localizedDescription)
+        }
+    }
+
     
     private func handleAddNewOrder() {
         let id = UUID()

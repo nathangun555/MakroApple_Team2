@@ -8,128 +8,13 @@
 import SwiftUI
 import WidgetKit
 
-let widgetStatusColors: [String: Color] = [
-    "Belum Terbayar": .belumBayar,
-    "Diproses": .diproses,
-    "Terkirim": .terkirim,
-    "Selesai": .selesai,
-    "Dibatalkan": .dibatalkan
-]
-
-extension Array where Element == OrderRecord {
-    /// Filter status tertentu dan urutkan berdasarkan jam
-    var filteredOrders: [OrderRecord] {
-        self
-            .filter { !["Belum Terbayar", "Dibatalkan"].contains($0.status) } // filter status
-            .sorted {
-                let date0 = ISO8601DateFormatter().date(from: $0.orderDdayDate ?? "") ?? Date.distantPast
-                let date1 = ISO8601DateFormatter().date(from: $1.orderDdayDate ?? "") ?? Date.distantPast
-                return date0 < date1
-            }
-    }
-}
 
 
-
-@ViewBuilder
-func mediumWidgetOrderCard(time: String, title: String, color: Color) -> some View {
-    HStack(spacing: 4) {
-        RoundedRectangle(cornerRadius: 3)
-            .frame(width: 6)
-            .foregroundColor(color)
-        
-        VStack(alignment: .leading, spacing: 2) {
-            Text(time)
-                .font(.caption2)
-                .foregroundColor(.secondary)
-            
-            Text(title)
-                .font(.caption.bold())
-                .lineLimit(1)
-        }
-        
-        Spacer()
-    }
-    .padding(.vertical, 4)
-    .padding(.horizontal, 4)
-    .frame(maxWidth: .infinity, maxHeight: 50)
-    .background(
-        LinearGradient(colors: [Color.white.opacity(0.15), color.opacity(0.20)],
-                       startPoint: .leading,
-                       endPoint: .trailing)
-    )
-    .clipShape(RoundedRectangle(cornerRadius: 10))
-}
-
-
-@ViewBuilder
-func largeWidgetOrderCard(name: String, title: String, time: String, color: Color, extraCount: Int) -> some View {
-    HStack(spacing: 10) {
-
-        RoundedRectangle(cornerRadius: 3)
-            .frame(width: 6)
-            .foregroundColor(color)
-
-        VStack(alignment: .leading, spacing: 6) {
-            
-            HStack{
-                
-                Text(name)
-                    .font(.system(size: 13))
-                    .foregroundColor(.secondary)
-                Spacer()
-                Text(time)
-                    .font(.system(size: 13))
-                    .foregroundColor(.secondary)
-            }
-
-            Text(title)
-                .font(.system(size: 15, weight: .semibold))
-            
-            if extraCount > 0 {
-                Text("+\(extraCount) more")
-                    .font(Font.caption2.bold())
-                    .foregroundColor(.secondary)
-            }
-            
-        }
-        .padding(.vertical,10)
-
-        Spacer()
-
-       
-    }
-    .frame(maxHeight: 70)
-//    .padding(.vertical, 6)
-    .padding(.horizontal, 6)
-    
-    .background(
-        LinearGradient(
-            colors: [Color.white.opacity(0.15), color.opacity(0.15)],
-            startPoint: .leading,
-            endPoint: .trailing
-        )
-    )
-    .clipShape(RoundedRectangle(cornerRadius: 16))
-}
-
-var dateComponents: (day: String, monthYear: String) {
-    let date = Date()
-    let day = Calendar.current.component(.day, from: date).description
-
-    let formatter = DateFormatter()
-    formatter.dateFormat = "MMMM yyyy"
-    let monthYear = formatter.string(from: date)
-
-    return (day, monthYear)
-}
-
-struct MediumWidgetView: View {
+struct CustomerMediumWidgetView: View {
     let orders: [OrderRecord]
     let orderItems: [OrderItemRecord]
 
     let dateFormatterHelper = DateFormatterHelper()
-    
     
     var body: some View {
         let filtered = orders.filteredOrders
@@ -156,7 +41,7 @@ struct MediumWidgetView: View {
                     Image(systemName: "book.pages.fill")
                         .font(.title)
                         .foregroundColor(.primaryButton)
-                        .padding(12) // jarak dari icon ke tepi circle
+                        .padding(12)
                         .background(
                             Circle()
                                 .fill(Color.blue.opacity(0.1))
@@ -237,11 +122,10 @@ struct MediumWidgetView: View {
     }
 }
 
-struct LargeWidgetView : View {
+struct CustomerLargeWidgetView : View {
     let orders: [OrderRecord]
     let orderItems: [OrderItemRecord]
     
-
     
     var body : some View {
         let filteredOrders = orders.filteredOrders
@@ -270,7 +154,7 @@ struct LargeWidgetView : View {
                     Image(systemName: "book.pages.fill")
                         .font(.title)
                         .foregroundColor(.blue)
-                        .padding(12) // jarak dari icon ke tepi circle
+                        .padding(12)
                         .background(
                             Circle()
                                 .fill(Color.blue.opacity(0.1))
@@ -316,7 +200,6 @@ struct LargeWidgetView : View {
                 }
             }
             
-            // EXTRA ORDERS
             Spacer()
         }
         .padding(.top, 10)
@@ -325,4 +208,92 @@ struct LargeWidgetView : View {
         }
     }
     
+}
+
+
+struct OrderLargeWidgetView : View {
+    let orders: [OrderRecord]
+    let orderItems: [OrderItemRecord]
+    
+    var body: some View {
+        
+        let groupedItems = Dictionary(grouping: orderItems) { $0.productName }
+        
+        let sortedTypes = groupedItems.keys.sorted()
+        
+        let displayedTypes = Array(sortedTypes.prefix(4))
+        let remainingCount = max(sortedTypes.count - 4, 0)
+        
+        VStack(alignment: .leading) {
+            // HEADER
+            HStack(alignment: .bottom) {
+                Text(dateComponents.day)
+                    .font(.largeTitle.bold())
+                    .foregroundColor(.primaryButton)
+                
+                Text(dateComponents.monthYear)
+                    .font(.default.bold())
+                    .padding(.bottom, 8)
+                
+                Spacer()
+            }
+            
+            ForEach(displayedTypes, id: \.self) { type in
+                
+                if let items = groupedItems[type] {
+                    
+                    // ORDER LIST
+                    HStack(spacing: 12) {
+                        
+                        // Jumlah Pesanan Produk
+                        Text("\(items.count)")
+                            .font(.subheadline)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.primaryButton)
+                        
+                            .padding(4)
+                            .background(
+                                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                    .fill(Color.white)
+                            )
+                        
+                        
+                        // Nama Produk
+                        Text(type)
+                            .font(.headline)
+                        
+                        Spacer()
+                        
+                        
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 10)
+                    .background(
+                        RoundedRectangle(cornerRadius: 14, style: .continuous)
+                            .fill(Color("DeadlineCard"))
+                    )
+                    
+                    
+                  
+                }
+            }
+            
+            // + MORE
+            if remainingCount > 0 {
+                Text("+ \(remainingCount) Produk")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundColor(.primaryButton)
+                    .padding(.horizontal, 16)
+                    .padding(.top, 4)
+            }
+            
+            
+            Spacer()
+            
+                .containerBackground(for: .widget) {
+                    Color(.systemBackground)
+                }
+            
+        }
+    }
 }

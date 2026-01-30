@@ -8,7 +8,6 @@
 import SwiftUI
 import Foundation
 
-// MARK: - Order List View
 struct OrderListView: View {
     
     @EnvironmentObject var session: SessionManager
@@ -16,7 +15,7 @@ struct OrderListView: View {
     
     let selectedDate: Date
     let calendar = Calendar.current
-    var viewModel = AllOrdersViewModel()
+    @State var viewModel = AllOrdersViewModel()
     let sortOption: String
     
     @Binding var expandedProducts: Set<String>
@@ -31,7 +30,8 @@ struct OrderListView: View {
             ScrollView {
                 LazyVStack(spacing: 16) {
                     if sortOption == "Waktu" {
-                        // --- SORT BY TIME ---
+                        
+                        // Sort By Time
                         let sortedOrders = ordersForSelectedDate.sorted { a, b in
                             let dateA = DateFormatterHelper.toDate(a.orderDdayDate ?? "") ?? .distantPast
                             let dateB = DateFormatterHelper.toDate(b.orderDdayDate ?? "") ?? .distantPast
@@ -61,8 +61,8 @@ struct OrderListView: View {
                         
                     }
                     else {
-                        // --- SORT BY NAME (GROUPED BY PRODUCT TYPE) ---
-
+                        // Sort By Product Name
+                        
                         let itemsForDate = viewModel.orderItems.filter { item in
                             ordersForSelectedDate.contains { $0.id == item.orderId }
                         }

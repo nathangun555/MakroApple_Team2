@@ -13,22 +13,51 @@ struct MakroWidgetExtensionEntryView: View {
     let entry: SimpleEntry
 
     var body: some View {
-        switch family {
-        case .systemSmall:
-            MediumWidgetView(orders: entry.orders, orderItems: entry.orderItems)
-
-        case .systemMedium:
-            MediumWidgetView(orders: entry.orders, orderItems: entry.orderItems)
-
-
-        case .systemLarge:
-            LargeWidgetView(orders: entry.orders, orderItems: entry.orderItems)
-
-
-        default:
-            MediumWidgetView(orders: entry.orders, orderItems: entry.orderItems)
-
+        
+        switch entry.mode {
+            
+        case .customer:
+            switch family {
+            case .systemSmall:
+                EmptyView()
+            case .systemMedium:
+                CustomerMediumWidgetView(orders: entry.orders, orderItems: entry.orderItems)
+            case .systemLarge:
+                CustomerLargeWidgetView(orders: entry.orders, orderItems: entry.orderItems)
+            default:
+                CustomerMediumWidgetView(orders: entry.orders, orderItems: entry.orderItems)
+            }
+            
+        case .order:
+            switch family {
+                case .systemSmall:
+                EmptyView()
+            case .systemMedium:
+                EmptyView()
+            case .systemLarge:
+                OrderLargeWidgetView(orders: entry.orders, orderItems: entry.orderItems)
+            default:
+                EmptyView()
+            }
         }
+        
+        
+//        switch family {
+//        case .systemSmall:
+//            MediumWidgetView(orders: entry.orders, orderItems: entry.orderItems)
+//
+//        case .systemMedium:
+//            MediumWidgetView(orders: entry.orders, orderItems: entry.orderItems)
+//
+//
+//        case .systemLarge:
+//            LargeWidgetView(orders: entry.orders, orderItems: entry.orderItems)
+//
+//
+//        default:
+//            MediumWidgetView(orders: entry.orders, orderItems: entry.orderItems)
+//
+//        }
     }
 }
 

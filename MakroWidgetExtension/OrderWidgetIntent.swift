@@ -1,9 +1,10 @@
 import AppIntents
 
-// MARK: - Widget Mode Enum
+
+// Mode Widget
 enum OrderWidgetMode: String, AppEnum {
-    case status
-    case calendar
+    case customer
+    case order
 
     static var typeDisplayRepresentation: TypeDisplayRepresentation {
         "Order View Mode"
@@ -11,46 +12,18 @@ enum OrderWidgetMode: String, AppEnum {
 
     static var caseDisplayRepresentations: [OrderWidgetMode: DisplayRepresentation] {
         [
-            .status: "By Status",
-            .calendar: "By Calendar Date"
-        ]
-    }
-}
-
-// MARK: - Status Enum
-enum OrderStatusOption: String, AppEnum {
-    case BelumTerbayar = "Belum Terbayar"
-    case Diproses = "Diproses"
-    case Terkirim = "Terkirim"
-    case Selesai = "Selesai"
-    case Dibatalkan = "Dibatalkan"
-
-    static var typeDisplayRepresentation: TypeDisplayRepresentation {
-        "Order Status"
-    }
-
-    static var caseDisplayRepresentations: [OrderStatusOption: DisplayRepresentation] {
-        [
-            .BelumTerbayar: "Belum Terbayar",
-            .Diproses: "Diproses",
-            .Terkirim: "Terkirim",
-            .Selesai: "Selesai",
-            .Dibatalkan: "Dibatalkan"
+            .customer: "By Customer",
+            .order: "By Order"
         ]
     }
 }
 
 // MARK: - Main Intent for Widget
 struct OrderWidgetIntent: WidgetConfigurationIntent {
+    
 
     @Parameter(title: "Mode")
-    var mode: OrderWidgetMode?   // MUST BE OPTIONAL
-
-    @Parameter(title: "Order Status")
-    var status: OrderStatusOption?   // MUST BE OPTIONAL
-
-    @Parameter(title: "Select Date")
-    var selectedDate: Date?     // MUST BE OPTIONAL
+    var mode: OrderWidgetMode?
 
     static var title: LocalizedStringResource = "Order Widget Settings"
     static var description = IntentDescription(
