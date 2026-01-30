@@ -231,14 +231,24 @@ struct AllOrdersView: View {
             .navigationBarHidden(true)
             .task {
                 guard let userIdString = session.userId,
-                      let userId = UUID(uuidString: userIdString) else { return }
-                
-                print("🪪 Fetching data for user:", userId)
-                await viewModel.checkIfUserHasTemplates(for: userId)
+                          let userId = UUID(uuidString: userIdString) else { return }
+
+                print("🚀 AllOrders .task start for user: \(userId)")
+
+                // Phase 1: Business setup (blocks + button)
                 await viewModel.fetchBusinessName(for: userId)
-//                await viewModel.autoCancelOverdueOrders()
-                await viewModel.fetchOrders(for: userId)
-                await viewModel.fetchOrderItems(for: userId)
+                await viewModel.checkIfUserHasTemplates(for: userId)
+
+                // Phase 2: Orders (non-blocking)
+                Task { @MainActor in
+                    await viewModel.fetchOrders(for: userId)
+                    await viewModel.fetchOrderItems(for: userId)
+                }
+
+                // Phase 3: Final re-check
+                try? await Task.sleep(nanoseconds: 1_000_000_000)
+                await viewModel.checkIfUserHasTemplates(for: userId)
+                print("✅ Final hasTemplates: \(viewModel.hasTemplates)")
             }
             .onAppear {
                 if hasNewObject {

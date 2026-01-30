@@ -140,9 +140,9 @@ struct InvoicePreviewView: View {
                 viewModel.configure(userId: session.userId, orderId: orderId)
                 await viewModel.loadInvoiceData()
                 
-                exportedPDFURL = viewModel.tempPDFURL()
-                
                 invoiceData = viewModel.invoiceData
+                
+                exportedPDFURL = viewModel.tempPDFURL()
                 
                 // Auto-save invoice when page appears (only if not view-only)
                 if !isViewOnly {
@@ -157,23 +157,30 @@ struct InvoicePreviewView: View {
     func autoSaveInvoice() async {
         guard !viewModel.isPreviewMode else { return }
         
-        let invoiceView = InvoiceContentView(viewModel: invoiceData)
-            .padding(20)
-            .background(Color.white)
-            .frame(width: 595)
-        
-        guard let pdfData = viewModel.exportAsPDF(view: invoiceView) else {
-            print("⚠️ Failed to generate PDF for auto-save")
+        // ✅ Use EXISTING preview PDF data (no re-gen!)
+        guard let previewPDF = exportedPDFURL,
+              let pdfData = try? Data(contentsOf: previewPDF) else {
+            print("⚠️ No preview PDF data for autosave - fallback gen")
+            
+            // Your original fallback (safe)
+            let invoiceView = InvoiceContentView(viewModel: invoiceData)
+                .padding(20)
+                .background(Color.white)
+                .frame(width: 595)
+            
+            guard let fallbackData = viewModel.exportAsPDF(view: invoiceView) else { return }
+            let url = try? await viewModel.saveAndUploadInvoice(pdfData: fallbackData)
             return
         }
         
         do {
-            let url = try await viewModel.saveAndUploadInvoice(pdfData: pdfData)
-            print("✅ Invoice auto-saved to: \(url)")
+            let uploadedURL = try await viewModel.saveAndUploadInvoice(pdfData: pdfData)
+            print("✅ Autosaved preview → \(uploadedURL)")
         } catch {
-            print("❌ Error auto-saving invoice: \(error)")
+            print("❌ Autosave failed: \(error)")
         }
     }
+
     
     // MARK: - Save Invoice and Dismiss
     func saveInvoiceAndDismiss() async {
