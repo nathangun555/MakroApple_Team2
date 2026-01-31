@@ -14,7 +14,6 @@ struct InvoicePreviewView: View {
     @Environment(\.dismiss) var dismiss
     
     @State var orderId: String?
-    var isViewOnly: Bool = false
     
     @State private var isLoading = false
     @State private var isSaving = false
@@ -143,36 +142,9 @@ struct InvoicePreviewView: View {
                 exportedPDFURL = viewModel.tempPDFURL()
                 
                 invoiceData = viewModel.invoiceData
-                
-                // Auto-save invoice when page appears (only if not view-only)
-                if !isViewOnly {
-                    await autoSaveInvoice()
-                }
             }
         }
         
-    }
-    
-    // MARK: - Auto Save Invoice
-    func autoSaveInvoice() async {
-        guard !viewModel.isPreviewMode else { return }
-        
-        let invoiceView = InvoiceContentView(viewModel: invoiceData)
-            .padding(20)
-            .background(Color.white)
-            .frame(width: 595)
-        
-        guard let pdfData = viewModel.exportAsPDF(view: invoiceView) else {
-            print("⚠️ Failed to generate PDF for auto-save")
-            return
-        }
-        
-        do {
-            let url = try await viewModel.saveAndUploadInvoice(pdfData: pdfData)
-            print("✅ Invoice auto-saved to: \(url)")
-        } catch {
-            print("❌ Error auto-saving invoice: \(error)")
-        }
     }
     
     // MARK: - Save Invoice and Dismiss
@@ -249,5 +221,3 @@ struct InvoicePreviewView: View {
 //    return InvoicePreviewView(orderId: "82536742-DDC4-481C-B63A-87400194D0AA")
 //        .environmentObject(session)
 //}
-
-

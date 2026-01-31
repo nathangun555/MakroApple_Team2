@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-
+import PhotosUI
 // To tell where the user open this page from
 enum OrderSource {
     case allOrders
@@ -26,6 +26,8 @@ struct OrderDetailView: View {
     @EnvironmentObject var session: SessionManager
     @State var order: OrderRecord
     @State var orderItem: [OrderItemRecord]
+    @State private var selectedImages: [UIImage?] = []
+    @State private var selectedItems: [PhotosPickerItem?] = []
     
     @State private var showEditSheet = false
     
@@ -338,7 +340,7 @@ struct OrderDetailView: View {
                             .font(.title3)
                         
 //                        LazyVGrid(columns: columns, spacing: 10) {
-//                            
+//
 //                            Text("Pengiriman :")
 //                            Text("\(order.opsiPengiriman?.isEmpty == true ? "-" : order.opsiPengiriman!)")
 //                                .padding(.vertical, 3)
@@ -348,13 +350,13 @@ struct OrderDetailView: View {
 //                                        .stroke(Color.gray, lineWidth: 0.5)
 //                                        .background(RoundedRectangle(cornerRadius: 30).fill(.secondary.opacity(0.1)))
 //                                )
-//                            
+//
 //                            Text("Notes :")
 //
 //                            Text("\(order.notes?.isEmpty == true ? "-" : order.notes!)")
 //                                .lineLimit(5)
 //                                .padding(5)
-//                            
+//
 //                                .lineLimit(10)
 //                                .frame(maxWidth: .infinity)
 //                                .background(
@@ -621,9 +623,12 @@ struct OrderDetailView: View {
             
         }
         .sheet(isPresented: $showEditSheet) {
+
             EditOrderDetailView(
                 orderId: order.id.uuidString,
                 parsedOrderData: order.asParsedDictionary(with: orderItem),
+                selectedImages: $selectedImages,
+                selectedItems: $selectedItems,
                 isDismissed: $isDismissed
             )
         }
@@ -796,7 +801,7 @@ struct OrderDetailView: View {
                analyticViewModel.prefetchAllTimeframes(userId: userId)
            }
        }
-
+    
 
 }
 
@@ -814,4 +819,3 @@ struct OrderDetailView: View {
 //    // Inject the environment object
 //    return view.environmentObject(session)
 //}
-

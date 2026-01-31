@@ -4,7 +4,7 @@ import WidgetKit
 class WidgetDataManager {
     static let shared = WidgetDataManager()
     
-    private let suite = UserDefaults(suiteName: "group.com.please.shared")!
+    private let suite = UserDefaults(suiteName: "group.com.please.shared2")!
     private let key = "orders_for_widget"
     private let itemsKey = "order_items_for_widget"
     

@@ -192,9 +192,6 @@ struct ConfirmMenuView: View {
             }
             
             HStack(spacing: 16) {
-                Label("\(vm.sections.count) kategori", systemImage: "folder.fill")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
                 Label("\(vm.sections.flatMap { $0.items }.count) produk", systemImage: "tag.fill")
                     .font(.caption)
                     .foregroundColor(.secondary)
@@ -309,7 +306,7 @@ struct ConfirmMenuView: View {
 //    let session = SessionManager()
 //    session.isSignedIn = true
 //    session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
-//    
+//
 //    // ✅ Mock scanned data for preview
 //    let mockCategories = [
 //        MenuCategory(categoryName: "Custom Cake", products: [
@@ -320,7 +317,7 @@ struct ConfirmMenuView: View {
 //            MenuProduct(name: "Strawberry Shortcake 16cm", price: 240000, notes: "vanilla sponge, fresh strawberry", productType: "Signature Cake")
 //        ])
 //    ]
-//    
+//
 //    return NavigationStack {
 //        ConfirmMenuView(scannedCategories: mockCategories)
 //            .environmentObject(session)

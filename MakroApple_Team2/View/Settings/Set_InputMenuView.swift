@@ -281,12 +281,15 @@ struct Set_InputMenuView: View {
     }
     
     private func getFileSize(url: URL) -> String {
-        guard let attributes = try? FileManager.default.attributesOfItem(atPath: url.path),
-              let fileSize = attributes[.size] as? Int64 else {
+        do {
+            let values = try url.resourceValues(forKeys: [.fileSizeKey])
+            guard let bytes = values.fileSize else { return "00 MB of 10 MB" }
+            let mb = Double(bytes) / (1024 * 1024)
+            return String(format: "%.1f MB of 10 MB", mb)
+        } catch {
+            print("Size error: \(error)")
             return "00 MB of 10 MB"
         }
-        let sizeInMB = Double(fileSize) / (1024 * 1024)
-        return String(format: "%.2f MB of 10 MB", sizeInMB)
     }
     
     private func mergeCategoriesForApp(_ newCats: [MenuCategory]) {

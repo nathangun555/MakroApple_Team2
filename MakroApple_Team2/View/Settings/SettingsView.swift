@@ -140,17 +140,31 @@ struct SettingsView: View {
 
                 // Logout
                 Section {
-                    NavigationLink(destination: EmptyView()) {
-                        HStack {
-                            Image(systemName: "rectangle.portrait.and.arrow.right")
-                                .foregroundStyle(.primaryButton)
-                                .imageScale(.medium)
-                            Text("Logout")
+//                    NavigationLink(destination: EmptyView()) {
+//                        HStack {
+//                            Image(systemName: "rectangle.portrait.and.arrow.right")
+//                                .foregroundStyle(.primaryButton)
+//                                .imageScale(.medium)
+//                            Text("Logout")
+//                        }
+//                    }
+//                    .simultaneousGesture(TapGesture().onEnded {
+//                        showLogoutDialog = true
+//                    })
+                    Button {
+                            showLogoutDialog = true  // ✅ Langsung trigger alert
+                        } label: {
+                            HStack {
+                                Image(systemName: "rectangle.portrait.and.arrow.right")
+                                    .foregroundStyle(.primaryButton)
+                                    .imageScale(.medium)
+                                Text("Logout")
+                                Spacer()
+                                Image(systemName: "chevron.right")
+                                    .foregroundColor(Color(.systemGray2))
+                                    .imageScale(.small)
+                            }
                         }
-                    }
-                    .simultaneousGesture(TapGesture().onEnded {
-                        showLogoutDialog = true
-                    })
                 }
             }
             .listStyle(.plain)
@@ -175,6 +189,8 @@ struct SettingsView: View {
             .alert("Keluar dari akun?", isPresented: $showLogoutDialog) {
                 Button("Logout", role: .destructive) {
                     isLoggingOut = true
+                    // ✅ Dismiss SettingsView dulu
+                           dismiss()
                     Task {
                         defer {
                             isLoggingOut = false

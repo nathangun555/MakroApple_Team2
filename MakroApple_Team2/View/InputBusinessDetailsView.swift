@@ -171,7 +171,7 @@ struct InputBusinessDetailsView: View {
                   )
                   .frame(maxWidth: .infinity, alignment: .leading)
                   .focused($focusedField, equals: .businessPhone)
-                  .keyboardType(.numbersAndPunctuation)
+                  .keyboardType(.numberPad)
               }
             if let error = vm.fieldErrors["businessPhone"] {
                 HStack{
@@ -514,7 +514,7 @@ struct InputBusinessDetailsView: View {
 //          Button {
 //              Task {
 //                  await vm.save()
-//                  
+//
 //                  if vm.saveSuccess {
 //                      navigateToMenu = true
 //                  }
@@ -531,7 +531,7 @@ struct InputBusinessDetailsView: View {
 //                    .fontWeight(.semibold)
 //                    .foregroundColor(vm.noEmptyFields ? .white : Color.primaryButton )
 //            }
-//                  
+//
 //          }
 //          .buttonStyle(.glassProminent)
 //          .tint(vm.noEmptyFields ? Color.primaryButton : .white)

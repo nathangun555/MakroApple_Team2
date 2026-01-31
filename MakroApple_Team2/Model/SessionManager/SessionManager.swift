@@ -127,12 +127,16 @@ final class SessionManager: ObservableObject {
     private var authListenerTask: Task<Void, Never>? = nil
 
     // ✅ Dev mode flag
-    private let useDevMode = true   // Set to true hanya kalau mau bypass login
+    private let useDevMode = false   // Set to true hanya kalau mau bypass login
 
     init() {
+        print("🟢 SessionManager init() called")
+        print("📍 useDevMode: \(useDevMode)")
+        
         if useDevMode {
             setupDevSession()
             isAuthLoaded = true
+            print("🟢 isAuthLoaded set to TRUE (dev mode)")
             return
         }
 
@@ -140,11 +144,15 @@ final class SessionManager: ObservableObject {
 
         Task {
             await restoreSessionIfAvailable()
-            // Setelah cek session (berhasil / gagal), tandai sudah selesai
             isAuthLoaded = true
+            print("🟢 isAuthLoaded set to TRUE (after restore)")
+            print("📍 isSignedIn: \(isSignedIn)")
+            print("📍 userId: \(userId ?? "nil")")
         }
     }
 
+
+    
     // ✅ Dev mode setup - instant, synchronous
     private func setupDevSession() {
         self.isSignedIn = true
@@ -222,6 +230,8 @@ final class SessionManager: ObservableObject {
     }
 
     func signOut() async {
+        print("🔴 signOut() called")
+        
         if useDevMode {
             print("🧪 DEV MODE: Sign out disabled")
             return
@@ -229,11 +239,18 @@ final class SessionManager: ObservableObject {
 
         do {
             try await SupabaseManager.shared.client.auth.signOut()
+            print("✅ Supabase signOut success")
         } catch {
-            print("Sign out error:", error)
+            print("❌ Sign out error:", error)
         }
 
         isSignedIn = false
         userId = nil
+        isAuthLoaded = true
+        
+        print("🔴 Session cleared")
+        print("📍 isSignedIn: \(isSignedIn)")
+        print("📍 userId: \(userId ?? "nil")")
+        print("📍 isAuthLoaded: \(isAuthLoaded)")
     }
 }

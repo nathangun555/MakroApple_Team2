@@ -57,7 +57,7 @@ struct Set_ConfirmMenuView: View {
                                     unsavedBus.close(false)
                                     },
                                     onConfirm: {
-                                        unsavedBus.close(false)        
+                                        unsavedBus.close(false)
                                         dismiss() }
                                 )
                             } else {
@@ -160,10 +160,6 @@ struct Set_ConfirmMenuView: View {
             }
             
             HStack(spacing: 16) {
-                Label("\(vm.sections.count) kategori", systemImage: "folder.fill")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                
                 Label("\(vm.sections.flatMap { $0.items }.count) produk", systemImage: "tag.fill")
                     .font(.caption)
                     .foregroundColor(.secondary)
