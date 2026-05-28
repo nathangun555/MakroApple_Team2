@@ -2,6 +2,10 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>UIUserInterfaceStyle</key>
+	<string>Light</string>
+	<key>CFBundleGetInfoString</key>
+	<string></string>
 	<key>CFBundleIconName</key>
 	<string>AppIcon</string>
 	<key>CFBundleURLTypes</key>
@@ -10,7 +14,7 @@
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
 			<key>CFBundleURLName</key>
-			<string>MakroApple-Team2</string>
+			<string>iwak.AIVA</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>makroa2</string>
@@ -19,5 +23,9 @@
 	</array>
 	<key>LSBundleContainsCoreMLmlmodelc</key>
 	<false/>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+	</array>
 </dict>
 </plist>

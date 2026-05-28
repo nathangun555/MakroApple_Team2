@@ -9,25 +9,30 @@ import SwiftUI
 
 struct InvoicePreviewView: View {
     @State var viewModel = InvoicePreviewViewModel()
+    @State var invoiceData = InvoiceData()
     @EnvironmentObject var session: SessionManager
     @Environment(\.dismiss) var dismiss
     
-    let orderId: String?
-    @Binding var path: NavigationPath
+    @State var orderId: String?
+    var isViewOnly: Bool = false
     
+    @State private var isLoading = false
     @State private var isSaving = false
     @State private var showSuccessAlert = false
     
     @State private var exportedPDFURL: URL?
     
+    @Binding var isDismissed: Bool
+    
+    
     
     var body: some View {
         NavigationStack{
             
-            
             ZStack {
                 if viewModel.isLoading {
-                    ProgressView("Memuat invoice...")
+                    LoadingView(context: "invoice")
+//                    ProgressView("Memuat invoice...")
                 } else if let errorMessage = viewModel.errorMessage {
                     VStack {
                         Text("❌ Error")
@@ -87,25 +92,13 @@ struct InvoicePreviewView: View {
                                 }
                                 .disabled(isSaving)
                             }
-                        } else {
-                            VStack(spacing: 0) {
-                                Button {
-                                    path = NavigationPath()
-                                } label: {
-                                    Text("Konfirmasi")
-                                        .frame(maxWidth: .infinity)
-                                        .bold()
-                                        .padding()
-                                        .foregroundColor(.white)
-                                        .glassEffect(.clear.tint(.primaryButton), in: .rect(cornerRadius: 30))
-                                        .padding(.horizontal)
-                                        .padding(.bottom)
-                                }
-                            }
                         }
                     }
                     
                 }
+            }
+            .onTapGesture {
+                hideKeyboard()
             }
             .navigationTitle(viewModel.isPreviewMode ? "Preview Invoice" : "Invoice")
             .navigationBarTitleDisplayMode(.inline)
@@ -125,6 +118,19 @@ struct InvoicePreviewView: View {
                                 .foregroundColor(.white)
                         }
                         .buttonStyle(.glassProminent)
+                        .tint(.primaryButton)
+                    }
+                    
+                    else {
+                        Button(action: {
+                            isDismissed = true
+                        }) {
+                            Image(systemName: "checkmark")
+                                .font(.title3)
+                                .foregroundColor(.white)
+                        }
+                        .buttonStyle(.glassProminent)
+                        .tint(.primaryButton)
                     }
                 }
             }
@@ -134,18 +140,54 @@ struct InvoicePreviewView: View {
                 viewModel.configure(userId: session.userId, orderId: orderId)
                 await viewModel.loadInvoiceData()
                 
+                invoiceData = viewModel.invoiceData
+                
                 exportedPDFURL = viewModel.tempPDFURL()
+                
+                // Auto-save invoice when page appears (only if not view-only)
+                if !isViewOnly {
+                    await autoSaveInvoice()
+                }
             }
         }
         
     }
+    
+    // MARK: - Auto Save Invoice
+    func autoSaveInvoice() async {
+        guard !viewModel.isPreviewMode else { return }
+        
+        // ✅ Use EXISTING preview PDF data (no re-gen!)
+        guard let previewPDF = exportedPDFURL,
+              let pdfData = try? Data(contentsOf: previewPDF) else {
+            print("⚠️ No preview PDF data for autosave - fallback gen")
+            
+            // Your original fallback (safe)
+            let invoiceView = InvoiceContentView(viewModel: invoiceData)
+                .padding(20)
+                .background(Color.white)
+                .frame(width: 595)
+            
+            guard let fallbackData = viewModel.exportAsPDF(view: invoiceView) else { return }
+            let url = try? await viewModel.saveAndUploadInvoice(pdfData: fallbackData)
+            return
+        }
+        
+        do {
+            let uploadedURL = try await viewModel.saveAndUploadInvoice(pdfData: pdfData)
+            print("✅ Autosaved preview → \(uploadedURL)")
+        } catch {
+            print("❌ Autosave failed: \(error)")
+        }
+    }
+
     
     // MARK: - Save Invoice and Dismiss
     func saveInvoiceAndDismiss() async {
         isSaving = true
         defer { isSaving = false }
         
-        let invoiceView = InvoiceContentView(viewModel: viewModel)
+        let invoiceView = InvoiceContentView(viewModel: invoiceData)
             .padding(20)
             .background(Color.white)
             .frame(width: 595)
@@ -159,7 +201,7 @@ struct InvoicePreviewView: View {
             let url = try await viewModel.saveAndUploadInvoice(pdfData: pdfData)
             print("✅ Invoice saved to: \(url)")
             
-            path = NavigationPath()
+            isDismissed = true
             
         } catch {
             viewModel.errorMessage = "Gagal menyimpan invoice: \(error.localizedDescription)"
@@ -214,3 +256,5 @@ struct InvoicePreviewView: View {
 //    return InvoicePreviewView(orderId: "82536742-DDC4-481C-B63A-87400194D0AA")
 //        .environmentObject(session)
 //}
+
+

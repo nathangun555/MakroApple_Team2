@@ -62,7 +62,7 @@ class NewOrderViewModel {
             }
             
             // Step 3: Prepare request
-            guard let url = URL(string: "https://iznjcwyoziqjgfjahemb.supabase.co/functions/v1/form-order") else {
+            guard let url = URL(string: "https://hddpofvkwanymugjtlpp.supabase.co/functions/v1/form-order") else {
                 print("❌ Invalid URL")
                 throw NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid URL"])
             }
@@ -70,7 +70,7 @@ class NewOrderViewModel {
             var request = URLRequest(url: url)
             request.httpMethod = "POST"
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-            request.setValue("Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml6bmpjd3lvemlxamdmamFoZW1iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY3MTg3NjksImV4cCI6MjA3MjI5NDc2OX0.J9zQpQajTg3V6qAN18W5Fkv2jCDobL_XzuRS3BdPmdA", forHTTPHeaderField: "Authorization")
+            request.setValue("Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhkZHBvZnZrd2FueW11Z2p0bHBwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc3ODczMTIsImV4cCI6MjA4MzM2MzMxMn0.47Ts6UPaoQHQhrQ2nVx8LnTxFuJxdjZUXbr0mkLw9cA", forHTTPHeaderField: "Authorization")
             
             let body: [String: Any] = [
                 "orderText": text,

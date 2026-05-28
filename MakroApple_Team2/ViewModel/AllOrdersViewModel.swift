@@ -7,6 +7,7 @@ class AllOrdersViewModel {
     
     private let calendar = Calendar.current
     var businessName: String = ""
+    var businessLogoUrl: String? = nil
     var isLoading = false
     var errorMessage: String?
     var orders: [OrderRecord] = []
@@ -20,7 +21,7 @@ class AllOrdersViewModel {
         self.userId = userId
     }
     
-
+    // flag for codeEdward
     // MARK: - Fetch Business Name
     func fetchBusinessName(for userId: UUID?) async {
         guard let userId else {
@@ -34,6 +35,7 @@ class AllOrdersViewModel {
         do {
             if let user = try await SupabaseManager.shared.fetchUser(by: userId) {
                 businessName = user.businessName ?? "No Business Name"
+                businessLogoUrl = user.businessLogoUrl
                 print("✅ Business Name Loaded:", businessName)
             } else {
                 errorMessage = "User not found"
@@ -45,6 +47,24 @@ class AllOrdersViewModel {
     }
     
     // MARK: - Fetch Orders
+//    func fetchOrders(for userId: UUID?) async {
+//        guard let userId else {
+//            print("❌ Invalid user ID")
+//            return
+//        }
+//
+//        isLoading = true
+//        defer { isLoading = false }
+//
+//        do {
+//            let fetchedOrders = try await SupabaseManager.shared.fetchAllOrders(for: userId)
+//            self.orders = fetchedOrders
+//            print("✅ Orders fetched:", fetchedOrders.count)
+//        } catch {
+//            print("❌ Error fetching orders:", error)
+//        }
+//    }
+    
     func fetchOrders(for userId: UUID?) async {
         guard let userId else {
             print("❌ Invalid user ID")
@@ -58,10 +78,40 @@ class AllOrdersViewModel {
             let fetchedOrders = try await SupabaseManager.shared.fetchAllOrders(for: userId)
             self.orders = fetchedOrders
             print("✅ Orders fetched:", fetchedOrders.count)
+            
+
+            let today2 = Date()
+            let filteredOrders = fetchedOrders
+                .filter { order in
+                    guard let dday = DateFormatterHelper.toDate(order.orderDdayDate ?? "") else { return false }
+                    let isValidStatus = order.status != "Belum Terbayar" && order.status != "Dibatalkan"
+                    return isValidStatus && Calendar.current.isDate(dday, inSameDayAs: today2)
+                }
+                .sorted { order1, order2 in
+                    let date1 = DateFormatterHelper.toDate(order1.orderDdayDate ?? "") ?? Date.distantPast
+                    let date2 = DateFormatterHelper.toDate(order2.orderDdayDate ?? "") ?? Date.distantPast
+                    return date1 < date2
+                }
+
+            // Simpan ke widget
+            WidgetDataManager.shared.saveOrders(filteredOrders)
+
+            
+            let today = OrderCountHelper.countTodayOrders(from: fetchedOrders)
+            let tomorrow = OrderCountHelper.countTomorrowOrders(from: fetchedOrders)
+
+            NotificationManager.shared.saveOrderCounts(today: today, tomorrow: tomorrow)
+            NotificationManager.shared.scheduleDailyNotifications()
+
+            print("🔔 Saved Today:", today, "| Tomorrow:", tomorrow)
+            
         } catch {
             print("❌ Error fetching orders:", error)
         }
     }
+
+
+
     
     // MARK: - Fetch Order Items
     func fetchOrderItems(for userId: UUID?) async {
@@ -77,10 +127,48 @@ class AllOrdersViewModel {
             let orderItems = try await SupabaseManager.shared.fetchOrderItems(userId: userId)
             self.orderItems = orderItems
             print("✅ Ditemukan \(orderItems.count) order items untuk user \(userId)")
+            WidgetDataManager.shared.saveOrderItems(orderItems)
+
+
         } catch {
             print("❌ Gagal ambil order items:", error.localizedDescription)
         }
     }
+    
+    // MARK: - Auto Cancel Unpaid Orders
+//    func autoCancelOverdueOrders() async {
+//        print("🔍 Checking overdue unpaid orders...")
+//
+//        let today = Calendar.current.startOfDay(for: Date())
+//
+//        for order in orders {
+//            guard order.status.lowercased() == "belum terbayar" else { continue }
+//
+//            guard let dueDateString = order.invoiceDueDate,
+//                  let dueDate = DateFormatterHelper.toDate(dueDateString) else {
+//                continue
+//            }
+//
+//            let dueDay = Calendar.current.startOfDay(for: dueDate)
+//
+//            // Jika lewat deadline
+//            if dueDay < today {
+//                print("⚠️ Order \(order.id) overdue → set to Dibatalkan")
+//
+//                do {
+//                    try await SupabaseManager.shared.updateOrderStatus(
+//                        orderId: order.id,
+//                        newStatus: "Dibatalkan"
+//                    )
+//                } catch {
+//                    print("❌ Failed updating overdue order:", error.localizedDescription)
+//                }
+//            }
+//        }
+//
+//
+//    }
+
     
 
 //    func hasOrders(for date: Date) -> Bool {
@@ -88,7 +176,6 @@ class AllOrdersViewModel {
 //    }
     
     func hasOrders(for date: Date) -> Bool {
-       
         return orders.contains { order in
             guard let orderDate = DateFormatterHelper.toDate(order.orderDdayDate ?? "") else {
                 return false
@@ -170,12 +257,27 @@ class AllOrdersViewModel {
         defer { isCheckingTemplates = false }
         
         do {
+            
             let template = try await SupabaseManager.shared.fetchUser(by: userId)
-            hasTemplates = (template?.templateFormat != nil)
+            
+            if let temp = template, let format = temp.templateFormat, format.isEmpty || template?.templateFormat == nil{
+                hasTemplates = false
+            } else {
+                hasTemplates = true
+            }
             print(hasTemplates ? "✅ User has templates" : "⚠️ User has no templates")
         } catch {
             print("❌ Error checking templates: \(error)")
             hasTemplates = false
+        }
+    }
+    func loadImage(from urlString: String) async -> UIImage? {
+        guard let url = URL(string: urlString) else { return nil }
+        do {
+            let (data, _) = try await URLSession.shared.data(from: url)
+            return UIImage(data: data)
+        } catch {
+            return nil
         }
     }
 

@@ -31,6 +31,8 @@ final class Set_BusinessDetailsViewModel: ObservableObject {
   
   @Published var fieldErrors: [String: String] = [:]
   @Published var hasChanges = false  // ✅ Track changes
+    
+    @Published var noEmptyFields = false
   
   // ✅ Store original data
   private var originalData: (
@@ -94,6 +96,7 @@ final class Set_BusinessDetailsViewModel: ObservableObject {
   func checkForChanges() {
     guard let original = originalData else {
       hasChanges = false
+        
       return
     }
     
@@ -106,45 +109,62 @@ final class Set_BusinessDetailsViewModel: ObservableObject {
                  bankAccountName != original.bankAccountName ||
                  bankName != original.bankName
   }
+    
+    func checkForEmptyFields (){
+        noEmptyFields =
+            !businessName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+            !businessPhone.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+            !businessAddress.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+            !businessLogoUrl.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+            !businessEmail.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+            !bankAccountNumber.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+            !bankAccountName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+            !bankName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        
+    }
+    
 
   func validateAllFields() -> Bool {
     fieldErrors.removeAll()
     
     if businessName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-      fieldErrors["businessName"] = "Nama bisnis wajib diisi"
+      fieldErrors["businessName"] = "Lengkapi untuk melanjutkan."
     }
     
     if businessAddress.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-      fieldErrors["businessAddress"] = "Alamat bisnis wajib diisi"
+      fieldErrors["businessAddress"] = "Lengkapi untuk melanjutkan."
     }
     
     if businessPhone.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-      fieldErrors["businessPhone"] = "Nomor telepon wajib diisi"
+      fieldErrors["businessPhone"] = "Lengkapi untuk melanjutkan."
     }
     
     if businessEmail.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-      fieldErrors["businessEmail"] = "Email bisnis wajib diisi"
+      fieldErrors["businessEmail"] = "Lengkapi untuk melanjutkan."
     } else {
       let pattern = #"^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$"#
       if businessEmail.range(of: pattern, options: [.regularExpression, .caseInsensitive]) == nil {
-        fieldErrors["businessEmail"] = "Format email tidak valid"
+        fieldErrors["businessEmail"] = "Lengkapi untuk melanjutkan."
       }
     }
     
     if bankAccountName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-      fieldErrors["bankAccountName"] = "Nama akun wajib diisi"
+      fieldErrors["bankAccountName"] = "Lengkapi untuk melanjutkan."
     }
     
     if bankAccountNumber.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-      fieldErrors["bankAccountNumber"] = "Nomor rekening wajib diisi"
+      fieldErrors["bankAccountNumber"] = "Lengkapi untuk melanjutkan."
     }
     
     if bankName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-      fieldErrors["bankName"] = "Nama bank wajib diisi"
+      fieldErrors["bankName"] = "Lengkapi untuk melanjutkan."
     }
     
     return fieldErrors.isEmpty
   }
+    
+
+
 
   func save() async {
     guard let userId, let uuid = UUID(uuidString: userId) else {

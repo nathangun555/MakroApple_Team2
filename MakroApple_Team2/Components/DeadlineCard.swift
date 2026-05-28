@@ -9,54 +9,77 @@ import SwiftUI
 
 struct DeadlineCard: View {
     var orders: [OrderRecord]
+    var hastemplates: Bool
+    @Binding var isTutorial: Bool
     
     private var todayDeadlineCount: Int {
         let today = Calendar.current.startOfDay(for: Date())
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "yyyy-MM-dd" // adjust to your actual format
         
-        return orders.filter {
-            guard let dateString = $0.orderDdayDate, // String
-                  let date = dateFormatter.date(from: dateString) else {
+        let validStatuses = ["diproses", "terkirim", "selesai"]
+
+        return orders.filter { order in
+            // Filter berdasarkan status valid
+            let status = order.status.lowercased()
+            guard validStatuses.contains(status) else {
                 return false
             }
-            return Calendar.current.isDate(date, inSameDayAs: today)
+            
+            // Konversi dan bandingkan tanggal
+            guard let date = DateFormatterHelper.toDate(order.orderDdayDate) else {
+                return false
+            }
+            let parsedDayStart = Calendar.current.startOfDay(for: date)
+            return parsedDayStart == today
         }.count
     }
+
+
+
     
     var body: some View {
+        
+        
         // Today's Deadline Card
-        
-        
-        
-        
-        HStack {
-            VStack {
-                Image(systemName: "bookmark.fill")
-                    .font(.title3)
+        VStack {
+            HStack {
+                VStack {
+                    Image(systemName: hastemplates ? "bookmark.fill" : "building.2.crop.circle.fill")
+                        .font(.title2)
+                }
+                VStack(alignment: .leading) {
+                    Text(hastemplates ? "Deadline Hari Ini" : "Lengkapi Data Bisnis Anda")
+                        .font(.title2)
+                        .fontWeight(.bold)
+                    
+                    Text(hastemplates ? "\(todayDeadlineCount) Pesanan yang perlu selesai" : "Selesaikan data bisnis sebelum menambah pesanan.")
+                        .font(.caption)
+                }
             }
-            
-            
-            
-            VStack(alignment: .leading) {
-                Text("Deadline Hari Ini")
-                    .font(.title2)
-                .fontWeight(.bold)
-                
-                Spacer()
-                Text("\(todayDeadlineCount) Pesanan yang perlu selesai")
-                    .font(.body)
+            if !hastemplates {
+                Button(action: {
+                    isTutorial = true
+                }) {
+                    Text("Atur Sekarang")
+                        .font(.subheadline)
+                        .fontWeight(.bold)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 8)
+                        .background(.primaryButton)
+                        .foregroundColor(.white)
+                        .cornerRadius(30)
+                }
+                .padding(.top, 8)
             }
         }
         .padding()
         .frame(maxWidth: .infinity, alignment: .leading)
         .foregroundStyle(.primaryButton)
         .background(.deadlineCard)
-        .frame(height: 80)
+        .frame(maxWidth: .infinity, alignment: .leading)
         .cornerRadius(10)
         .padding(.horizontal)
         
-
+        
         
     }
     

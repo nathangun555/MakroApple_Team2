@@ -13,33 +13,20 @@ struct Set_NewTemplateFormView: View {
     @State private var viewModel = Set_NewTemplateViewModel()
     @EnvironmentObject var session: SessionManager
     @Environment(\.dismiss) private var dismiss
+    
+    @Binding var isDismissed: Bool
 
-    var onAfterSave: (() -> Void)? = nil
+//    var onAfterSave: (() -> Void)? = nil
 
     var body: some View {
         GeometryReader { geometry in
             ZStack(alignment: .bottom) {
                 ScrollView {
                     VStack(alignment: .leading) {
-                        HStack {
-                            Text("Masukan/Buat Formulir Pesanan")
-                                .font(.title3)
-                                .fontWeight(.bold)
-                            Spacer()
-                            Button {
-                                if let clipboard = UIPasteboard.general.string {
-                                    formPesanan = clipboard
-                                }
-                            } label: {
-                                Label("Tempel", systemImage: "list.clipboard.fill")
-                                    .font(.caption).fontWeight(.bold)
-                                    .padding(8)
-                                    .labelStyle(.titleAndIcon)
-                                    .foregroundColor(.white)
-                                    .background(.blue)
-                                    .cornerRadius(20)
-                            }
-                        }
+                        
+                        Text("Masukan/Buat Formulir Pesanan")
+                            .font(.title3)
+                            .fontWeight(.bold)
 
                         TextEditor(text: $formPesanan)
                             .padding(3)
@@ -79,18 +66,18 @@ Foto Referensi (optional):
                                 }
                             )
 
-                        if let json = viewModel.resultJSON {
-                            Text("✅ Template JSON:")
-                                .font(.headline)
-                                .padding(.top)
-                            ScrollView {
-                                Text(json)
-                                    .font(.system(.caption, design: .monospaced))
-                                    .padding()
-                                    .background(Color(.secondarySystemBackground))
-                                    .cornerRadius(10)
-                            }
-                        }
+//                        if let json = viewModel.resultJSON {
+//                            Text("✅ Template JSON:")
+//                                .font(.headline)
+//                                .padding(.top)
+//                            ScrollView {
+//                                Text(json)
+//                                    .font(.system(.caption, design: .monospaced))
+//                                    .padding()
+//                                    .background(Color(.secondarySystemBackground))
+//                                    .cornerRadius(10)
+//                            }
+//                        }
 
                         if let error = viewModel.errorMessage {
                             Text("❌ Error: \(error)")
@@ -101,49 +88,60 @@ Foto Referensi (optional):
                     .padding()
                 }
 
-                Button {
-                    Task {
-                        await viewModel.generateTemplate(from: formPesanan)
-                        if viewModel.didSave {
-                            onAfterSave?()
-                            dismiss()
+                .toolbar {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button {
+                            Task {
+                                await viewModel.generateTemplate(from: formPesanan)
+                            }
+                        } label: {
+                            if viewModel.isLoading {
+                                ProgressView()
+                                    .tint(.white)
+                                    .frame(width: 32, height: 32)
+                                    .background(
+                                        Circle().fill(Color.blue)
+                                    )
+                            } else {
+                                Image(systemName: "chevron.right")
+                                    .font(.title3)
+                                    .foregroundColor(.white)
+                            }
+                        }
+                        .buttonStyle(.glassProminent)
+                        .tint(.primaryButton)
+                        .disabled(formPesanan.isEmpty || viewModel.isLoading)
+                    }
+                    ToolbarItem(placement: .navigationBarLeading) {
+                        Button {
+                            isDismissed = true
+                        } label: {
+                            Image(systemName: "chevron.left")
+                                .font(.title3)
+                                .foregroundColor(.primaryButton)
                         }
                     }
-                } label: {
-                    if viewModel.isLoading {
-                        ProgressView()
-                            .tint(.white)
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color.blue)
-                            .cornerRadius(30)
-                            .padding(.horizontal)
-                    } else {
-                        Text("Tinjau Formulir Pesanan")
-                            .fontWeight(.semibold)
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color.blue)
-                            .foregroundColor(.white)
-                            .cornerRadius(30)
-                            .padding(.horizontal)
-                            .shadow(radius: 5)
-                    }
                 }
-                .disabled(formPesanan.isEmpty || viewModel.isLoading)
+            }
+            .onTapGesture {
+                hideKeyboard()
+            }
+            .navigationDestination(isPresented: $viewModel.didSave) {
+                Set_EditTemplateFormView(isDismissed: $isDismissed)
             }
         }
+            
         .task { viewModel.configure(userId: session.userId) }
     }
 }
 
-#Preview {
-    let session = SessionManager()
-    session.isSignedIn = true
-    session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
-
-    return NavigationStack {
-        Set_NewTemplateFormView()
-            .environmentObject(session)
-    }
-}
+//#Preview {
+//    let session = SessionManager()
+//    session.isSignedIn = true
+//    session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
+//
+//    return NavigationStack {
+//        Set_NewTemplateFormView()
+//            .environmentObject(session)
+//    }
+//}

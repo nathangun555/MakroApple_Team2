@@ -9,6 +9,25 @@ import Foundation
 import Supabase
 
 extension SupabaseManager {
+    
+    func hasAnyProduct(for userId: UUID) async throws -> Bool {
+        let response = try await client
+            .from("products")
+            .select()
+            .eq("user_id", value: userId.uuidString)
+            .limit(1)
+            .execute()
+
+        do {
+            let rows = try JSONDecoder().decode([ProductRecord].self, from: response.data)
+            return !rows.isEmpty
+        } catch {
+            // For extra robustness, log and return false instead of throwing
+            print("Decode error: \(error)")
+            return false
+        }
+    }
+    
     // MARK: - Insert Product
     func insertProduct(name: String, price: Double, productType: String, userId: UUID) async throws -> ProductRecord {
         struct NewProductPayload: Encodable {

@@ -11,8 +11,16 @@ struct OrderCard: View {
     
     let order: OrderRecord
     @State private var viewModel = AllOrdersViewModel()
-    let orderItem: OrderItemRecord
+    let orderItem: [OrderItemRecord]
     
+    var firstItem: OrderItemRecord? {
+        orderItem.first
+    }
+
+    var remainingCount: Int {
+        max(orderItem.count - 1, 0)
+    }
+
 //    let order : Order
     var body: some View {
         
@@ -37,25 +45,28 @@ struct OrderCard: View {
                     Spacer()
                     
                     // Tanggal Pesan
-                    Text(DateFormatterHelper.formattedDate(order.orderDdayDate ?? "g", showTime: true))
-                    
+                    let timeString = DateFormatterHelper.formattedTime(order.orderDdayDate ?? "")
+                    let showTime = timeString != "23:59"
+
+                    Text(DateFormatterHelper.formattedDateOrderCard(order.orderDdayDate ?? "", showTime: showTime))
                     
                     Image(systemName: "chevron.right")
                     
                 }
                 .font(.subheadline)
                 .foregroundColor(.secondary)
+                .padding(.bottom, 4)
                 
                 Spacer()
                 
                 HStack {
                     // Pesanan
-                    Text(orderItem.productName)
-                        .font(Font.title3.bold())
+                    Text(firstItem?.productName ?? "-")
+                        .font(Font.body.bold())
                     
                     Spacer()
                     
-                    if order.downPayment != nil {
+                    if order.downPayment != nil && (order.downPayment!) > 0 {
                         Text("DP")
                             .font(.caption)
                             .bold()
@@ -67,9 +78,11 @@ struct OrderCard: View {
                 
                
                 // Tambahan
-//                Text("+ 3 more")
-//                    .font(Font.subheadline)
-//                    .foregroundColor(.secondary)
+                if remainingCount > 0 {
+                    Text("+ \(remainingCount) produk lainnya")
+                        .font(.caption)
+                }
+                
                 
             }
             .padding()
@@ -85,7 +98,7 @@ struct OrderCard: View {
             )
         )
         .cornerRadius(10)
-        .frame(height: 85)
+//        .frame(height: 85)
         .padding(.horizontal, 20)
         
         
@@ -94,15 +107,3 @@ struct OrderCard: View {
     }
 }
 
-//#Preview {
-//    // Create a stub session
-//    let session = SessionManager()
-//    session.isSignedIn = true
-//    session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
-//    
-//    // Create the view
-//    let view = AllOrdersView()
-//    
-//    // Inject the environment object
-//    return view.environmentObject(session)
-//}

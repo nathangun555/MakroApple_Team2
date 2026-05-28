@@ -8,9 +8,9 @@
 import SwiftUI
 import PhotosUI
 
-private struct RowDivider: View {
-  var body: some View { Rectangle().fill(Color(.separator)).frame(height: 0.5) }
-}
+//private struct RowDivider: View {
+//  var body: some View { Rectangle().fill(Color(.separator)).frame(height: 0.5) }
+//}
 
 private struct PillTextField: View {
   let placeholder: String
@@ -36,21 +36,21 @@ private struct PillTextField: View {
   }
 }
 
-private struct LabeledRow<Content: View>: View {
-  let label: String
-  let labelWidth: CGFloat
-  @ViewBuilder var field: () -> Content
-
-  var body: some View {
-    HStack(alignment: .center, spacing: 12) {
-      Text(label)
-        .font(.body)
-        .frame(width: labelWidth, alignment: .leading)
-      field()
-    }
-    .padding(.vertical, 6)
-  }
-}
+//private struct LabeledRow<Content: View>: View {
+//  let label: String
+//  let labelWidth: CGFloat
+//  @ViewBuilder var field: () -> Content
+//
+//  var body: some View {
+//    HStack(alignment: .center, spacing: 12) {
+//      Text(label)
+//        .font(.body)
+//        .frame(width: labelWidth, alignment: .leading)
+//      field()
+//    }
+//    .padding(.vertical, 6)
+//  }
+//}
 
 struct InputBusinessDetailsView: View {
   @EnvironmentObject var session: SessionManager
@@ -62,7 +62,7 @@ struct InputBusinessDetailsView: View {
   @State private var isUploadingLogo = false
   @State private var showUnsavedAlert = false
   @State private var navigateToMenu = false
-  @Binding var path: NavigationPath
+  @Binding var isDismissed: Bool
 
   enum Field: Hashable {
     case businessName, businessPhone, businessAddress, businessLogoUrl, businessEmail
@@ -86,32 +86,69 @@ struct InputBusinessDetailsView: View {
 
           // Nama Bisnis dengan error
           VStack(alignment: .leading, spacing: 4) {
-            LabeledRow(label: "Nama Bisnis :", labelWidth: labelWidth) {
-              PillTextField(placeholder: "Silakan isi nama bisnis anda",
-                            text: $vm.businessName,
-                            contentType: .organizationName)
-                .focused($focusedField, equals: .businessName)
-            }
+              LabeledRow(label: "Nama Bisnis :", labelWidth: labelWidth) {
+                  AutoGrowingTextEditor(
+                      text: $vm.businessName,
+                      placeholder: "Silakan isi nama bisnis anda",
+                      isEditing: true,
+                      font: .system(size: 16),
+                      lineHeight: 20,
+                      verticalPadding: 4,
+                      maxChars: 70,
+                      cornerRadius: 12,
+                      borderColor: Color(.secondaryLabel),
+                      borderWidth: 0.8
+                  )
+                  .frame(maxWidth: .infinity, alignment: .leading)
+                  .focused($focusedField, equals: .businessName)
+              }
             if let error = vm.fieldErrors["businessName"] {
-              Text(error)
-                .font(.caption)
-                .foregroundStyle(.red)
+                
+                HStack{
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .foregroundStyle(.red)
+                        .font(.system(size: 12, weight: .semibold))
+                  Text(error)
+                    .font(.caption)
+                    .foregroundStyle(.red)
+                }
                 .padding(.leading, labelWidth + 12)
+                
+               
             }
+              
           }
           RowDivider()
 
           // Alamat Bisnis dengan error
           VStack(alignment: .leading, spacing: 4) {
-            LabeledRow(label: "Alamat Bisnis :", labelWidth: labelWidth) {
-              PillTextField(placeholder: "Silakan isi alamat bisnis anda",
-                            text: $vm.businessAddress)
-                .focused($focusedField, equals: .businessAddress)
-            }
+              LabeledRow(label: "Alamat Bisnis :", labelWidth: labelWidth) {
+                  AutoGrowingTextEditor(
+                      text: $vm.businessAddress,
+                      placeholder: "Silakan isi nama bisnis anda",
+                      isEditing: true,
+                      font: .system(size: 16),
+                      lineHeight: 20,
+                      verticalPadding: 4,
+                      maxChars: 120,
+                      cornerRadius: 12,
+                      borderColor: Color(.secondaryLabel),
+                      borderWidth: 0.8
+                  )
+                  .frame(maxWidth: .infinity, alignment: .leading)
+                  .focused($focusedField, equals: .businessAddress)
+              }
             if let error = vm.fieldErrors["businessAddress"] {
-              Text(error)
-                .font(.caption)
-                .foregroundStyle(.red)
+                HStack{
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .foregroundStyle(.red)
+                        .font(.system(size: 12, weight: .semibold))
+                    Text(error)
+                        .font(.caption)
+                        .foregroundStyle(.red)
+                      
+                    
+                }
                 .padding(.leading, labelWidth + 12)
             }
           }
@@ -119,17 +156,34 @@ struct InputBusinessDetailsView: View {
 
           // No Telp Bisnis dengan error
           VStack(alignment: .leading, spacing: 4) {
-            LabeledRow(label: "No Telp Bisnis :", labelWidth: labelWidth) {
-              PillTextField(placeholder: "Silakan isi no telp bisnis anda",
-                            text: $vm.businessPhone,
-                            keyboard: .phonePad,
-                            contentType: .telephoneNumber)
-                .focused($focusedField, equals: .businessPhone)
-            }
+              LabeledRow(label: "No Telp Bisnis :", labelWidth: labelWidth) {
+                  AutoGrowingTextEditor(
+                    text: $vm.businessPhone,
+                    placeholder: "Silakan isi no telp bisnis anda",
+                    isEditing: true,
+                    font: .system(size: 16),
+                    lineHeight: 20,
+                    verticalPadding: 4,
+                    maxChars: 30,
+                    cornerRadius: 12,
+                    borderColor: Color(.secondaryLabel),
+                    borderWidth: 0.8
+                  )
+                  .frame(maxWidth: .infinity, alignment: .leading)
+                  .focused($focusedField, equals: .businessPhone)
+                  .keyboardType(.numbersAndPunctuation)
+              }
             if let error = vm.fieldErrors["businessPhone"] {
-              Text(error)
-                .font(.caption)
-                .foregroundStyle(.red)
+                HStack{
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .foregroundStyle(.red)
+                        .font(.system(size: 12, weight: .semibold))
+                    Text(error)
+                        .font(.caption)
+                        .foregroundStyle(.red)
+                        
+                    
+                }
                 .padding(.leading, labelWidth + 12)
             }
           }
@@ -137,19 +191,37 @@ struct InputBusinessDetailsView: View {
 
           // Email Bisnis dengan error
           VStack(alignment: .leading, spacing: 4) {
-            LabeledRow(label: "Email Bisnis :", labelWidth: labelWidth) {
-              PillTextField(placeholder: "Silakan isi alamat email bisnis anda",
-                            text: $vm.businessEmail,
-                            keyboard: .emailAddress,
-                            contentType: .emailAddress,
-                            autocap: .never,
-                            autocorrect: false)
-                .focused($focusedField, equals: .businessEmail)
-            }
+              LabeledRow(label: "Email Bisnis :", labelWidth: labelWidth) {
+                  AutoGrowingTextEditor(
+                      text: $vm.businessEmail,
+                      placeholder: "Silakan isi alamat email bisnis anda",
+                      isEditing: true,
+                      font: .system(size: 16),
+                      lineHeight: 20,
+                      verticalPadding: 4,
+                      maxChars: 80,
+                      cornerRadius: 12,
+                      borderColor: Color(.secondaryLabel),
+                      borderWidth: 0.8
+                  )
+                  .frame(maxWidth: .infinity, alignment: .leading)
+                  .focused($focusedField, equals: .businessEmail)
+                  .textInputAutocapitalization(.never)
+                  .autocorrectionDisabled(true)
+                  .keyboardType(.emailAddress)
+              }
             if let error = vm.fieldErrors["businessEmail"] {
-              Text(error)
-                .font(.caption)
-                .foregroundStyle(.red)
+                
+                HStack{
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .foregroundStyle(.red)
+                        .font(.system(size: 12, weight: .semibold))
+                    Text(error)
+                        .font(.caption)
+                        .foregroundStyle(.red)
+                        
+                    
+                }
                 .padding(.leading, labelWidth + 12)
             }
           }
@@ -242,15 +314,34 @@ struct InputBusinessDetailsView: View {
 
           // Nama Akun dengan error
           VStack(alignment: .leading, spacing: 4) {
-            LabeledRow(label: "Nama Akun :", labelWidth: labelWidth) {
-              PillTextField(placeholder: "Silakan isi nama akun anda",
-                            text: $vm.bankAccountName)
-                .focused($focusedField, equals: .bankAccountName)
-            }
+              LabeledRow(label: "Nama Akun :", labelWidth: labelWidth) {
+                  AutoGrowingTextEditor(
+                      text: $vm.bankAccountName,
+                      placeholder: "Silakan isi nama akun anda",
+                      isEditing: true,
+                      font: .system(size: 16),
+                      lineHeight: 20,
+                      verticalPadding: 4,
+                      maxChars: 70,
+                      cornerRadius: 12,
+                      borderColor: Color(.secondaryLabel),
+                      borderWidth: 0.8
+                  )
+                  .frame(maxWidth: .infinity, alignment: .leading)
+                  .focused($focusedField, equals: .bankAccountName)
+              }
             if let error = vm.fieldErrors["bankAccountName"] {
-              Text(error)
-                .font(.caption)
-                .foregroundStyle(.red)
+                
+                HStack{
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .foregroundStyle(.red)
+                        .font(.system(size: 12, weight: .semibold))
+                    Text(error)
+                        .font(.caption)
+                        .foregroundStyle(.red)
+                        
+                    
+                }
                 .padding(.leading, labelWidth + 12)
             }
           }
@@ -258,16 +349,35 @@ struct InputBusinessDetailsView: View {
 
           // Nomor Rekening dengan error
           VStack(alignment: .leading, spacing: 4) {
-            LabeledRow(label: "Nomor Rekening :", labelWidth: labelWidth) {
-              PillTextField(placeholder: "Silakan isi no rekening anda",
-                            text: $vm.bankAccountNumber,
-                            keyboard: .numbersAndPunctuation)
-                .focused($focusedField, equals: .bankAccountNumber)
-            }
+              LabeledRow(label: "No Rekening :", labelWidth: labelWidth) {
+                  AutoGrowingTextEditor(
+                      text: $vm.bankAccountNumber,
+                      placeholder: "Silakan isi no rekening anda",
+                      isEditing: true,
+                      font: .system(size: 16),
+                      lineHeight: 20,
+                      verticalPadding: 4,
+                      maxChars: 30,
+                      cornerRadius: 12,
+                      borderColor: Color(.secondaryLabel),
+                      borderWidth: 0.8
+                  )
+                  .frame(maxWidth: .infinity, alignment: .leading)
+                  .focused($focusedField, equals: .bankAccountNumber)
+                  .keyboardType(.numberPad)
+              }
             if let error = vm.fieldErrors["bankAccountNumber"] {
-              Text(error)
-                .font(.caption)
-                .foregroundStyle(.red)
+                
+                HStack{
+                    
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .foregroundStyle(.red)
+                        .font(.system(size: 12, weight: .semibold))
+                    Text(error)
+                        .font(.caption)
+                        .foregroundStyle(.red)
+                    
+                }
                 .padding(.leading, labelWidth + 12)
             }
           }
@@ -275,15 +385,33 @@ struct InputBusinessDetailsView: View {
 
           // Nama Bank dengan error
           VStack(alignment: .leading, spacing: 4) {
-            LabeledRow(label: "Nama Bank :", labelWidth: labelWidth) {
-              PillTextField(placeholder: "Silakan isi nama bank anda",
-                            text: $vm.bankName)
-                .focused($focusedField, equals: .bankName)
-            }
+              LabeledRow(label: "Nama Bank :", labelWidth: labelWidth) {
+                  AutoGrowingTextEditor(
+                      text: $vm.bankName,
+                      placeholder: "Silakan isi nama bank anda",
+                      isEditing: true,
+                      font: .system(size: 16),
+                      lineHeight: 20,
+                      verticalPadding: 4,
+                      maxChars: 50,
+                      cornerRadius: 12,
+                      borderColor: Color(.secondaryLabel),
+                      borderWidth: 0.8
+                  )
+                  .frame(maxWidth: .infinity, alignment: .leading)
+                  .focused($focusedField, equals: .bankName)
+              }
             if let error = vm.fieldErrors["bankName"] {
-              Text(error)
-                .font(.caption)
-                .foregroundStyle(.red)
+                
+                HStack{
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .foregroundStyle(.red)
+                        .font(.system(size: 12, weight: .semibold))
+                    Text(error)
+                        .font(.caption)
+                        .foregroundStyle(.red)
+                    
+                }
                 .padding(.leading, labelWidth + 12)
             }
           }
@@ -318,39 +446,97 @@ struct InputBusinessDetailsView: View {
             }
           } label: {
             Image(systemName: "chevron.left")
-              .font(.system(size: 20, weight: .semibold))
-              .foregroundColor(.blue)
+                  .font(.title3)
+              .foregroundStyle(.primaryButton)
           }
         }
         
-      
-        
-        ToolbarItem(placement: .topBarTrailing) {
-          Button {
-              Task { await vm.save()
-                  
-                  if vm.saveSuccess {
-                      navigateToMenu = true
+          ToolbarItem(placement: .topBarTrailing) {
+              
+              if vm.noEmptyFields {
+                    Button {
+                        Task {
+                            await vm.save()
+          
+                            if vm.saveSuccess {
+                                navigateToMenu = true
+                            }
+                        }
+                    } label: {
+                      if vm.isSaving {
+                        ProgressView()
+                          .tint(.white)
+                          .frame(width: 32, height: 32)
+//                          .background(Circle().fill(Color.blue))
+                      } else {
+                          Image(systemName: "chevron.right")
+                              .font(.title3)
+                              .foregroundColor(.white)
+                      }
+          
+                    }
+                    .buttonStyle(.glassProminent)
+                    .tint(Color.primaryButton)
+                    .disabled(vm.isSaving || vm.isLoading)
                   }
+              else {
+                  Button {
+                      Task {
+                          await vm.save()
+        
+                          if vm.saveSuccess {
+                              navigateToMenu = true
+                          }
+                      }
+                  } label: {
+                    if vm.isSaving {
+                      ProgressView()
+                        .tint(.white)
+                        .frame(width: 32, height: 32)
+//                        .background(Circle().fill(Color.blue))
+                    } else {
+                        Image(systemName: "chevron.right")
+                            .font(.title3)
+                            .foregroundColor(.primaryButton)
+                    }
+        
+                  }
+                  .buttonStyle(.glassProminent)
+                  .tint(Color.white)
+                  .disabled(vm.isSaving || vm.isLoading)
               }
-          } label: {
-            if vm.isSaving {
-              ProgressView()
-                .tint(.white)
-                .frame(width: 32, height: 32)
-                .background(Circle().fill(Color.blue))
-            } else {
-              Image(systemName: "chevron.right")
-                .font(.system(size: 16, weight: .bold))
-                .foregroundStyle(.white)
-                .frame(width: 32, height: 32)
-                .background(
-                  Circle().fill(vm.hasChanges ? Color.blue : Color.gray)
-                )
-            }
+              
+              
           }
-          .disabled(vm.isSaving || vm.isLoading || !vm.hasChanges)
-        }
+          
+        
+//        ToolbarItem(placement: .topBarTrailing) {
+//          Button {
+//              Task {
+//                  await vm.save()
+//                  
+//                  if vm.saveSuccess {
+//                      navigateToMenu = true
+//                  }
+//              }
+//          } label: {
+//            if vm.isSaving {
+//              ProgressView()
+//                .tint(.white)
+//                .frame(width: 32, height: 32)
+//                .background(Circle().fill(Color.blue))
+//            } else {
+//                Image(systemName: "chevron.right")
+//                    .font(.title3)
+//                    .fontWeight(.semibold)
+//                    .foregroundColor(vm.noEmptyFields ? .white : Color.primaryButton )
+//            }
+//                  
+//          }
+//          .buttonStyle(.glassProminent)
+//          .tint(vm.noEmptyFields ? Color.primaryButton : .white)
+//          .disabled(vm.isSaving || vm.isLoading)
+//        }
       }
       .task {
         vm.configure(userId: session.userId)
@@ -360,46 +546,54 @@ struct InputBusinessDetailsView: View {
         }
       }
       .navigationDestination(isPresented: $navigateToMenu) {
-          InputMenuView(path: $path)
+          InputMenuView(isDismissed: $isDismissed)
       }
       .onChange(of: vm.businessName) { _ in
         vm.saveSuccess = false
         vm.fieldErrors.removeValue(forKey: "businessName")
         vm.checkForChanges()
+          vm.checkForEmptyFields()
       }
       .onChange(of: vm.businessPhone) { _ in
         vm.saveSuccess = false
         vm.fieldErrors.removeValue(forKey: "businessPhone")
         vm.checkForChanges()
+          vm.checkForEmptyFields()
       }
       .onChange(of: vm.businessAddress) { _ in
         vm.saveSuccess = false
         vm.fieldErrors.removeValue(forKey: "businessAddress")
         vm.checkForChanges()
+          vm.checkForEmptyFields()
       }
       .onChange(of: vm.businessLogoUrl) { _ in
         vm.saveSuccess = false
         vm.checkForChanges()
+          vm.checkForEmptyFields()
       }
       .onChange(of: vm.businessEmail) { _ in
         vm.saveSuccess = false
         vm.fieldErrors.removeValue(forKey: "businessEmail")
         vm.checkForChanges()
+          vm.checkForEmptyFields()
       }
       .onChange(of: vm.bankAccountNumber) { _ in
         vm.saveSuccess = false
         vm.fieldErrors.removeValue(forKey: "bankAccountNumber")
         vm.checkForChanges()
+          vm.checkForEmptyFields()
       }
       .onChange(of: vm.bankAccountName) { _ in
         vm.saveSuccess = false
         vm.fieldErrors.removeValue(forKey: "bankAccountName")
         vm.checkForChanges()
+          vm.checkForEmptyFields()
       }
       .onChange(of: vm.bankName) { _ in
         vm.saveSuccess = false
         vm.fieldErrors.removeValue(forKey: "bankName")
         vm.checkForChanges()
+          vm.checkForEmptyFields()
       }
       
       // ✅ Alert at top level - covers EVERYTHING including toolbar and tab bar
@@ -419,6 +613,9 @@ struct InputBusinessDetailsView: View {
         .transition(.opacity.combined(with: .scale))
         .animation(.spring(response: 0.3, dampingFraction: 0.8), value: showUnsavedAlert)
       }
+    }
+    .onTapGesture {
+        hideKeyboard()
     }
   }
 }

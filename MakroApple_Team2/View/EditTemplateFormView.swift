@@ -12,7 +12,14 @@ struct EditTemplateFormView: View {
     @State private var viewModel = EditTemplateViewModel()
     @EnvironmentObject var session: SessionManager
     @Environment(\.dismiss) var dismiss
-    @Binding var path: NavigationPath
+    
+    @Binding var isDismissed: Bool
+    
+    @FocusState private var focusedOtherField: Int?
+    
+    // ✅ State untuk delete alert
+    @State private var showDeleteFieldAlert = false
+    @State private var deleteFieldIndex: Int?
     
     var body: some View {
         ZStack {
@@ -34,14 +41,18 @@ struct EditTemplateFormView: View {
                         FormSection(
                             title: "Rincian Pelanggan",
                             fields: $viewModel.customerFields,
-                            onAddColumn: { viewModel.addCustomerField() }
+                            onAddColumn: { viewModel.addCustomerField() },
+                            isEditable: false,
+                            focusedIndex: $focusedOtherField
                         )
                         
                         // Jadwal Pesanan Section
                         FormSection(
                             title: "Jadwal Pesanan",
                             fields: $viewModel.scheduleFields,
-                            onAddColumn: { viewModel.addScheduleField() }
+                            onAddColumn: { viewModel.addScheduleField() },
+                            isEditable: false,
+                            focusedIndex: $focusedOtherField
                         )
                         
                         // Rincian Pesanan Section
@@ -49,8 +60,8 @@ struct EditTemplateFormView: View {
                             title: "Rincian Pesanan",
                             fields: $viewModel.orderFields,
                             onAddColumn: { viewModel.addOrderField() },
-//                                showDelete: true,
-//                                onDelete: { index in viewModel.deleteOrderField(at: index) }
+                            isEditable: false,
+                            focusedIndex: $focusedOtherField
                         )
                         
                         // Lain-Lain Section
@@ -58,68 +69,106 @@ struct EditTemplateFormView: View {
                             title: "Lain - Lain",
                             fields: $viewModel.otherFields,
                             onAddColumn: { viewModel.addOtherField() },
-//                                showDelete: true,
-//                                onDelete: { index in viewModel.deleteOtherField(at: index) }
+                            showDelete: true,
+                            onDelete: { index in
+                                deleteFieldIndex = index
+                                showDeleteFieldAlert = true
+                            },
+                            isEditable: true,
+                            focusedIndex: $focusedOtherField
                         )
+
                         
                         // Referensi Foto Section
-                        VStack(alignment: .leading, spacing: 12) {
-                            Text("Referensi Foto")
-                                .font(.title3)
-                                .fontWeight(.bold)
-                            
-                            Button(action: {
-                                // Handle photo upload
-                            }) {
-                                ZStack {
-                                    RoundedRectangle(cornerRadius: 12)
-                                        .stroke(style: StrokeStyle(lineWidth: 2, dash: [5]))
-                                        .foregroundColor(.gray.opacity(0.5))
-                                        .frame(width: 200, height: 200)
-                                        .background(Color(.systemGray6))
-                                        .cornerRadius(12)
-                                    
-                                    VStack {
-                                        Image(systemName: "photo.badge.plus")
-                                            .font(.system(size: 40))
-                                            .foregroundColor(.gray)
-                                    }
-                                }
+                        
+                        HStack{
+                            VStack(alignment: .leading){
+                                Image(systemName: "photo.badge.plus.fill")
+                                    .font(.title)
+                                    .foregroundColor(.gray)
+                                Text("No photos")
+                                    .font(.caption2)
+                                    .foregroundColor(.secondary)
                             }
+                            .frame(width: 115, height: 115)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 10)
+                                    .strokeBorder(style: StrokeStyle(lineWidth: 0.5))
+                                    .foregroundStyle(Color.primary)
+                                    .background(.gray.opacity(0.1))
+                                    .cornerRadius(10)
+                            )
+                            Spacer()
                         }
                         .padding(.horizontal)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .disabled(true)
                     }
                     .padding(.vertical)
                 }
+                .disabled(showDeleteFieldAlert)
             }
+            
+            // ✅ Delete alert overlay
+            if showDeleteFieldAlert {
+                CustomDeleteAlertComponent(
+                    title: "Hapus Field",
+                    message: "Apakah Anda yakin ingin menghapus field ini?",
+                    cancelTitle: "Batal",
+                    confirmTitle: "Hapus",
+                    onCancel: {
+                        showDeleteFieldAlert = false
+                        deleteFieldIndex = nil
+                    },
+                    onConfirm: {
+                        if let index = deleteFieldIndex {
+                            viewModel.deleteOtherField(at: index)
+                        }
+                        showDeleteFieldAlert = false
+                        deleteFieldIndex = nil
+                    }
+                )
+                .transition(.scale.combined(with: .opacity))
+                .zIndex(999)
+            }
+        }
+        .onTapGesture {
+            hideKeyboard()
         }
         .navigationTitle("Formulir Pesanan")
         .navigationBarTitleDisplayMode(.inline)
+        .navigationBarBackButtonHidden(true)
         .toolbar {
-            ToolbarItemGroup(placement: .topBarTrailing) {
-                Button(action: {
-                    print("")
-                    Task {
-                        await viewModel.saveTemplate()
+            ToolbarItem(placement: .topBarLeading) {
+                Button {
+                    if !showDeleteFieldAlert {
+                        dismiss()
                     }
-                }) {
-                    if viewModel.isSaving {
-                        ProgressView()
-                    } else {
-                        Image(systemName: "arrow.right")
-                            .foregroundColor(.white)
-                            .padding(8)
-                            .background(Color.blue)
-                            .clipShape(Circle())
-                    }
+                } label: {
+                    Image(systemName: "chevron.left")
+                        .font(.title3)
+                        .foregroundColor(showDeleteFieldAlert ? .gray : .primaryButton)
                 }
-                .disabled(viewModel.isSaving)
+                .disabled(showDeleteFieldAlert)
+            }
+            
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    if !showDeleteFieldAlert {
+                        Task {
+                            await viewModel.saveTemplate()
+                        }
+                    }
+                } label: {
+                    Image(systemName: "chevron.right")
+                        .font(.title3)
+                        .foregroundColor(showDeleteFieldAlert ? .gray : .white)
+                }
+                .buttonStyle(.glassProminent)
+                .disabled(viewModel.isSaving || showDeleteFieldAlert)
+                .tint(showDeleteFieldAlert ? .gray : .primaryButton)
             }
         }
         .navigationDestination(isPresented: $viewModel.didSave) {
-            InvoicePreviewView(orderId: nil, path: $path)
+            InvoicePreviewView(isDismissed: $isDismissed)
         }
         .task {
             viewModel.configure(userId: session.userId)
@@ -128,12 +177,16 @@ struct EditTemplateFormView: View {
     }
 }
 
-//#Preview {
-//    let session = SessionManager()
-//    session.isSignedIn = true
-//    session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
-//    
-//    let view = EditTemplateFormView()
-//    
-//    return view.environmentObject(session)
-//}
+#Preview {
+    // Dummy binding
+    @State var isDismissed = false
+
+    // Dummy environment object
+    let session = SessionManager()
+    session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
+
+    return NavigationStack {
+        EditTemplateFormView(isDismissed: $isDismissed)
+            .environmentObject(session)
+    }
+}

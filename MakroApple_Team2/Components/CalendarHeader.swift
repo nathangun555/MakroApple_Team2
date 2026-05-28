@@ -44,7 +44,7 @@ struct CalendarHeaderView: View {
       .clipped()
       .animation(.easeInOut(duration: 0.18), value: isCollapsed)
     }
-    .background(.ultraThinMaterial)
+//    .background(.ultraThinMaterial)
   }
 }
 
@@ -64,4 +64,20 @@ struct DayLabelsView: View {
         .padding(.horizontal)
         .padding(.vertical, 8)
     }
+}
+
+#Preview("Signed In") {
+    let session = SessionManager()
+    session.isAuthLoaded = true
+    session.isSignedIn = true
+
+    return MainTabView(
+        selectedTab: .constant(0),
+        sharedText: .constant("Test Text"),
+        hasNewObject: .constant(false),
+        sharedImages: .constant([])
+    )
+    .environmentObject(session)
+    .environmentObject(DeleteOverlayBus())
+    .environmentObject(UnsavedOverlayBus())
 }

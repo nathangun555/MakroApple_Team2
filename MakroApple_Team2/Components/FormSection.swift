@@ -11,8 +11,12 @@ struct FormSection: View {
     let title: String
     @Binding var fields: [FormFieldItem]
     let onAddColumn: () -> Void
-//    var showDelete: Bool = false
-//    var onDelete: ((Int) -> Void)? = nil
+    var showDelete: Bool = false
+    var onDelete: ((Int) -> Void)? = nil
+    
+    var isEditable: Bool = true
+    
+    var focusedIndex: FocusState<Int?>.Binding
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -23,10 +27,15 @@ struct FormSection: View {
                 
                 Spacer()
                 
-                Button(action: onAddColumn) {
-                    Label("Tambahkan Kolom", systemImage: "plus")
-                        .font(.subheadline)
-                        .foregroundColor(.blue)
+                if title == "Lain - Lain" {
+                    Button(action: onAddColumn) {
+                        Label("Tambahkan Kolom", systemImage: "plus")
+                            .font(.subheadline)
+                            .foregroundColor(isEditable ? .primaryButton : .gray)
+                    }
+                    .buttonStyle(.bordered)
+                    .tint(.gray)
+                    .disabled(!isEditable)
                 }
             }
             .padding(.horizontal)
@@ -34,14 +43,26 @@ struct FormSection: View {
             ForEach(Array(fields.enumerated()), id: \.offset) { index, field in
                 if field.label != "Foto Referensi (optional)" {
                     HStack(spacing: 12) {
+                        
                         TextField("", text: Binding(
-                                get: { field.label },
-                                set: { fields[index].label = $0 }
-                            ))
-                            .frame(width: 140, alignment: .trailing)
-                            .font(.body)
-                            .multilineTextAlignment(.trailing)
-                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            get: { field.label },
+                            set: { fields[index].label = $0 }
+                        ))
+                        .focused(focusedIndex, equals: index)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .font(.body)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
+                        .background(
+                            isEditable ? Color.white : Color(.systemGray5)
+                        )
+                        .cornerRadius(8)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(Color(.systemGray4), lineWidth: 1)
+                        )
+                        .foregroundColor(isEditable ? .primary : .gray)
+                        .disabled(!isEditable)   // <-- NEW
                         
                         Text("")
                             .frame(maxWidth: .infinity, alignment: .leading)
@@ -55,12 +76,13 @@ struct FormSection: View {
                             )
                             .foregroundColor(.secondary)
                         
-//                        if showDelete, let onDelete = onDelete {
-//                            Button(action: { onDelete(index) }) {
-//                                Image(systemName: "trash")
-//                                    .foregroundColor(.red)
-//                            }
-//                        }
+                        
+                        if showDelete, let onDelete = onDelete {
+                            Button(action: { onDelete(index) }) {
+                                Image(systemName: "trash")
+                                    .foregroundColor(.red.opacity(isEditable ? 1 : 0.4))
+                            }
+                        }
                     }
                     .padding(.horizontal)
                 }
@@ -68,3 +90,19 @@ struct FormSection: View {
         }
     }
 }
+
+
+#Preview {
+    // Dummy binding
+    @State var isDismissed = false
+
+    // Dummy environment object
+    let session = SessionManager()
+    session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
+
+    return NavigationStack {
+        EditTemplateFormView(isDismissed: $isDismissed)
+            .environmentObject(session)
+    }
+}
+

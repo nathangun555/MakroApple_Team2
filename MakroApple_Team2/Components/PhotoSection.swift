@@ -1,10 +1,3 @@
-//
-//  PhotoSection.swift
-//  MakroApple_Team2
-//
-//  Created by Alfred Hans Witono on 01/11/25.
-//
-
 import SwiftUI
 import PhotosUI
 
@@ -12,13 +5,9 @@ struct PhotoSection: View {
     @Binding var selectedItems: [PhotosPickerItem?]
     @Binding var selectedImages: [UIImage?]
     private let maxPhotos = 3
-    
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Masukkan Foto Referensi")
-                .font(.title3)
-                .fontWeight(.bold)
-            
             HStack(spacing: 12) {
                 ForEach(0..<selectedImages.count, id: \.self) { index in
                     VStack {
@@ -30,7 +19,7 @@ struct PhotoSection: View {
                                     .frame(width: 115, height: 115)
                                     .clipped()
                                     .cornerRadius(10)
-                                
+
                                 Button(action: {
                                     removePhoto(at: index)
                                 }) {
@@ -44,80 +33,93 @@ struct PhotoSection: View {
                         } else {
                             PhotosPicker(
                                 selection: Binding(
-                                    get: { index < selectedItems.count ? selectedItems[index] : nil },
+                                    get: {
+                                        selectedItems[index]
+                                    },
                                     set: { newValue in
-                                        if index < selectedItems.count {
-                                            selectedItems[index] = newValue
-                                        } else {
-                                            selectedItems.append(newValue)
-                                        }
+                                        updateItem(newValue, at: index)
                                         Task { await loadImage(for: index) }
                                     }
                                 ),
                                 matching: .images
-                            )
-                            {
+                            ) {
                                 VStack {
                                     Image(systemName: "photo.badge.plus")
                                         .font(.title)
                                 }
-                                .foregroundColor(.black)
                                 .frame(width: 115, height: 115)
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 10)
-                                        .strokeBorder(style: StrokeStyle(lineWidth: 1, dash: [5]))
-                                        .foregroundStyle(Color.secondary)
+                                        .stroke(style: StrokeStyle(lineWidth: 1, dash: [5]))
+                                        .foregroundColor(.secondary)
                                         .background(.gray.opacity(0.1))
-                                        .cornerRadius(10)
                                 )
                             }
                         }
                     }
                 }
             }
-        }
-        .onChange(of: selectedImages) { _ in
-            updatePhotoSlots()
+            .onChange(of: selectedImages) { _ in
+                syncSlots()
+            }
+            .onAppear {
+                syncSlots(initial: true)
+            }
         }
     }
-    
+
+    private func updateItem(_ item: PhotosPickerItem?, at index: Int) {
+        if index < selectedItems.count {
+            selectedItems[index] = item
+        } else {
+            selectedItems.append(item)
+        }
+    }
+
     private func loadImage(for index: Int) async {
-        guard let item = selectedItems[index] else { return }
-        if let data = try? await item.loadTransferable(type: Data.self),
+        guard let item = selectedItems[safe: index] else { return }
+        if let data = try? await item?.loadTransferable(type: Data.self),
            let uiImage = UIImage(data: data) {
             selectedImages[index] = uiImage
-            print("✅ Photo \(index + 1) loaded")
         }
+        syncSlots()
     }
-    
+
     private func removePhoto(at index: Int) {
-        selectedImages[index] = nil
-        selectedItems[index] = nil
-        updatePhotoSlots()
+        if selectedImages.indices.contains(index) {
+            selectedImages.remove(at: index)
+            selectedItems.remove(at: index)
+        }
+        syncSlots()
     }
-    
-    private func updatePhotoSlots() {
-        // Keep only the real photos and items (non-nil)
-        let realPhotos = selectedImages.compactMap { $0 }
-        let realItems = selectedItems.enumerated().compactMap { index, item in
-            selectedImages[index] != nil ? item : nil
+
+    /// Sinkronisir slot foto sesuai aturan (1 slot kosong, max 3 total)
+    private func syncSlots(initial: Bool = false) {
+        let images = selectedImages.compactMap { $0 } // Hapus semua nil
+        if images.count < maxPhotos {
+            selectedImages = images + [nil] // Tambah 1 slot
+            selectedItems = selectedItems.prefix(images.count) + [nil]
+        } else {
+            selectedImages = Array(images.prefix(maxPhotos))
+            selectedItems = Array(selectedItems.prefix(maxPhotos))
         }
-        
-        // Convert back to optional arrays
-        selectedImages = realPhotos
-        selectedItems = realItems
-        
-        // Ensure there is exactly one empty slot at the end if max not reached
-        if selectedImages.count < maxPhotos {
-            selectedImages.append(nil)
-            selectedItems.append(nil)
-        }
-        
-        // If all deleted, ensure only one slot remains
-        if selectedImages.isEmpty {
-            selectedImages = [nil]
+
+        if initial && selectedImages.isEmpty {
+            selectedImages = [nil] // Slot awal
             selectedItems = [nil]
         }
     }
 }
 
+extension Array {
+    subscript(safe index: Index) -> Element? {
+        get {
+            indices.contains(index) ? self[index] : nil
+        }
+        set {
+            if indices.contains(index), let newValue = newValue {
+                self[index] = newValue
+            }
+        }
+    }
+}

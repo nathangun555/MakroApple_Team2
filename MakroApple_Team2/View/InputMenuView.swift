@@ -32,118 +32,145 @@ struct InputMenuView: View {
     @State private var isPhotoPickerPresented = false
     @State private var isCameraPresented = false
     @State private var showUploadOptions = false
+    @State private var showLoading = false
     @State private var navigateToConfirm = false
+    @State private var showManualInput = false
     @EnvironmentObject var session: SessionManager
     @Environment(\.dismiss) private var dismiss
     @State private var submitState: SubmitState = .idle
     @State private var showErrorAlert = false
     @State private var errorMessage = ""
     @State private var scannedCategories: [MenuCategory] = []
-    @Binding var path: NavigationPath
     
-    var viewModel = InputMenuViewModel()
+    @Binding var isDismissed: Bool
+    
+    @State var viewModel = InputMenuViewModel()
     
     var body: some View {
         mainContent
             .navigationTitle("Rincian Menu / Katalog")
             .navigationBarTitleDisplayMode(.inline)
-            .task {
-                viewModel.configure(userId: session.userId)
-            }
+            .navigationBarBackButtonHidden(true)
+            .task { viewModel.configure(userId: session.userId) }
             .fileImporter(
-                isPresented: $isFileImporterPresented,
-                allowedContentTypes: [.pdf, .image],
+                isPresented: $showUploadOptions,
+                allowedContentTypes: [.pdf], // Only allow PDFs
                 allowsMultipleSelection: true
             ) { result in
                 handleFileImport(result)
-            }
-            .sheet(isPresented: $isPhotoPickerPresented) {
-                ImagePicker(sourceType: .photoLibrary) { url in
-                    if let url = url {
-                        addFile(url: url)
-                    }
-                }
-            }
-            .sheet(isPresented: $isCameraPresented) {
-                ImagePicker(sourceType: .camera) { url in
-                    if let url = url {
-                        addFile(url: url)
-                    }
-                }
-            }
-            .confirmationDialog("Pilih Sumber File", isPresented: $showUploadOptions, titleVisibility: .visible) {
-                Button("Pilih File (PDF/Image)") { isFileImporterPresented = true }
-                Button("Pilih dari Galeri") { isPhotoPickerPresented = true }
-                Button("Ambil Foto") { isCameraPresented = true }
-                Button("Batal", role: .cancel) {}
             }
             .alert("Error", isPresented: $showErrorAlert) {
                 Button("OK", role: .cancel) { }
             } message: {
                 Text(errorMessage)
             }
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                  Button {
+                      dismiss()
+                  } label: {
+                    Image(systemName: "chevron.left")
+                          .font(.title3)
+                      .foregroundStyle(.primaryButton)
+                  }
+                }
+                ToolbarItem {
+                    if !uploadedFiles.isEmpty {
+                        
+                        Button(action: {
+                            submitFiles()
+                        }){
+                            Image(systemName: "chevron.right")
+                                .font(.title3)
+                                .foregroundColor(.white)
+                        }
+                        .buttonStyle(.glassProminent)
+                        .tint(Color.primaryButton)
+                        
+                    }
+                    
+                    else {
+                        Button(action: {
+                            
+                        }){
+                            Image(systemName: "chevron.right")
+                                .font(.title3)
+                                .foregroundColor(.primaryButton)
+                        }
+                        .buttonStyle(.glassProminent)
+                        .tint(.white)
+                    }
+                }
+            }
+            .navigationDestination(isPresented: $showLoading) {
+                LoadingView(model: viewModel, context: "menu")
+            }
             .navigationDestination(isPresented: $navigateToConfirm) {
-                ConfirmMenuView(path: $path, scannedCategories: scannedCategories)
-                    .environmentObject(session)
+                ConfirmMenuView(isDismissed: $isDismissed, scannedCategories: scannedCategories, manualInput: false)
+            }
+            .navigationDestination(isPresented: $showManualInput) {
+                ConfirmMenuView(isDismissed: $isDismissed, scannedCategories: scannedCategories, manualInput: true)
             }
     }
     
-    // ✅ MARK: - Main Content
+    // MARK: - Main Content
     private var mainContent: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 headerSection
                 uploadSection
-                Spacer().frame(height: 40)
-                submitButton
+                
+                Button {
+                    showManualInput = true
+                } label: {
+                    Text("Atau buat menu / katalog secara manual")
+                        .font(.caption)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .underline(true)
+                }
+                .padding(.horizontal)
+                
+                Spacer()
+
             }
             .padding(.vertical)
         }
     }
     
-    // ✅ MARK: - Header Section
+    // MARK: - Header
     private var headerSection: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Input List Harga")
-                .font(.title)
+                .font(.body)
                 .bold()
-                .padding(.horizontal)
             
             Text("Menu / Katalog :")
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-                .padding(.horizontal)
+                .font(.footnote)
         }
+        .padding(.horizontal)
     }
     
-    // ✅ MARK: - Upload Section
+    // MARK: - Upload Section
     @ViewBuilder
     private var uploadSection: some View {
-        if uploadedFiles.isEmpty {
-            emptyStateView
-        } else {
-            uploadedFilesView
-        }
+        if uploadedFiles.isEmpty { emptyStateView } else { uploadedFilesView }
     }
     
-    // ✅ MARK: - Empty State
     private var emptyStateView: some View {
         RoundedRectangle(cornerRadius: 12)
             .strokeBorder(style: StrokeStyle(lineWidth: 2, dash: [8]))
-            .foregroundColor(.blue)
-            .frame(height: 200)
+            .foregroundColor(.gray)
+            .frame(height: 120)
             .overlay(
                 VStack(spacing: 12) {
-                    Image(systemName: "arrow.up.doc.fill")
-                        .font(.system(size: 50))
-                        .foregroundColor(.blue)
-                    
+                    Image(systemName: "square.and.arrow.up.fill")
+                        .font(.headline)
+                        .foregroundColor(.primaryButton)
                     Text("Unggah katalog bisnis anda di sini untuk\nmenyimpan daftar produk dan harga.")
-                        .font(.body)
-                        .foregroundColor(.blue)
+                        .font(.subheadline)
+                        .foregroundColor(.primaryButton)
                         .multilineTextAlignment(.center)
-                    
-                    Text("format PDF, JPEG, dan PNG, sampai dengan 25 MB.")
+                    Text("Format PDF maksimal 10 MB.")
                         .font(.caption)
                         .foregroundColor(.secondary)
                         .multilineTextAlignment(.center)
@@ -151,50 +178,44 @@ struct InputMenuView: View {
                 .padding()
             )
             .padding(.horizontal)
-            .onTapGesture {
-                showUploadOptions = true
-            }
+            .onTapGesture { showUploadOptions = true }
+            .background(Color.gray.opacity(0.05))
     }
     
-    // ✅ MARK: - Uploaded Files View
     private var uploadedFilesView: some View {
         VStack(alignment: .leading, spacing: 12) {
             ForEach(uploadedFiles) { file in
                 fileRow(file: file)
             }
-            
-            // Uncomment if you want to allow adding more files
-            // addMoreButton
         }
         .padding(.horizontal)
     }
     
-    // ✅ MARK: - File Row
     private func fileRow(file: UploadedFileItem) -> some View {
         HStack(spacing: 12) {
             ZStack {
                 RoundedRectangle(cornerRadius: 8)
-                    .fill(Color.red.opacity(0.1))
+                    .fill(Color.gray.opacity(0.1))
                     .frame(width: 50, height: 50)
+                    .overlay(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                            )
                 
-                Text("PDF")
+                Text(file.isPDF ? "PDF" : "IMG")
                     .font(.caption)
                     .bold()
-                    .foregroundColor(.red)
+                    .foregroundColor(.gray)
             }
             
             VStack(alignment: .leading, spacing: 4) {
                 Text(file.fileName)
-                    .font(.body)
+                    .font(.footnote)
                     .lineLimit(1)
-                
                 Text(file.fileSize)
-                    .font(.caption)
+                    .font(.caption2)
                     .foregroundColor(.secondary)
                 
-                ProgressView(value: 1.0)
-                    .progressViewStyle(.linear)
-                    .tint(.blue)
             }
             
             Spacer()
@@ -202,58 +223,24 @@ struct InputMenuView: View {
             Button(action: {
                 uploadedFiles.removeAll { $0.id == file.id }
             }) {
-                Image(systemName: "xmark.circle.fill")
+                Image(systemName: "trash.fill")
                     .foregroundColor(.gray)
-                    .font(.title3)
+                    .font(.footnote)
             }
         }
         .padding()
-        .background(Color(.systemGray6))
+        .background(Color.white)
         .cornerRadius(12)
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(Color.black.opacity(0.1), lineWidth: 1)
+        )
     }
     
-    // ✅ MARK: - Submit Button
-    private var submitButton: some View {
-        Button(action: {
-            submitFiles()
-        }) {
-            if submitState == .loading {
-                ProgressView()
-                    .frame(maxWidth: .infinity, minHeight: 55)
-                    .tint(.white)
-            } else {
-                Text("Pindai Katalog")
-                    .font(.headline)
-                    .frame(maxWidth: .infinity, minHeight: 55)
-            }
-        }
-        .buttonStyle(.borderedProminent)
-        .disabled(uploadedFiles.isEmpty || submitState == .loading)
-        .padding(.horizontal)
-    }
-    
-    // ✅ MARK: - Add More Button (optional)
-    private var addMoreButton: some View {
-        Button(action: {
-            showUploadOptions = true
-        }) {
-            HStack {
-                Image(systemName: "plus.circle.fill")
-                Text("Tambah File")
-            }
-            .font(.body)
-            .foregroundColor(.blue)
-        }
-    }
-    
-    // MARK: - Helper Functions
-    
+    // MARK: - Helper
     private func handleFileImport(_ result: Result<[URL], Error>) {
         switch result {
-        case .success(let urls):
-            for url in urls {
-                addFile(url: url)
-            }
+        case .success(let urls): urls.forEach { addFile(url: $0) }
         case .failure(let error):
             errorMessage = "Failed to import file: \(error.localizedDescription)"
             showErrorAlert = true
@@ -264,89 +251,119 @@ struct InputMenuView: View {
         let fileName = url.lastPathComponent
         let fileSize = getFileSize(url: url)
         let isPDF = url.pathExtension.lowercased() == "pdf"
-        
-        let item = UploadedFileItem(
-            url: url,
-            fileName: fileName,
-            fileSize: fileSize,
-            isPDF: isPDF
-        )
+        guard isPDF else {
+            errorMessage = "Only PDF files are allowed."
+            showErrorAlert = true
+            return
+        }
+        let item = UploadedFileItem(url: url, fileName: fileName, fileSize: fileSize, isPDF: isPDF)
         uploadedFiles.append(item)
     }
     
     private func getFileSize(url: URL) -> String {
         guard let attributes = try? FileManager.default.attributesOfItem(atPath: url.path),
               let fileSize = attributes[.size] as? Int64 else {
-            return "00 MB of 00 MB"
+            return "00 MB of 10 MB"
         }
         let sizeInMB = Double(fileSize) / (1024 * 1024)
-        return String(format: "%.2f MB of 25 MB", sizeInMB)
+        return String(format: "%.2f MB of 10 MB", sizeInMB)
     }
     
-    private func submitFiles() {
-        submitState = .loading
-        
-        Task {
-            var convertedUrls: [URL] = []
-            
-            for file in uploadedFiles {
-                if file.isPDF {
-                    let images = viewModel.pdfToImages(pdfUrl: file.url)
-                    for (index, image) in images.enumerated() {
-                        let tempUrl = FileManager.default.temporaryDirectory
-                            .appendingPathComponent("\(file.id)_page\(index).jpg")
-                        if let data = image.jpegData(compressionQuality: 0.8) {
-                            try? data.write(to: tempUrl)
-                            convertedUrls.append(tempUrl)
-                        }
-                    }
-                } else {
-                    convertedUrls.append(file.url)
-                }
-            }
-            
-            var uploadedPublicUrls: [String] = []
-            
-            for url in convertedUrls {
-                viewModel.uploadMenu(fileUrl: url) { result in
-                    switch result {
-                    case .success(let publicUrl):
-                        uploadedPublicUrls.append(publicUrl)
-                        
-                        if uploadedPublicUrls.count == convertedUrls.count {
-                            scanAllFiles(urls: uploadedPublicUrls)
-                        }
-                        
-                    case .failure(let error):
-                        submitState = .failure("Upload failed: \(error.localizedDescription)")
-                        errorMessage = "Upload failed: \(error.localizedDescription)"
-                        showErrorAlert = true
+    // MARK: - Merge categories utility
+    private func mergeCategoriesForApp(_ newCats: [MenuCategory]) {
+        for cat in newCats {
+            if let idx = scannedCategories.firstIndex(where: {
+                $0.categoryName.caseInsensitiveCompare(cat.categoryName) == .orderedSame
+            }) {
+                // Salin ke var, lalu buat array products yang mutable
+                var existing = scannedCategories[idx]
+                var mergedProducts = existing.products  // salinan mutable
+
+                var seen = Set(mergedProducts.map { "\($0.name)@@\($0.price)" })
+                for p in cat.products {
+                    let sig = "\(p.name)@@\(p.price)"
+                    if !seen.contains(sig) {
+                        mergedProducts.append(p)
+                        seen.insert(sig)
                     }
                 }
+
+                // Assign kembali dengan struct baru (immutability-safe)
+                scannedCategories[idx] = MenuCategory(
+                    categoryName: existing.categoryName,
+                    products: mergedProducts
+                )
+            } else {
+                scannedCategories.append(cat)
             }
         }
     }
+
     
-    private func scanAllFiles(urls: [String]) {
-        viewModel.menuScanBatch(imageUrls: urls) { scanResult in
-            if let scanResult = scanResult {
-                if let jsonData = scanResult.data(using: .utf8),
-                   let response = try? JSONDecoder().decode(MenuScanResponse.self, from: jsonData) {
-                    scannedCategories = response.categories
-                    navigateToConfirm = true
-                    submitState = .success
-                } else {
-                    submitState = .failure("Failed to parse scan result")
-                    errorMessage = "Failed to parse menu data"
-                    showErrorAlert = true
+    // MARK: - Submit (upload -> scan per-batch 1 URL)
+    private func submitFiles() {
+        submitState = .loading
+        showLoading = true
+        Task {
+            do {
+                // 1) Konversi PDF -> JPG lokal
+                var convertedUrls: [URL] = []
+                for file in uploadedFiles {
+                    if file.isPDF {
+                        let images = viewModel.pdfToImages(pdfUrl: file.url)
+                        for (index, image) in images.enumerated() {
+                            let temp = FileManager.default.temporaryDirectory.appendingPathComponent("\(file.id)_page\(index).jpg")
+                            if let data = image.jpegData(compressionQuality: 0.8) { try? data.write(to: temp); convertedUrls.append(temp) }
+                        }
+                        viewModel.setProgress(0.25)
+                    } else {
+                        convertedUrls.append(file.url)
+                    }
                 }
-            } else {
-                submitState = .failure("Scan failed")
-                errorMessage = "Scan failed. Please try again."
+
+                // 2) Upload lalu scan per-URL (serial)
+                scannedCategories = []
+                for (i, localUrl) in convertedUrls.enumerated() {
+                    let publicUrl = try await withCheckedThrowingContinuation { cont in
+                        viewModel.uploadMenu(fileUrl: localUrl) { result in
+                            switch result {
+                            case .success(let url):
+                                let progress = 0.25 + (0.50 * Double(i+1) / Double(convertedUrls.count))
+                                viewModel.setProgress(progress)
+                                cont.resume(returning: url)
+                            case .failure(let err): cont.resume(throwing: err)
+                            }
+                        }
+                    }
+
+                    let scanJson = try await withCheckedThrowingContinuation { cont in
+                        viewModel.menuScanBatch(imageUrls: [publicUrl]) { json in
+                            if let json {
+                                cont.resume(returning: json)
+                            }
+                            else { cont.resume(throwing: NSError(domain: "scan", code: -1, userInfo: [NSLocalizedDescriptionKey: "Scan failed"])) }
+                        }
+                    }
+
+                    if let data = scanJson.data(using: .utf8),
+                       let resp = try? JSONDecoder().decode(MenuScanResponse.self, from: data) {
+                        mergeCategoriesForApp(resp.categories)
+                    }
+
+                    print("Progress \(i+1)/\(convertedUrls.count)")
+                }
+                viewModel.setProgress(1.0)
+                navigateToConfirm = true
+                showLoading = false
+                submitState = .success
+            } catch {
+                submitState = .failure(error.localizedDescription)
+                errorMessage = error.localizedDescription
                 showErrorAlert = true
             }
         }
     }
+
 }
 
 // MARK: - UIImagePickerController wrapper
@@ -396,14 +413,3 @@ struct ImagePicker: UIViewControllerRepresentable {
         }
     }
 }
-
-//#Preview {
-//    let session = SessionManager()
-//    session.isSignedIn = true
-//    session.userId = "083dc90d-ca03-4f45-a631-06fe21fe750f"
-//    
-//    return NavigationStack {
-//        InputMenuView()
-//            .environmentObject(session)
-//    }
-//}

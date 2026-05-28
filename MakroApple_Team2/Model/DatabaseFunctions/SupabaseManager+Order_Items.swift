@@ -4,7 +4,7 @@
 //
 //  Created by Nathan Gunawan on 17/10/25.
 //
-
+    
 import Foundation
 import Supabase
 
@@ -40,18 +40,18 @@ extension SupabaseManager {
     
     func createOrderItems(products: [ProductItem], orderId: UUID) async throws -> [OrderItemRecord] {
         let nowString = ISO8601DateFormatter().string(from: Date())
-        let orderItemId = UUID()
-        let productId = "e5819927-6930-4b71-ad93-188be0f72a9a"
+//        let orderItemId = UUID()
+        let productId = UUID()
         let itemRows: [[String: AnyCodable]] = products
             .filter { !$0.name.isEmpty }
             .map { product in
                 [
-                    "id": AnyCodable(orderItemId.uuidString),
+                    "id": AnyCodable(UUID().uuidString),
                     "order_id": AnyCodable(orderId.uuidString),
                     "product_id": AnyCodable(productId),
                     "product_name": AnyCodable(product.name),
                     "product_price": AnyCodable(0.00),
-                    "product_type": AnyCodable(product.category),
+                    "product_type": AnyCodable(""),
                     "quantity": AnyCodable(product.quantity),
                     "subtotal": AnyCodable(0.00),
                     "created_at": AnyCodable(nowString),
@@ -77,12 +77,34 @@ extension SupabaseManager {
         let response = try await client
             .from("order_items")
             .upsert(order, onConflict: "id")
+            .eq("order_id", value: id.uuidString)
             .select()
-            .single()
             .execute()
 
         print("Raw response data:", String(data: response.data, encoding: .utf8) ?? "Unable to decode")
         
         return try JSONDecoder().decode([OrderItemRecord].self, from: response.data)
+    }
+    
+    func deleteOrder(for orderId: UUID) async throws {
+        let response = try await client
+            .from("orders")
+            .delete()
+            .eq("id", value: orderId.uuidString)
+            .execute()
+        
+        print("🗑️ Deleted order for order_id:", orderId)
+        print("Response:", String(data: response.data, encoding: .utf8) ?? "No response data")
+    }
+    
+    func deleteOrderItems(for orderId: UUID) async throws {
+        let response = try await client
+            .from("order_items")
+            .delete()
+            .eq("order_id", value: orderId.uuidString)
+            .execute()
+        
+        print("🗑️ Deleted order items for order_id:", orderId)
+        print("Response:", String(data: response.data, encoding: .utf8) ?? "No response data")
     }
 }

@@ -12,16 +12,19 @@ struct OrderStatus: View {
     
     var body: some View {
         HStack {
-            if order.downPayment != nil {
+            if order.downPayment != nil && (order.downPayment!) > 0 {
                 Text("DP")
                     .font(.caption)
                     .bold()
                     .foregroundColor(.white)
                     .frame(width: 24, height: 24)
                     .background(
-                        Circle()
-                            .stroke(Color.orange, lineWidth: 2)
-                            .background(Circle().fill(statusColors[order.status] ?? .gray))
+                        ZStack {
+                            Circle()
+                                .fill(statusColors[order.status] ?? .gray) // background fill
+                            Circle()
+                                .stroke(statusColors[order.status] ?? .gray, lineWidth: 2) // visible stroke
+                        }
                     )
             }
             Spacer()

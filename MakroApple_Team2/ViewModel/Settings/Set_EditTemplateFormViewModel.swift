@@ -89,12 +89,19 @@ class Set_EditTemplateFormViewModel {
         customerFields.sort { customerKeys.firstIndex(of: $0.label) ?? 999 < customerKeys.firstIndex(of: $1.label) ?? 999 }
         scheduleFields.sort { scheduleKeys.firstIndex(of: $0.label) ?? 999 < scheduleKeys.firstIndex(of: $1.label) ?? 999 }
         orderFields.sort { orderKeys.firstIndex(of: $0.label) ?? 999 < orderKeys.firstIndex(of: $1.label) ?? 999 }
+        otherFields.sort { a, b in
+            let aIndex = otherKeys.firstIndex(of: a.label) ?? Int.max
+            let bIndex = otherKeys.firstIndex(of: b.label) ?? Int.max
+            return aIndex < bIndex
+        }
     }
 
     func addCustomerField() { customerFields.append(FormFieldItem(label: "New Field", value: "")) }
     func addScheduleField() { scheduleFields.append(FormFieldItem(label: "New Field", value: "")) }
     func addOrderField() { orderFields.append(FormFieldItem(label: "New Field", value: "")) }
-    func addOtherField() { otherFields.append(FormFieldItem(label: "New Field", value: "")) }
+    func addOtherField() {
+        otherFields.insert(FormFieldItem(label: "New Field", value: ""), at: 0)
+    }
 
     func deleteOrderField(at index: Int) { orderFields.remove(at: index) }
     func deleteOtherField(at index: Int) { otherFields.remove(at: index) }

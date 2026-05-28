@@ -13,16 +13,21 @@ enum OrderSource {
     case activeOrders
 }
 
+
+
+
 struct OrderDetailView: View {
     
     @State private var activeAlert: CustomAlertType?
     
     @State private var viewModel = AllOrdersViewModel()
+    @EnvironmentObject var analyticViewModel: AnalyticTabViewModel
     @State private var invoiceViewModel = InvoicePreviewViewModel()
     @EnvironmentObject var session: SessionManager
     @State var order: OrderRecord
-    let orderItem: [OrderItemRecord]
+    @State var orderItem: [OrderItemRecord]
     
+    @State private var showEditSheet = false
     
     @State private var showSuccessToast = false
     @Environment(\.dismiss) private var dismiss
@@ -30,7 +35,10 @@ struct OrderDetailView: View {
     @State private var selectedPDFURL: URL?
     @State private var showPDFViewer = false
     
+    @State private var isDismissed = false
+    
     let source: OrderSource
+    
     
     
     @Binding var activeTab: TabModel
@@ -90,51 +98,67 @@ struct OrderDetailView: View {
                             Group {
                                 
                                 // Nama Pemesan
-                                Text("Nama Pemesan :")
-                                Text(order.customerOrderName)
-                                    .padding(.vertical, 3)
-                                    .frame(maxWidth: .infinity)
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 10)
-                                            .stroke(Color.gray, lineWidth: 0.5) // stroke
-                                            .background(RoundedRectangle(cornerRadius: 30).fill(.secondary.opacity(0.1))) // fill
-                                    )
+                                Text("Nama Pemesan")
+                                
+                                HStack{
+                                    Text(":")
+                                    Text("\(order.customerOrderName)")
+                                        .padding(.vertical, 3)
+                                        .frame(maxWidth: .infinity)
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 10)
+                                                .fill(.secondary.opacity(0.2))
+                                        )
+                                }
+                               
                                 
                                 
-                                Text("No. Telp Pemesan :")
-                                Text(order.customerOrderPhone!)
-                                    .padding(.vertical, 3)
-                                    .frame(maxWidth: .infinity)
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 10)
-                                            .stroke(Color.gray, lineWidth: 0.5) // stroke
-                                            .background(RoundedRectangle(cornerRadius: 30).fill(.secondary.opacity(0.1))) // fill
-                                    )
+                                Text("No. Telp Pemesan")
                                 
-                                Text("Nama Penerima :")
-                                Text(order.customerReceiverName!)
-                                    .padding(.vertical, 3)
-                                    .frame(maxWidth: .infinity)
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 10)
-                                            .stroke(Color.gray, lineWidth: 0.5) // stroke
-                                            .background(RoundedRectangle(cornerRadius: 30).fill(.secondary.opacity(0.1))) // fill
-                                    )
+                                HStack{
+                                    Text(":")
+                                    Text("\(order.customerOrderPhone?.isEmpty == true ? "-" : order.customerOrderPhone!)")
+                                        .padding(.vertical, 3)
+                                        .frame(maxWidth: .infinity)
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 10)
+                                                .fill(.secondary.opacity(0.2))
+                                        )
+                                }
                                 
-                                Text("No. Telp Penerima :")
-                                Text(order.customerReceiverPhone!)
-                                    .padding(.vertical, 3)
-                                    .frame(maxWidth: .infinity)
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 10)
-                                            .stroke(Color.gray, lineWidth: 0.5) // stroke
-                                            .background(RoundedRectangle(cornerRadius: 30).fill(.secondary.opacity(0.1))) // fill
-                                    )
+                                
+                                Text("Nama Penerima")
+                                
+                                HStack{
+                                    Text(":")
+                                    Text("\(order.customerReceiverName ?? "-")")
+                                        .padding(.vertical, 3)
+                                        .frame(maxWidth: .infinity)
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 10)
+                                                .fill(.secondary.opacity(0.2))
+                                        )
+                                    
+                                }
+                                
+                                Text("No. Telp Penerima")
+                                
+                                HStack{
+                                    Text(":")
+                                    Text("\(order.customerReceiverPhone ?? "-")")
+                                        .padding(.vertical, 3)
+                                        .frame(maxWidth: .infinity)
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 10)
+                                                .fill(.secondary.opacity(0.2))
+                                        )
+                                    
+                                }
                                 
                                 
                             }
                         }
-                        
+
                         Text("Jadwal Pesanan")
                             .bold()
                             .frame(maxWidth: .infinity, alignment: .leading)
@@ -145,25 +169,59 @@ struct OrderDetailView: View {
                             Group {
                                 
                                 
-                                Text("Tanggal Pesanan :")
-                                Text(DateFormatterHelper.formattedDate(order.orderDdayDate ?? "g"))
-                                    .padding(.vertical, 3)
-                                    .frame(maxWidth: .infinity)
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 10)
-                                            .stroke(Color.gray, lineWidth: 0.5) // stroke
-                                            .background(RoundedRectangle(cornerRadius: 30).fill(.secondary.opacity(0.1))) // fill
-                                    )
+                                Text("Tanggal Pesanan")
+                                HStack{
+                                    Text(":")
+                                    Text(DateFormatterHelper.formattedDateOrderDetail(order.orderDdayDate ?? "-"))
+                                        .font(.body)
+                                            .padding(.vertical, 6)
+                                            .padding(.horizontal, 12)
+                                            .background(.secondary.opacity(0.2), in: Capsule())
+                                    
+                                    Spacer()
+                                    
+                                }
                                 
-                                Text("Jam Kirim :")
-                                Text("\(DateFormatterHelper.formattedTime(order.orderDdayDate ?? "g")) WIB")
-                                    .padding(.vertical, 3)
-                                    .frame(maxWidth: .infinity)
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 10)
-                                            .stroke(Color.gray, lineWidth: 0.5) // stroke
-                                            .background(RoundedRectangle(cornerRadius: 30).fill(.secondary.opacity(0.1))) // fill
-                                    )
+                                Text("Jam Kirim")
+                                HStack{
+                                    Text(":")
+                                    let formatted = DateFormatterHelper.formattedTime(order.orderDdayDate ?? "")
+
+                                    Text(formatted == "23:59" ? "-" : "\(formatted) WIB")
+                                        .font(.body)
+                                            .padding(.vertical, 6)
+                                            .padding(.horizontal, 12)
+                                            .background(.secondary.opacity(0.2), in: Capsule())
+                                    
+                                    Spacer()
+                                }
+                                
+                                
+                            }
+                        }
+                        
+                        Text("Jatuh Tempo Pembayaran")
+                            .bold()
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.top)
+                            .font(.title3)
+                        
+                        LazyVGrid(columns: columns, spacing: 10) {
+                            Group {
+                                
+                                
+                                Text("Tanggal")
+                                HStack{
+                                    Text(":")
+                                    Text("\(DateFormatterHelper.formattedDateOrderDetail(order.invoiceDueDate ?? "-"))")
+                                        .font(.body)
+                                            .padding(.vertical, 6)
+                                            .padding(.horizontal, 12)
+                                            .background(.secondary.opacity(0.2), in: Capsule())
+                                    
+                                    Spacer()
+                                }
+                                
                                 
                                 
                             }
@@ -180,81 +238,47 @@ struct OrderDetailView: View {
                             
                             ForEach(orderItem) { item in
                                 
-                                Text(item.productType)
-                                    .bold()
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                    .font(.headline)
-                                
-                                LazyVGrid(columns: columns, spacing: 10) {
-                                    Group {
-                                        
-                                        Text("Nama Produk :")
-                                        Text(item.productName)
-                                            .frame(maxWidth: .infinity, alignment: .center)
-                                            .padding(4)
-                                            .lineLimit(3)
-                                            .background(
-                                                RoundedRectangle(cornerRadius: 10)
-                                                    .stroke(Color.gray, lineWidth: 0.5) // stroke
-                                                    .background(RoundedRectangle(cornerRadius: 30).fill(.secondary.opacity(0.1)))
-                                            )
-                                        
-                                        Text("Jumlah Produk :")
-                                        Text(String(item.quantity))
-                                            .padding(.vertical, 3)
-                                            .frame(maxWidth: .infinity)
-                                            .background(
-                                                RoundedRectangle(cornerRadius: 10)
-                                                    .stroke(Color.gray, lineWidth: 0.5) // stroke
-                                                    .background(RoundedRectangle(cornerRadius: 30).fill(.secondary.opacity(0.1))) // fill
-                                            )
-                                        
+                                VStack{
+                                    
+                                    LazyVGrid(columns: columns, spacing: 10) {
+                                        Group {
+                                            Text("Nama Produk")
+                                            
+                                            HStack{
+                                                Text(":")
+                                                Text("\(item.productName.isEmpty == true ? "-" : item.productName)")
+                                                    .frame(maxWidth: .infinity, alignment: .center)
+                                                    .padding(4)
+                                                    .lineLimit(10)
+                                                    .background(
+                                                        RoundedRectangle(cornerRadius: 10)
+                                                            .fill(.secondary.opacity(0.2))
+                                                    )
+                                            }
+                                            
+                                            
+                                            Text("Jumlah Produk")
+                                            HStack{
+                                                Text(":")
+                                                Text("\(String(item.quantity) ?? "-")")
+                                                    .padding(.vertical, 3)
+                                                    .frame(maxWidth: .infinity)
+                                                    .background(
+                                                        RoundedRectangle(cornerRadius: 10)
+                                                            .fill(.secondary.opacity(0.2))
+                                                    )
+                                            }
+                                            
+                                        }
                                     }
                                 }
+                                .padding()
+                                .background(.deadlineCard)
+                                    .cornerRadius(10)
+                                
                             }
                         }
-                        .padding()
-                        .background(.secondary.opacity(0.1))
-                        .cornerRadius(10)
                         
-                        
-                        VStack {
-                            Text("Add On")
-                                .bold()
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .font(.headline)
-                            
-                            LazyVGrid(columns: columns, spacing: 10) {
-                                Group {
-                                    
-                                    Text("Nama Produk :")
-                                    Text(order.addOn!)
-                                        .frame(maxWidth: .infinity, alignment: .center)
-                                        .padding(5)
-                                        .lineLimit(10)
-                                        .background(
-                                            RoundedRectangle(cornerRadius: 10)
-                                                .stroke(Color.gray, lineWidth: 0.5)
-                                                .background(RoundedRectangle(cornerRadius: 30).fill(.secondary.opacity(0.1))) // fill
-                                        )
-                                    
-                                    Text("Jumlah Produk :")
-                                    // CHANGE THIS WITH ADD ON AMOUNT
-                                    Text("1")
-                                        .padding(.vertical, 3)
-                                        .frame(maxWidth: .infinity)
-                                        .background(
-                                            RoundedRectangle(cornerRadius: 10)
-                                                .stroke(Color.gray, lineWidth: 0.5)
-                                                .background(RoundedRectangle(cornerRadius: 30).fill(.secondary.opacity(0.1)))
-                                        )
-                                    
-                                }
-                            }
-                        }
-                        .padding()
-                        .background(.secondary.opacity(0.1))
-                        .cornerRadius(10)
                         
                         Text("Referensi Foto")
                             .bold()
@@ -313,31 +337,58 @@ struct OrderDetailView: View {
                             .padding(.top)
                             .font(.title3)
                         
-                        LazyVGrid(columns: columns, spacing: 10) {
-                            
-                            Text("Pengiriman :")
-                            Text(order.opsiPengiriman!)
-                                .padding(.vertical, 3)
-                                .frame(maxWidth: .infinity)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 10)
-                                        .stroke(Color.gray, lineWidth: 0.5)
-                                        .background(RoundedRectangle(cornerRadius: 30).fill(.secondary.opacity(0.1)))
-                                )
-                            
-                            Text("Notes :")
-                            Text(order.notes!)
-                                .lineLimit(5)
-                                .padding(5)
-                            
-                                .lineLimit(10)
-                                .frame(maxWidth: .infinity)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 10)
-                                        .stroke(Color.gray, lineWidth: 0.5)
-                                        .background(RoundedRectangle(cornerRadius: 10).fill(.secondary.opacity(0.1)))
-                                )
+//                        LazyVGrid(columns: columns, spacing: 10) {
+//                            
+//                            Text("Pengiriman :")
+//                            Text("\(order.opsiPengiriman?.isEmpty == true ? "-" : order.opsiPengiriman!)")
+//                                .padding(.vertical, 3)
+//                                .frame(maxWidth: .infinity)
+//                                .background(
+//                                    RoundedRectangle(cornerRadius: 10)
+//                                        .stroke(Color.gray, lineWidth: 0.5)
+//                                        .background(RoundedRectangle(cornerRadius: 30).fill(.secondary.opacity(0.1)))
+//                                )
+//                            
+//                            Text("Notes :")
+//
+//                            Text("\(order.notes?.isEmpty == true ? "-" : order.notes!)")
+//                                .lineLimit(5)
+//                                .padding(5)
+//                            
+//                                .lineLimit(10)
+//                                .frame(maxWidth: .infinity)
+//                                .background(
+//                                    RoundedRectangle(cornerRadius: 10)
+//                                        .stroke(Color.gray, lineWidth: 0.5)
+//                                        .background(RoundedRectangle(cornerRadius: 10).fill(.secondary.opacity(0.1)))
+//                                )
+//                        }
+                        
+                        if let customFields = order.customFields, !customFields.isEmpty {
+
+                            let columns = [
+                                GridItem(.fixed(150), alignment: .leading),
+                                GridItem(.flexible(), alignment: .trailing)
+                            ]
+
+                            LazyVGrid(columns: columns, spacing: 10) {
+                                ForEach(customFields.sorted(by: { $0.key < $1.key }), id: \.key) { key, value in
+                                    Text("\(key)")
+                                    
+                                    HStack{
+                                        Text(":")
+                                        Text("\(value.value ?? "-")")
+                                            .padding(.vertical, 3)
+                                            .frame(maxWidth: .infinity)
+                                            .background(
+                                                RoundedRectangle(cornerRadius: 10)
+                                                    .fill(.secondary.opacity(0.2))
+                                            )
+                                    }
+                                }
+                            }
                         }
+
                         
                         
                         Text("Invoice")
@@ -346,7 +397,7 @@ struct OrderDetailView: View {
                             .padding(.top)
                             .font(.title3)
                         
-                        LazyVGrid(columns: columns, spacing: 10) {
+                        LazyVGrid(columns: columns, spacing: 5) {
                             
                             if let urlString = order.invoiceUrl,
                                    let pdfURL = URL(string: urlString) {
@@ -390,53 +441,52 @@ struct OrderDetailView: View {
                             
                             
                             VStack (alignment: .leading) {
-                                Text("INV/2025/00001")
-                                Text(order.customerOrderName)
                                 
-                                Spacer()
+                                VStack(alignment : .leading){
+                                    Text("INV/2025/00001")
+                                    Text(order.customerOrderName)
+                                    
+                                }
+                                .font(.body)
                                 
                                 
-                                Button(action: {
-                                    guard let urlString = order.invoiceUrl,
-                                          let remoteURL = URL(string: urlString) else { return }
+                                Button {
+                                    if let urlString = order.invoiceUrl,
+                                       let remoteURL = URL(string: urlString) {
+                                        Task {
+                                            do {
+                                                // Download the file (same as toolbar behavior)
+                                                let (data, _) = try await URLSession.shared.data(from: remoteURL)
+                                                let sanitizedName = order.customerOrderName
+                                                    .replacingOccurrences(of: " ", with: "_")
+                                                let fileName = "\(order.orderNumber)_\(sanitizedName).pdf"
+                                                let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(fileName)
+                                                try data.write(to: tempURL)
 
-                                    Task {
-                                        do {
-                                            let (data, _) = try await URLSession.shared.data(from: remoteURL)
-                                            let tempURL = FileManager.default.temporaryDirectory
-                                                .appendingPathComponent("invoice.pdf")
-                                            try data.write(to: tempURL)
-                                            
-                                            invoiceViewModel.shareInvoice(items: [tempURL]) { success in
-                                                print(success ? "✅ PDF shared" : "❌ Failed to share")
+                                                // Use the same sharing logic as toolbar
+                                                invoiceViewModel.shareInvoice(items: [tempURL]) { success in
+                                                    print(success ? "✅ Shared" : "❌ Failed to share")
+                                                }
+                                            } catch {
+                                                print("❌ Failed to share invoice:", error)
                                             }
-                                        } catch {
-                                            print("❌ Failed to download PDF:", error)
                                         }
                                     }
-                                }) {
-                                    Label("Bagikan Invoice", systemImage: "square.and.arrow.up")
-                                        .padding(10)
-                                        .frame(maxWidth: .infinity)
-                                        .background(.primaryButton)
-                                        .foregroundColor(Color.white)
-                                        .cornerRadius(30)
-//                                        .padding()
+                                } label: {
+                                    Label("Bagikan", systemImage: "square.and.arrow.up")
+                                        .padding()
+                                        .foregroundColor(.primary)
+                                        .glassEffect(.clear.tint(.deadlineCard))
+                                    
                                 }
 
-
-                                
                                 
                                 Spacer()
                                 
                             }
+                            .frame(maxWidth: .infinity, alignment: .leading)
                             .padding(.horizontal)
-                            .frame(maxWidth: .infinity)
                         }
-                        
-                        
-                        
-                        
                     }
                     .font(.callout)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -510,17 +560,56 @@ struct OrderDetailView: View {
         )
         .navigationTitle("Rincian Pesanan")
         .toolbar {
+            
             if order.status == "Belum Terbayar" || order.status == "Diproses" {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        activeAlert = .cancel
-                    } label: {
-                        Image(systemName: "trash")
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    HStack(spacing: 0) {
+                        
+                        Menu {
+                            Button {
+                                showEditSheet = true
+                            } label: {
+                                Label("Edit", systemImage: "pencil")
+                            }
+                            
+                            
+                            Button(role: .destructive) {
+                                activeAlert = .cancel
+                            } label: {
+                                Label("Batalkan Pesanan", systemImage: "xmark.bin.fill")
+                            }
+                        } label: {
+                            ZStack {
+                                Circle()
+                                    .fill(Color.white)
+                                    .frame(width: 40, height: 40)
+                                //                                .shadow(color: Color(.systemGray4), radius: 4, x: 0, y: 1)
+                                Image(systemName: "ellipsis")
+                                    .font(.title3.weight(.semibold))
+                                    .foregroundColor(.primaryButton)
+                            }
+                        }
+                        .frame(width: 40, height: 40)
+                        .buttonStyle(.plain)
+                        
                     }
                 }
+                
             }
+            
+            
+//            if order.status == "Belum Terbayar" || order.status == "Diproses" {
+//                ToolbarItem(placement: .topBarTrailing) {
+//                    Button {
+//                        activeAlert = .cancel
+//                    } label: {
+//                        Image(systemName: "trash")
+//                    }
+//                }
+//            }
         }
         .task {
+            
             viewModel.configure(userId: session.userId)
             if let userIdString = viewModel.userId {
                 await viewModel.fetchBusinessName(for: UUID(uuidString: userIdString))
@@ -530,6 +619,33 @@ struct OrderDetailView: View {
                 print("❌ Passed session.userId invalid or nil")
             }
             
+        }
+        .sheet(isPresented: $showEditSheet) {
+            EditOrderDetailView(
+                orderId: order.id.uuidString,
+                parsedOrderData: order.asParsedDictionary(with: orderItem),
+                isDismissed: $isDismissed
+            )
+        }
+        
+        .onChange(of: isDismissed) { newValue in
+            if newValue {
+                isDismissed = false
+                showEditSheet = false
+                Task {
+                    viewModel.configure(userId: session.userId)
+                    if let userIdString = viewModel.userId {
+                        await viewModel.fetchOrders(for: UUID(uuidString: userIdString))
+                        await viewModel.fetchOrderItems(for: UUID(uuidString: userIdString))
+                        if let updated = viewModel.orders.first(where: { $0.id == order.id }) {
+                            self.order = updated
+                        }
+                        self.orderItem = viewModel.orderItems.filter { $0.orderId == order.id }
+                    } else {
+                        print("❌ Passed session.userId invalid or nil")
+                    }
+                }
+            }
         }
         .onDisappear {
             switch order.status.lowercased() {
@@ -547,6 +663,15 @@ struct OrderDetailView: View {
                     PDFKitView(url: url)
                         .navigationTitle("Invoice Preview")
                         .toolbar {
+                            ToolbarItem(placement: .cancellationAction) {
+                                Button {
+                                    showPDFViewer = false
+                                } label: {
+                                    Image(systemName: "xmark")
+                                        .font(.title3)
+                                        .foregroundColor(.primaryButton)
+                                }
+                            }
                             ToolbarItem(placement: .navigationBarTrailing) {
                                 Button {
                                     if let url = selectedPDFURL {
@@ -558,12 +683,10 @@ struct OrderDetailView: View {
                                     Image(systemName: "square.and.arrow.up")
                                 }
                             }
-
-
                         }
                 }
             }
-        
+            
         }
 
     }
@@ -643,12 +766,36 @@ struct OrderDetailView: View {
             // 4️⃣ Hide toast after delay and handle navigation
             DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
                 withAnimation { showSuccessToast = false }
+                dismiss()
             }
+            
+            refreshAnalyticsIfNeeded(for: finalStatus)
 
         } catch {
             print("❌ Failed to update status:", error.localizedDescription)
         }
     }
+    
+    // Add this new function after handleStatusUpdate
+       private func refreshAnalyticsIfNeeded(for status: String) {
+           guard status == "Selesai" else { return }
+           
+           guard let userIdString = session.userId,
+                 let userId = UUID(uuidString: userIdString) else { return }
+           
+           Task {
+               // Clear cache
+               await MainActor.run {
+                   analyticViewModel.invalidateAllCurrentWindows()
+                   // ✅ Reset prefetch flag to avoid onAppear waiting
+                   analyticViewModel.isPrefetching = false
+                   print("🗑️ Cache cleared, isPrefetching = false")
+               }
+               
+               // Prefetch silently in background
+               analyticViewModel.prefetchAllTimeframes(userId: userId)
+           }
+       }
 
 
 }

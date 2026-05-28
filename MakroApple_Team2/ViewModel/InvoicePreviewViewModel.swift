@@ -16,34 +16,36 @@ class InvoicePreviewViewModel {
     var orderRecord: OrderRecord?
     var orderItems: [OrderItemRecord] = []
     
+    var invoiceData : InvoiceData = InvoiceData()
+    
     // ... all your display fields ...
-    var invoiceNumber: String = ""
-    var invoiceDate: String = ""
-    var invoiceDueDate: String = ""
-    var accountName: String = ""
-    var accountNumber: String = ""
-    var bankName: String = ""
-    var customerName: String = ""
-    var customerPhone: String = ""
-    var recipientName: String = ""
-    var recipientPhone: String = ""
-    var deliveryAddress: String = ""
-    var orderDate: String = ""
-    var deliveryTime: String = ""
-    var deliveryMethod: String = ""
-    var addOns: String = ""
-    var notes: String = ""
-    var subtotal: Decimal = 0
-    var shippingCost: Decimal = 0
-    var discountAmount: Decimal = 0
-    var total: Decimal = 0
-    var downPayment: Decimal = 0
-    var photoUrl1: String = ""
-    var businessName: String = ""
-    var businessPhone: String = ""
-    var businessAddress: String = ""
-    var businessLogoUrl: String = ""
-    var businessEmail: String = ""
+//    var invoiceNumber: String = ""
+//    var invoiceDate: String = ""
+//    var invoiceDueDate: String = ""
+//    var accountName: String = ""
+//    var accountNumber: String = ""
+//    var bankName: String = ""
+//    var customerName: String = ""
+//    var customerPhone: String = ""
+//    var recipientName: String = ""
+//    var recipientPhone: String = ""
+//    var deliveryAddress: String = ""
+//    var orderDate: String = ""
+//    var deliveryTime: String = ""
+//    var deliveryMethod: String = ""
+//    var addOns: String = ""
+//    var notes: String = ""
+//    var subtotal: Decimal = 0
+//    var shippingCost: Decimal = 0
+//    var discountAmount: Decimal = 0
+//    var total: Decimal = 0
+//    var downPayment: Decimal = 0
+//    var photoUrl1: String = ""
+//    var businessName: String = ""
+//    var businessPhone: String = ""
+//    var businessAddress: String = ""
+//    var businessLogoUrl: String = ""
+//    var businessEmail: String = ""
     
     var isLoading = false
     var errorMessage: String?
@@ -63,16 +65,20 @@ class InvoicePreviewViewModel {
     
     
     func tempPDFURL() -> URL? {
-        let invoiceView = InvoiceContentView(viewModel: self)
+        let invoiceView = InvoiceContentView(viewModel: invoiceData)
             .padding(20)
             .background(Color.white)
             .frame(width: 595, height: 841)
         
         guard let pdfData = exportAsPDF(view: invoiceView) else { return nil }
         
-        let invoiceCode = invoiceNumber.isEmpty ? "Invoice" : invoiceNumber
+        let sanitizedName = invoiceData.customerName
+            .replacingOccurrences(of: " ", with: "_")
+        let fileName = "\(invoiceData.invoiceNumber)_\(sanitizedName).pdf"
+        let invoiceCode = invoiceData.invoiceNumber.isEmpty ? "Invoice" : fileName
+        
         let tempURL = FileManager.default.temporaryDirectory
-            .appendingPathComponent("\(invoiceCode.replacingOccurrences(of: "/", with: "_")).pdf")
+            .appendingPathComponent("\(invoiceCode.replacingOccurrences(of: "/", with: "_"))")
         
         do {
             try pdfData.write(to: tempURL)
@@ -88,14 +94,14 @@ class InvoicePreviewViewModel {
         do {
             let user = try await SupabaseManager.shared.fetchUser(by: uuid)
             self.userRecord = user
-            self.businessName = user?.businessName ?? ""
-            self.businessPhone = user?.businessPhone ?? ""
-            self.businessAddress = user?.businessAddress ?? ""
-            self.bankName = user?.bankName ?? ""
-            self.accountNumber = user?.bankAccountNumber ?? ""
-            self.accountName = user?.bankAccountName ?? ""
-            self.businessLogoUrl = user?.businessLogoUrl ?? ""
-            self.businessEmail = user?.businessEmail ?? ""
+            self.invoiceData.businessName = user?.businessName ?? ""
+            self.invoiceData.businessPhone = user?.businessPhone ?? ""
+            self.invoiceData.businessAddress = user?.businessAddress ?? ""
+            self.invoiceData.bankName = user?.bankName ?? ""
+            self.invoiceData.accountNumber = user?.bankAccountNumber ?? ""
+            self.invoiceData.accountName = user?.bankAccountName ?? ""
+            self.invoiceData.businessLogoUrl = user?.businessLogoUrl ?? ""
+            self.invoiceData.businessEmail = user?.businessEmail ?? ""
         } catch {
             errorMessage = "No user found"
         }
@@ -110,7 +116,8 @@ class InvoicePreviewViewModel {
         if let orderIdString = orderId, let orderUUID = UUID(uuidString: orderIdString) {
             // Load REAL data from database
             await loadRealOrderData(orderUUID: orderUUID)
-        } else {
+        }
+        else {
             // Load TEMPLATE/MOCK data for first-time users
             await loadTemplateData()
         }
@@ -128,7 +135,7 @@ class InvoicePreviewViewModel {
                     self.orderRecord = order
                     self.orderItems = items
                     
-                    populateFromOrder(order: order, items: items, user: user)
+                    await populateFromOrder(order: order, items: items, user: user)
                 } else {
                     errorMessage = "User not found"
                 }
@@ -170,72 +177,81 @@ class InvoicePreviewViewModel {
     }
     
     // MARK: - Populate from Real Order
-    private func populateFromOrder(order: OrderRecord, items: [OrderItemRecord], user: UserRecord) {
-        invoiceNumber = order.orderNumber
-        invoiceDate = order.invoiceDueDate ?? DateFormatterHelper.isoDateString(from: Date())
-        invoiceDueDate = order.invoiceDueDate ?? DateFormatterHelper.isoDateString(from: Calendar.current.date(byAdding: .day, value: 1, to: Date())!)
+    private func populateFromOrder(order: OrderRecord, items: [OrderItemRecord], user: UserRecord) async {
+        invoiceData.invoiceNumber = order.orderNumber
+        invoiceData.invoiceDate = DateFormatterHelper.formattedDate(order.invoiceDate ?? "-")
+        invoiceData.invoiceDueDate = DateFormatterHelper.formattedDate(order.invoiceDueDate ?? "-")
         
-        businessName = user.businessName ?? "AIVA Bakery"
-        businessAddress = user.businessAddress ?? "Orchard Road"
-        businessPhone = user.businessPhone ?? "08123456789"
-        businessEmail = user.businessEmail ?? "hello@aivabakery.com"
-        businessLogoUrl = user.businessLogoUrl ?? ""
-        accountName = user.bankAccountName ?? "Michelle Michiko"
-        accountNumber = user.bankAccountNumber ?? "12345678910"
-        bankName = user.bankName ?? "Bank Transfer - BCA"
+        invoiceData.businessName = user.businessName ?? "AIVA Bakery"
+        invoiceData.businessAddress = user.businessAddress ?? "Orchard Road"
+        invoiceData.businessPhone = user.businessPhone ?? "08123456789"
+        invoiceData.businessEmail = user.businessEmail ?? "hello@aivabakery.com"
+        invoiceData.businessLogoUrl = user.businessLogoUrl ?? ""
+        invoiceData.accountName = user.bankAccountName ?? "Michelle Michiko"
+        invoiceData.accountNumber = user.bankAccountNumber ?? "12345678910"
+        invoiceData.bankName = user.bankName ?? "Bank Transfer - BCA"
         
-        customerName = order.customerOrderName
-        customerPhone = order.customerOrderPhone ?? ""
-        recipientName = order.customerReceiverName ?? ""
-        recipientPhone = order.customerReceiverPhone ?? ""
-        deliveryAddress = order.shippingAddress ?? ""
+        invoiceData.customerName = order.customerOrderName ?? "Customer Name"
+        invoiceData.customerPhone = order.customerOrderPhone ?? "08123456789"
+        invoiceData.recipientName = order.customerReceiverName ?? "Recipient Name"
+        invoiceData.recipientPhone = order.customerReceiverPhone ?? "08123456789"
         
-        let (tanggalPesanan, jamKirim) = DateFormatterHelper.indonesianDateAndTime(from: order.orderDdayDate ?? "")
-        orderDate = tanggalPesanan
-        deliveryTime = jamKirim
+        invoiceData.orderDate = DateFormatterHelper.formattedDate(order.orderDdayDate ?? "DD/MM/YYYY")
+        invoiceData.deliveryTime = DateFormatterHelper.formattedTime(order.orderDdayDate ?? "23:59")
         
-        deliveryMethod = order.opsiPengiriman ?? ""
-        addOns = order.addOn ?? ""
-        notes = order.notes ?? ""
+        invoiceData.deliveryMethod = order.opsiPengiriman ?? ""
+        invoiceData.addOns = order.addOn ?? ""
+        invoiceData.notes = order.notes ?? ""
         
-        subtotal = order.subtotal
-        shippingCost = order.shippingCost
-        discountAmount = order.discountAmount
-        total = order.totalAmount
-        downPayment = Decimal(string: order.customFields?["down_payment"]?.value as? String ?? "") ?? 0
+        invoiceData.subtotal = order.subtotal
+        invoiceData.shippingCost = order.shippingCost
+        invoiceData.total = order.totalAmount
+        invoiceData.downPayment = order.downPayment ?? 0
         
-        photoUrl1 = order.photoUrl1 ?? ""
+        invoiceData.photoUrl1 = order.photoUrl1 ?? ""
+        
+        invoiceData.displayOrderItems = displayOrderItems
+
     }
     
     // MARK: - Parse Template Data
     private func parseTemplateData(from templateDict: [String: AnyCodable]) {
-        customerName = (templateDict["Nama Pemesan"]?.value as? String) ?? ""
-        customerPhone = (templateDict["No. Telp Pemesan"]?.value as? String) ?? ""
-        recipientName = (templateDict["Nama Penerima"]?.value as? String) ?? ""
-        recipientPhone = (templateDict["No. Telp Penerima"]?.value as? String) ?? ""
-        deliveryAddress = (templateDict["Alamat Kirim"]?.value as? String) ?? ""
-        orderDate = (templateDict["Tanggal Pesanan"]?.value as? String) ?? ""
-        deliveryTime = (templateDict["Jam Kirim"]?.value as? String) ?? ""
-        deliveryMethod = (templateDict["Pengiriman: Kurir / Pickup"]?.value as? String) ?? ""
-        notes = (templateDict["Notes"]?.value as? String) ?? ""
+        invoiceData.customerName = (templateDict["Nama Pemesan"]?.value as? String) ?? ""
+        invoiceData.customerPhone = (templateDict["No. Telp Pemesan"]?.value as? String) ?? ""
+        invoiceData.recipientName = (templateDict["Nama Penerima"]?.value as? String) ?? ""
+        invoiceData.recipientPhone = (templateDict["No. Telp Penerima"]?.value as? String) ?? ""
+        invoiceData.deliveryAddress = (templateDict["Alamat Kirim"]?.value as? String) ?? ""
+        invoiceData.orderDate = (templateDict["Tanggal Pesanan"]?.value as? String) ?? ""
+        invoiceData.deliveryTime = (templateDict["Jam Kirim"]?.value as? String) ?? ""
+        invoiceData.deliveryMethod = (templateDict["Pengiriman: Kurir / Pickup"]?.value as? String) ?? ""
+        invoiceData.notes = (templateDict["Notes"]?.value as? String) ?? ""
         
         if let addOnsArray = templateDict["Adds-on"]?.value as? [[String: Any]] {
-            addOns = addOnsArray.compactMap { $0["item"] as? String }.joined(separator: ", ")
+            invoiceData.addOns = addOnsArray.compactMap { $0["item"] as? String }.joined(separator: ", ")
         }
     }
     
     // MARK: - Generate Mock Data
     private func generateMockInvoiceData() {
-        if customerName.isEmpty { customerName = "Nama Customer" }
-        if customerPhone.isEmpty { customerPhone = "No Telp Customer" }
-        if recipientName.isEmpty { recipientName = "Nama Penerima" }
-        if recipientPhone.isEmpty { recipientPhone = "No telp" }
-        if deliveryAddress.isEmpty { deliveryAddress = "Alamat kirim" }
-        if orderDate.isEmpty { orderDate = "DD/MM/YY" }
-        if deliveryTime.isEmpty { deliveryTime = "DD/MM/YY" }
+        if invoiceData.customerName.isEmpty { invoiceData.customerName = "Nama Customer" }
+        if invoiceData.customerPhone.isEmpty { invoiceData.customerPhone = "No Telp Customer" }
+        if invoiceData.recipientName.isEmpty { invoiceData.recipientName = "Nama Penerima" }
+        if invoiceData.recipientPhone.isEmpty { invoiceData.recipientPhone = "No telp" }
+        if invoiceData.deliveryAddress.isEmpty { invoiceData.deliveryAddress = "Alamat kirim" }
+        if invoiceData.orderDate.isEmpty { invoiceData.orderDate = "DD/MM/YY" }
+        if invoiceData.deliveryTime.isEmpty { invoiceData.deliveryTime = "DD/MM/YY" }
+        if invoiceData.invoiceDate.isEmpty { invoiceData.invoiceDate = "DD/MM/YY" }
+        if invoiceData.invoiceDueDate.isEmpty { invoiceData.invoiceDueDate = "DD/MM/YY" }
+        
+        if invoiceData.displayOrderItems.isEmpty {
+                invoiceData.displayOrderItems = [
+                    InvoiceOrderItem(description: "Product 1", unitPrice: 0, quantity: 1, discount: 0, total: 0),
+                    InvoiceOrderItem(description: "Product 2", unitPrice: 0, quantity: 1, discount: 0, total: 0)
+                ]
+            }
         
         // Mock invoice number for preview
-        invoiceNumber = generateInvoiceCode()
+        invoiceData.invoiceNumber = generateInvoiceCode()
     }
     
     // MARK: - Get Invoice Items for Display
@@ -247,14 +263,16 @@ class InvoicePreviewViewModel {
                     description: item.productName,
                     unitPrice: item.productPrice,
                     quantity: item.quantity,
+                    discount: item.productDiscount,
                     total: item.subtotal
+                    
                 )
             }
         } else {
             // Mock data for preview
             return [
-                InvoiceOrderItem(description: "Product 1", unitPrice: 0, quantity: 1, total: 0),
-                InvoiceOrderItem(description: "Product 2", unitPrice: 0, quantity: 1, total: 0)
+                InvoiceOrderItem(description: "Product 1", unitPrice: 0, quantity: 1, discount: 0, total: 0),
+                InvoiceOrderItem(description: "Product 2", unitPrice: 0, quantity: 1, discount : 0,total: 0)
             ]
         }
     }
@@ -374,7 +392,11 @@ class InvoicePreviewViewModel {
             throw NSError(domain: "InvoiceError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Invalid order ID"])
         }
         
-        let fileName = "\(invoiceNumber.replacingOccurrences(of: "/", with: "_")).pdf"
+        let sanitizedName = invoiceData.customerName
+            .replacingOccurrences(of: " ", with: "_")
+        let invoiceCode = invoiceData.invoiceNumber
+            .replacingOccurrences(of: "/", with: "_")
+        let fileName = "\(invoiceCode)_\(sanitizedName).pdf"
 
         let tempURL = FileManager.default.temporaryDirectory
             .appendingPathComponent(fileName)
@@ -412,5 +434,6 @@ struct InvoiceOrderItem: Identifiable {
     let description: String
     let unitPrice: Decimal
     let quantity: Int
+    let discount : Decimal
     let total: Decimal
 }

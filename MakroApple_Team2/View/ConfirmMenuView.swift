@@ -8,245 +8,179 @@
 import SwiftUI
 
 struct ConfirmMenuView: View {
-    
     @EnvironmentObject var session: SessionManager
+    @EnvironmentObject var deleteBus: DeleteOverlayBus
+    @EnvironmentObject var unsavedBus: UnsavedOverlayBus
     @StateObject private var vm = Set_MenuDetailsViewModel()
     @Environment(\.dismiss) private var dismiss
-    @State private var showUnsavedChangesAlert = false
-    @State private var navigateToTemplateForm = false
-    @Binding var path: NavigationPath
     
-    let scannedCategories: [MenuCategory] // ✅ Add this parameter
+    @State private var navigateToTemplateForm = false
+
+    @Binding var isDismissed: Bool
+    let scannedCategories: [MenuCategory]
+    var manualInput: Bool
+
+    @State private var productToDelete: (sectionIndex: Int, productIndex: Int)?
+    
+    var hasEmptyFields: Bool {
+        for ref in vm.visibleFlat {
+                let item = ref.item
+                
+                if item.name.trimmingCharacters(in: .whitespaces).isEmpty { return true }
+                if item.price == 0 { return true }
+            }
+            return false
+    }
     
     var body: some View {
         ZStack {
-            contentView
-                .navigationTitle("Rincian Isi Katalog")
-                .navigationBarBackButtonHidden(true)
-                .toolbar {
-                    ToolbarItem(placement: .navigationBarTrailing) {
-                        Button {
-                            Task {
-                                await vm.saveAll {
-                                    navigateToTemplateForm = true
-                                }
-                            }
-                        } label: {
-                            if vm.isLoading {
-                                ProgressView()
-                            } else {
-                                Image(systemName: "checkmark.circle.fill")
-                                    .font(.title2)
-                                    .foregroundColor(vm.hasPendingChanges ? .blue : .gray)
-                            }
-                        }
-                        .disabled(!vm.hasPendingChanges || vm.isLoading)
-                    }
-                }
-            .disabled(showUnsavedChangesAlert)
-            
-            if showUnsavedChangesAlert {
-                Color.black
-                    .opacity(showUnsavedChangesAlert ? 0.45 : 0)
-                    .ignoresSafeArea()
-                    .animation(.easeInOut(duration: 0.25), value: showUnsavedChangesAlert)
-                    .zIndex(10)
-                
-                CustomUnsavedAlert(
-                    title: "Perubahan Belum Disimpan",
-                    message: "Apakah Anda yakin ingin membatalkan perubahan yang telah dibuat?",
-                    cancelTitle: "Tidak",
-                    confirmTitle: "Ya",
-                    onCancel: { withAnimation { showUnsavedChangesAlert = false } },
-                    onConfirm: { withAnimation { dismiss() } }
-                )
-                .zIndex(11)
-                .transition(.scale.combined(with: .opacity))
-                .animation(.spring(response: 0.3, dampingFraction: 0.8), value: showUnsavedChangesAlert)
-            }
-        }
-        .task {
-            vm.configure(userId: session.userId)
-            
-            // ✅ Load from scanned data instead of database
-            if !scannedCategories.isEmpty {
-                await vm.loadFromScan(categories: scannedCategories)
-            } else {
-                await vm.load()
-            }
-        }
-        .navigationDestination(isPresented: $navigateToTemplateForm) {
-            NewTemplateFormView(path: $path)
-        }
-    }
-    
-    private var contentView: some View {
-        ZStack(alignment: .bottom) {
-            ScrollView {
-                VStack(spacing: 20) {
-                    if let err = vm.errorMessage {
-                        Text(err)
-                            .foregroundColor(.red)
-                            .padding(.horizontal)
-                    }
-                    
-                    // ✅ Show scan info banner
+            NavigationStack {
+                VStack(spacing: 12) {
                     if vm.isLoadedFromScan {
                         scanInfoBanner
                     }
                     
-                    ForEach(vm.sections.indices, id: \.self) { sIndex in
-                        let section = vm.sections[sIndex]
-                        
-                        VStack(alignment: .leading, spacing: 12) {
-                            // Header kategori
-                            VStack(alignment: .leading, spacing: 4) {
-                                HStack {
-                                    if section.isEditing {
-                                        TextField(
-                                            "Nama Kategori",
-                                            text: Binding(
-                                                get: {
-                                                    let raw = section.title.trimmingCharacters(in: .whitespacesAndNewlines)
-                                                    if raw.isEmpty { return "" }
-                                                    if ["ZZZ", "Silakan isi nama kategori", "Nama Kategori"].contains(raw) {
-                                                        return ""
-                                                    }
-                                                    return raw
-                                                },
-                                                set: { newValue in
-                                                    vm.sections[sIndex].title = newValue
-                                                }
-                                            )
-                                        )
-                                        .font(.headline)
-                                        .padding(.horizontal, 10)
-                                        .padding(.vertical, 6)
-                                        .background(Color(.systemGray6))
-                                        .cornerRadius(10)
-                                        .textInputAutocapitalization(.words)
-                                        .autocorrectionDisabled(true)
-                                    } else {
-                                        Text(section.title)
-                                            .font(.headline)
-                                            .padding(.horizontal, 10)
-                                            .padding(.vertical, 6)
-                                    }
-                                    
-                                    Spacer()
-                                    
-                                    if section.isEditing {
-                                        Button {
-                                            withAnimation {
-                                                vm.deleteTemporaryCategory(at: sIndex)
-                                            }
-                                        } label: {
-                                            Image(systemName: "trash")
-                                                .foregroundColor(.red)
-                                                .padding(.trailing, 6)
-                                        }
-                                    }
-                                    
-                                    Button {
-                                        withAnimation {
-                                            vm.toggleEdit(sectionIndex: sIndex)
-                                        }
-                                    } label: {
-                                        Text(section.isEditing ? "Selesai" : "Edit")
-                                            .font(.subheadline)
-                                            .foregroundColor(.blue)
-                                    }
-                                }
-                                
-                                if vm.validationErrors.contains("\(sIndex)-cat") {
-                                    HStack(spacing: 0) {
-                                        Text("Nama kategori tidak boleh kosong")
-                                            .font(.caption)
-                                            .foregroundColor(.red)
-                                            .padding(.leading, 3)
-                                        Spacer()
-                                    }
-                                }
-                            }
-                            
-                            Divider()
-                            
-                            if section.isEditing {
-                                Button {
-                                    vm.addTemporaryProduct(to: sIndex)
-                                } label: {
-                                    HStack(spacing: 8) {
-                                        Image(systemName: "plus")
-                                        Text("Tambah Produk")
-                                            .fontWeight(.medium)
-                                    }
-                                    .foregroundColor(.blue)
-                                    .padding(.vertical, 8)
-                                    .padding(.horizontal, 14)
-                                    .background(Capsule().fill(Color(.systemGray6)))
-                                }
-                            }
-                            
-                            VStack(spacing: 14) {
-                                ForEach(section.items.indices, id: \.self) { pIndex in
-                                    let item = section.items[pIndex]
-                                    HStack(alignment: .top) {
-                                        EditableProductRow(
-                                            viewModel: item,
-                                            isEditing: section.isEditing,
-                                            sectionIndex: sIndex,
-                                            productIndex: pIndex,
-                                            validationErrors: vm.validationErrors
-                                        )
-                                        if section.isEditing {
-                                            Button {
-                                                withAnimation {
-                                                    vm.deleteTemporaryProduct(from: sIndex, at: pIndex)
-                                                }
-                                            } label: {
-                                                Image(systemName: "trash")
-                                                    .foregroundColor(.red)
-                                                    .padding(.top, 8)
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        .padding(14)
-                        .background(Color.white)
-                        .cornerRadius(16)
-                        .padding(.horizontal)
-                    }
+                    searchHeader
                     
-                    Spacer(minLength: 100)
+                    contentFlatView
                 }
-                .padding(.top)
+                .navigationBarTitleDisplayMode(.inline)
+                .navigationBarBackButtonHidden(true)
+                .toolbar {
+                    ToolbarItem(placement: .principal) {
+                        Text("Rincian Menu / Katalog")
+                            .font(.title2.bold())
+                    }
+                    ToolbarItem(placement: .navigationBarLeading) {
+                        Button {
+                            if vm.hasPendingChanges {
+                                unsavedBus.request(
+                                    title: "Perubahan Belum Disimpan",
+                                    message: "Apakah Anda yakin ingin membatalkan perubahan?",
+                                    cancelTitle: "Tidak",
+                                    confirmTitle: "Ya",
+                                    onCancel: {},
+                                    onConfirm: { dismiss() }
+                                )
+                            } else {
+                                dismiss()
+                            }
+                        } label: {
+                            Image(systemName: "chevron.left")
+                                .font(.title3)
+                                .foregroundColor(.primaryButton)
+                        }
+                    }
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        if hasEmptyFields {
+                            Button {
+                                Task {
+                                    await vm.saveAll {
+                                        navigateToTemplateForm = true
+                                    }
+                                }
+                            } label: {
+                                if vm.isLoading {
+                                    ProgressView()
+                                        .tint(.white)
+                                } else {
+                                    Image(systemName: "chevron.right")
+                                        .font(.title2)
+                                        .foregroundColor(.primaryButton)
+                                }
+                            }
+                            .buttonStyle(.glassProminent)
+                            .tint(Color.white)
+                            .disabled(!vm.hasPendingChanges || vm.isLoading)
+                        } else {
+                            Button {
+                                Task {
+                                    await vm.saveAll {
+                                        navigateToTemplateForm = true
+                                    }
+                                }
+                            } label: {
+                                if vm.isLoading {
+                                    ProgressView()
+                                        .tint(.white)
+                                } else {
+                                    Image(systemName: "chevron.right")
+                                        .font(.title2)
+                                        .foregroundColor(.white)
+                                }
+                            }
+                            .buttonStyle(.glassProminent)
+                            .tint(Color.primaryButton)
+                            .disabled(!vm.hasPendingChanges || vm.isLoading)
+                        }
+                    }
+                }
+            }
+
+            // Overlay for unsaved changes
+            if unsavedBus.show {
+                Color.black.opacity(0.45)
+                    .ignoresSafeArea()
+                    .transition(.opacity)
+                    .zIndex(996)
+
+                CustomUnsavedAlert(
+                    title: unsavedBus.title,
+                    message: unsavedBus.message,
+                    cancelTitle: unsavedBus.cancelTitle,
+                    confirmTitle: unsavedBus.confirmTitle,
+                    onCancel: { unsavedBus.close(false) },
+                    onConfirm: { unsavedBus.close(true) }
+                )
+                .transition(.scale.combined(with: .opacity))
+                .zIndex(997)
             }
             
-            Button {
-                withAnimation {
-                    vm.addTemporaryCategory()
-                }
-            } label: {
-                HStack(spacing: 8) {
-                    Image(systemName: "plus")
-                        .font(.title3)
-                    Text("Tambah Kategori")
-                        .fontWeight(.bold)
-                }
-                .padding(.horizontal, 60)
-                .padding(.vertical, 14)
-                .background(Color.blue)
-                .foregroundColor(.white)
-                .clipShape(Capsule())
-                .shadow(color: Color.black.opacity(0.25), radius: 6, x: 0, y: 3)
+            // Overlay for delete confirmation
+            if deleteBus.show {
+                Color.black.opacity(0.45)
+                    .ignoresSafeArea()
+                    .transition(.opacity)
+                    .zIndex(998)
+
+                CustomDeleteAlertComponent(
+                    title: "Hapus",
+                    message: deleteBus.message,
+                    cancelTitle: "Tidak",
+                    confirmTitle: "Ya",
+                    onCancel: { deleteBus.closeConfirm(false) },
+                    onConfirm: {
+                        deleteBus.closeConfirm(true)
+                        executeDelete()
+                    }
+                )
+                .transition(.scale.combined(with: .opacity))
+                .zIndex(999)
             }
-            .padding(.bottom, 0)
+        }
+        .onTapGesture {
+            hideKeyboard()
+        }
+        .task {
+            vm.configure(userId: session.userId)
+            
+            if manualInput {
+                initializeEmptyProducts()
+            } else {
+                // ✅ Load from scanned data instead of database
+                if !scannedCategories.isEmpty {
+                    await vm.loadFromScan(categories: scannedCategories)
+                } else {
+                    await vm.load()
+                }
+            }
+        }
+        .navigationDestination(isPresented: $navigateToTemplateForm) {
+            NewTemplateFormView(isDismissed: $isDismissed)
         }
     }
     
-    // ✅ Info banner showing scan results
+    // MARK: - Info Banner
     private var scanInfoBanner: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
@@ -261,13 +195,12 @@ struct ConfirmMenuView: View {
                 Label("\(vm.sections.count) kategori", systemImage: "folder.fill")
                     .font(.caption)
                     .foregroundColor(.secondary)
-                
                 Label("\(vm.sections.flatMap { $0.items }.count) produk", systemImage: "tag.fill")
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
             
-            Text("Silakan periksa dan edit jika ada kesalahan sebelum menyimpan")
+            Text("Periksa dan edit jika ada kesalahan sebelum menyimpan")
                 .font(.caption)
                 .foregroundColor(.secondary)
         }
@@ -276,7 +209,101 @@ struct ConfirmMenuView: View {
         .cornerRadius(12)
         .padding(.horizontal)
     }
+    
+    // MARK: - Search Header + Add Product Button
+    private var searchHeader: some View {
+        HStack(spacing: 10) {
+            HStack(spacing: 8) {
+                Image(systemName: "magnifyingglass")
+                    .foregroundColor(.gray)
+                TextField("Cari produk", text: $vm.searchText)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled(true)
+            }
+            .padding(.vertical, 10)
+            .padding(.horizontal, 12)
+            .background(Color(.systemGray6))
+            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+
+            Button {
+                withAnimation { vm.addTemporaryProductFlat() }
+            } label: {
+                Image(systemName: "plus")
+                    .font(.title3.weight(.semibold))
+                    .frame(width: 36, height: 36)
+                    .background(Circle().fill(Color.primaryButton))
+                    .foregroundColor(.white)
+            }
+            .accessibilityLabel("Tambah Produk")
+        }
+        .padding(.horizontal)
+        .padding(.top, 8)
+    }
+    
+    // MARK: - Flat Product List
+    private var contentFlatView: some View {
+        ScrollView {
+            VStack(spacing: 16) {
+                if let err = vm.errorMessage {
+                    Text(err)
+                        .foregroundColor(.red)
+                        .padding(.horizontal)
+                }
+
+                ForEach(vm.visibleFlat) { ref in
+                    HStack(alignment: .top) {
+                        EditableProductRow(
+                            viewModel: ref.item,
+                            isEditing: true,
+                            sectionIndex: ref.sectionIndex,
+                            productIndex: ref.productIndex,
+                            validationErrors: vm.validationErrors,
+                            onChanged: { vm.markChanged() }
+                        )
+
+                        Button {
+                            handleDeleteProduct(sIndex: ref.sectionIndex, pIndex: ref.productIndex)
+                        } label: {
+                            Image(systemName: "trash")
+                                .foregroundColor(.red)
+                                .padding(.top, 8)
+                        }
+                    }
+                    .padding(.horizontal)
+                }
+
+                Spacer(minLength: 100)
+            }
+            .padding(.top)
+        }
+        .scrollContentBackground(.hidden)
+        .background(Color.white)
+    }
+    
+    // MARK: - Delete Handlers
+    func handleDeleteProduct(sIndex: Int, pIndex: Int) {
+        productToDelete = (sectionIndex: sIndex, productIndex: pIndex)
+        deleteBus.request(message: "Apakah Anda yakin ingin menghapus produk ini?") {
+            // Will call executeDelete() on confirm
+        }
+    }
+    
+    func executeDelete() {
+        if let prod = productToDelete {
+            withAnimation {
+                vm.deleteTemporaryProduct(from: prod.sectionIndex, at: prod.productIndex)
+            }
+        }
+        productToDelete = nil
+    }
+    
+    private func initializeEmptyProducts() {
+        for _ in 0..<3 {
+            vm.addTemporaryProductFlat()
+        }
+    }
 }
+
 
 //#Preview {
 //    let session = SessionManager()

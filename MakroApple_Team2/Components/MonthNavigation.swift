@@ -17,6 +17,8 @@ struct MonthNavigationView: View {
     var onMonthChanged: (() -> Void)? = nil
     var viewModel = AllOrdersViewModel()
     
+    private let swipeThreshold: CGFloat = 40
+    
     private var dayFormatter: DateFormatter {
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "id_ID")
@@ -33,10 +35,10 @@ struct MonthNavigationView: View {
         
     var body: some View {
         HStack {
-            Button(action: previousMonth) {
+            Button(action: previousSection) {
                Image(systemName: "chevron.left")
                    .font(.title3)
-                   .foregroundStyle(.primary)
+                   .foregroundStyle(.primaryButton)
            }
             
             Spacer()
@@ -61,14 +63,51 @@ struct MonthNavigationView: View {
             
             Spacer()
             
-            Button(action: nextMonth) {
+            Button(action: nextSection) {
                 Image(systemName: "chevron.right")
                     .font(.title3)
-                    .foregroundStyle(.primary)
+                    .foregroundStyle(.primaryButton)
             }
         }
         .padding(.horizontal)
         .padding(.vertical, isCollapsed ? 8 : 12)
+        .contentShape(Rectangle())
+        .gesture(
+            DragGesture(minimumDistance: 10, coordinateSpace: .local)
+                .onEnded { value in
+                    let horizontal = value.translation.width
+
+                    if horizontal > swipeThreshold {
+                        // swipe right → previous month
+                        previousSection()
+                    } else if horizontal < -swipeThreshold {
+                        // swipe left → next month
+                        nextSection()
+                    }
+                }
+        )
+    }
+    
+    private func previousSection() {
+        if isCollapsed {
+            if let newDate = calendar.date(byAdding: .day, value: -7, to: selectedDate) {
+                selectedDate = newDate
+                currentMonth = startOfMonth(for: selectedDate)
+            }
+        } else {
+            previousMonth()
+        }
+    }
+
+    private func nextSection() {
+        if isCollapsed {
+            if let newDate = calendar.date(byAdding: .day, value: 7, to: selectedDate) {
+                selectedDate = newDate
+                currentMonth = startOfMonth(for: selectedDate)
+            }
+        } else {
+            nextMonth()
+        }
     }
     
     private func previousMonth() {
@@ -89,6 +128,10 @@ struct MonthNavigationView: View {
         onMonthChanged!()
     }
     
+    private func startOfMonth(for date: Date) -> Date {
+        calendar.date(from: calendar.dateComponents([.year, .month], from: date)) ?? date
+    }
+    
     private func snap(_ date: Date, into month: Date) -> Date {
       let day = calendar.component(.day, from: date)
       guard
@@ -98,4 +141,20 @@ struct MonthNavigationView: View {
       let clamped = min(max(day, range.lowerBound), range.upperBound - 0)
       return calendar.date(byAdding: .day, value: clamped - 1, to: start) ?? start
     }
+}
+
+#Preview("Signed In") {
+    let session = SessionManager()
+    session.isAuthLoaded = true
+    session.isSignedIn = true
+
+    return MainTabView(
+        selectedTab: .constant(0),
+        sharedText: .constant("Test Text"),
+        hasNewObject: .constant(false),
+        sharedImages: .constant([])
+    )
+    .environmentObject(session)
+    .environmentObject(DeleteOverlayBus())
+    .environmentObject(UnsavedOverlayBus())
 }
